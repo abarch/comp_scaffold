@@ -9,7 +9,7 @@ import time
 ###TODO: compute note timings (-> ms) like in noteHandler
 ### (see also midiGenerator/test.py)
 def noteHandler():
-	print("...under construction...")
+	print("...handling note...")
 
 # just plays the whole midi file
 ###TODO: remove?

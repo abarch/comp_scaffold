@@ -9,7 +9,7 @@ import midiInput
 
 # MIDI PLAYER THREAD
 
-midiFile = '../midiGenerator/output.mid'
+midiFile = './testFiles/output.mid'
 outPort = 'Synth input port (qsynth:0)'
 
 # initialize midi file player thread
