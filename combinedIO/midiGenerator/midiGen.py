@@ -6,8 +6,8 @@ import random
 
 def generateMidi(bpm=120,
 				 noteValues=[1, 1/2, 1/4, 1/8],
-				 notesPerBar=[1, 3],	# range
-				 noOfBars=4,
+				 notesPerBar=[1],	# range
+				 noOfBars=8,
 				 pitches=[60, 62, 64, 65, 67, 69, 71, 72]):
 
 
@@ -28,6 +28,8 @@ def generateMidi(bpm=120,
 
 	INTRO_BARS = 1			# no. of empty first bars for metronome intro
 
+	ACROSS_BARS = 0			# allow notes to reach across two bars
+
 
 	### INITIALIZATION ###
 
@@ -39,7 +41,7 @@ def generateMidi(bpm=120,
 	meTrack = 1	  # metronome track
 
 	mf.addTrackName(muTrack, TIME, "Piano")
-	mf.addTrackName(meTrack, TIME, "Metrone")
+	mf.addTrackName(meTrack, TIME, "Metronome")
 
 	mf.addTempo(muTrack, TIME, bpm)
 
@@ -111,11 +113,20 @@ def generateMidi(bpm=120,
 	mf.addProgramChange(muTrack, CHANNEL_PIANO, TIME, INSTRUM_PIANO)
 
 	for t in range(len(timesteps) - 1):
+		# compute maximum note length until next note
 		maxNoteVal = (timesteps[t + 1] - timesteps[t]) / denominator
+		###temp = maxNoteVal
+
+		# compute maximum note length until next bar
+		if not ACROSS_BARS:
+			maxToNextBar = 1 - ((timesteps[t] % denominator) / denominator)
+			maxNoteVal = min([maxNoteVal, maxToNextBar])
+
+		###print(timesteps[t], "min(", temp, maxToNextBar, ") =", maxNoteVal)
 
 		#TODO: multiply with timeSig[1] here (instead below) when not printing anymore
 		duration = random.choice([v for v in noteValues if v <= maxNoteVal])
-		print(duration)
+		print(duration, "\n")
 
 		pitch = random.choice(pitches)
 		mf.addNote(	track=muTrack,
