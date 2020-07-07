@@ -1,0 +1,6 @@
+Commands to create sheet music of .mid file via LilyPond:
+
+> midi2ly output.mid
+> lilypond --png output-midi.ly
+
+(unfortunately creates additional files)
