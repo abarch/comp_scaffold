@@ -45,6 +45,7 @@ def noteHandler(noteType, pitch, velocity):
 		noteTimes[pitch] = [-1, -1, -1]
 
 		### TODO: remove?
+		print("Note", pitch, noteOnTime, noteOffTime)
 		timeDiff = noteOffTime - noteOnTime
 		return timeDiff
 			
@@ -70,8 +71,8 @@ def getMidiInput(inportName):
 			if (msg.type == 'note_on') or (msg.type == 'note_off'):
 				retVal = noteHandler(msg.type, msg.note, msg.velocity)
 				
-				if retVal > 0:
-					print("Note", msg.note, "pressed for", retVal, "ms")
+				#if retVal > 0:
+					#print("Note", msg.note, "pressed for", retVal, "ms")
 
 
 

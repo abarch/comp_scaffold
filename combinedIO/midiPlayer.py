@@ -30,21 +30,27 @@ def playMidi(fileName, outportName):
 	outport = mido.open_output(outportName)
 
 	for msg in MidiFile(fileName):
-		print(msg)
-		
+		#print(msg)
 
 		if not msg.is_meta:
 			time.sleep(msg.time)
 
+			###TODO: remove? or change at least? see below, channel etc!
+			if msg.channel == 0:
+				if (msg.type == 'note_on') or (msg.type == 'note_off'):
+					print("SOLL:", msg.type, msg.note, int(round(time.time() * 1000)))
+
+			
+
 			# filter channel (e.g. play Piano notes only)
 			###TODO: decide by argument?
-			if msg.channel == 0:
+			#if msg.channel == 0:
 				# send midi message to port (i.e. play note)
-				outport.send(msg)
+			outport.send(msg)
 
 				# handle note
 				###TODO: implement!
-				noteHandler()
+				#noteHandler()
 	
 
 
