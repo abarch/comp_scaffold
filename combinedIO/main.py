@@ -9,6 +9,7 @@ import time
 
 import midiPlayer
 import midiInput
+import errorCalc
 
 
 # CONSTANTS
@@ -69,9 +70,21 @@ playerThread.join()
 
 ###TODO: remove/change
 # print results
-print("\n\n--- RESULTS---")
-print("Target notes:", targetTimes)
+print("\n\n--- NOTES ---")
+print("\nTarget notes:", targetTimes)
 print("\nActual notes:", actualTimes)
+
+
+
+# COMPUTE ERROR (naive example)
+
+timeSums, errorDiff = errorCalc.computeError(targetTimes, actualTimes)
+print("\n\n--- ERRORS ---")
+print("\nTARGET TIME:", timeSums[0])
+print("\nACTUAl TIME:", timeSums[1])
+print("\nDIFFERENCE: ", errorDiff)
+
+
 
 # inputThread will die on main termination
 sys.exit()
