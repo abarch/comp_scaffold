@@ -29,11 +29,11 @@ NOTE_A= 9
 def haptic_action(char):
     with mido.open_output(midi_interface) as outport:
 
-        if char == 'i': # inwards dexmo impulse
+        if char == 'i': # inwards dexmo impulse when note begins
             msg = Message('note_on', channel=CHAN, note=MHP_ACT_IND+NOTE_F, velocity=50)
             outport.send(msg)
-        elif char == 'o': # outwards dexmo impulse
-            msg = Message('note_off', channel=CHAN, note=MHP_ACT_IND+NOTE_F, velocity=50)
+        elif char == 'o': # outwards dexmo impulse when note ends
+            msg = Message('note_on', channel=CHAN, note=MHP_ACT_IND+NOTE_E, velocity=50)
             outport.send(msg)
 
 # play demo: sound output of notes and haptic feedback impulse

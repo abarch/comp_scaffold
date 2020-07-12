@@ -5,7 +5,7 @@ import numpy as py
 import time
 import os
 import DexmoOutput
-import MidiGen
+import midiGen
 
 
 # starts only metronome output and haptic impulse from dexmo for every note
@@ -22,7 +22,7 @@ def startDemo():
 # generate new midiFile and Notesheet and displays it
 # TODO generate MidiFile with arguments out of errors
 def nextTask():
-    MidiGen.generateMidi()
+    midiGen.generateMidi()
     os.system('midi2ly output.mid')
     os.system('lilypond -fpng output-midi.ly')
     clearFrame()
