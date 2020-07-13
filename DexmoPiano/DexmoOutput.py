@@ -6,6 +6,8 @@ import time
 import curses
 import datetime
 
+import noteHandler as nh
+
 stdscr = curses.initscr()
 curses.noecho()
 stdscr.nodelay(1) # set getch() non-blocking
@@ -29,10 +31,11 @@ NOTE_A= 9
 def haptic_action(char):
     with mido.open_output(midi_interface) as outport:
 
-        if char == 'i': # inwards dexmo impulse when note begins
+        if char == 'i': # inwards dexmo impulse
             msg = Message('note_on', channel=CHAN, note=MHP_ACT_IND+NOTE_F, velocity=50)
             outport.send(msg)
-        elif char == 'o': # outwards dexmo impulse when note ends
+        elif char == 'o': # outwards dexmo impulse
+            #msg = Message('note_off', channel=CHAN, note=MHP_ACT_IND+NOTE_F, velocity=50)
             msg = Message('note_on', channel=CHAN, note=MHP_ACT_IND+NOTE_E, velocity=50)
             outport.send(msg)
 
@@ -48,16 +51,29 @@ def play_demo(midiFile):
                     haptic_action('o')
 
 # only haptic feedback impulse
-def practice_task(midiFile):
+def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
     with mido.open_output(midi_interface_sound) as port:
+        noteCounter = 1
         for msg in MidiFile(midiFile).play():
             if msg.channel == 9:
                 port.send(msg)      # sound only from metronome track
+
             if msg.channel == 0:    # haptic feeback for notes in Piano track
-                if msg.type == 'note_on':
-                    haptic_action('i')
-                elif msg.type == 'note_off':
-                    haptic_action('o')
+
+            ##____________________HANDLE note_________________________________##
+                if (msg.type == 'note_on') or (msg.type == 'note_off'):
+					# handle note
+                    noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity, noteInfoTemp, noteInfoList)
+
+                    if type(noteInfo) == list:
+                        print("TARGET:", noteCounter, "\t", noteInfo)
+                        noteCounter += 1
+            ##____________________HANDLE note_________________________________##
+                if (guidanceMode == "At every note"):
+                    if msg.type == 'note_on':
+                        haptic_action('i')
+                    elif msg.type == 'note_off':
+                        haptic_action('o')
 
 if __name__ == '__main__':
     #start_music()

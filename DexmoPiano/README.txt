@@ -5,5 +5,8 @@ Manual for Piano with Dexmo first Demo:
   to get midi_interface_sound
 
 - maybe you have to change the midi_interfaces in DexmoOutput.py
+  and threadHandler.py (Piano Input)
+
+- connect a Keyboard or start a virtual Keyboard (vmpk)  
 
 - when LegoDexmo is plugged in, you can start DexmoPianoGui.py

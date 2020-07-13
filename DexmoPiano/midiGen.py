@@ -82,7 +82,7 @@ def generateMidi(bpm=120,
 						denominator=midiDenom,
 						clocks_per_tick=metro_clocks)
 
-	
+
 	### CHOOSE TIMESTEPS ###
 
 	timesteps = []
@@ -104,7 +104,7 @@ def generateMidi(bpm=120,
 	# append dummy element to avoid additional bar
 	timesteps.append(bars * numerator)
 
-	print("timesteps:", timesteps[:-1])
+	#print("timesteps:", timesteps[:-1])
 
 
 	### ADD NOTES ###
@@ -126,7 +126,7 @@ def generateMidi(bpm=120,
 
 		#TODO: multiply with timeSig[1] here (instead below) when not printing anymore
 		duration = random.choice([v for v in noteValues if v <= maxNoteVal])
-		print(duration, "\n")
+		#print(duration, "\n")
 
 		pitch = random.choice(pitches)
 		mf.addNote(	track=muTrack,
@@ -139,9 +139,9 @@ def generateMidi(bpm=120,
 
 	# add metronome notes
 	mf.addProgramChange(meTrack, CHANNEL_METRO, TIME, INSTRUM_DRUMS)
-	
+
 	for t in range(bars * numerator):
-		
+
 		# decide if downbeat or 'other' note
 		if (t % numerator) == 0:
 			# first beat in bar
@@ -162,5 +162,5 @@ def generateMidi(bpm=120,
 	    mf.writeFile(outf)
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
 	generateMidi()
