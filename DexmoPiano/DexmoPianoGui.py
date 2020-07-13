@@ -58,7 +58,7 @@ def spezifyTask():
 
     specifyWindow.transient(root)
     specifyWindow.grab_set()
-    specifyWindow.geometry("310x510")
+    specifyWindow.geometry("310x540")
     specifyWindow.title("Options for next task")
 
 ## NOTEVALUE checkboxes
@@ -124,7 +124,7 @@ def spezifyTask():
     l5.grid (row=9,columnspan=4,sticky=W, pady=(20,0))
 
     global C, D, E, F, G, A, B, C5
-    
+
     C = BooleanVar()
     C.set(60 in pitchesList)
     c1 = Checkbutton(specifyWindow, text='C', var=C)
@@ -174,17 +174,21 @@ def spezifyTask():
     guidance = StringVar(specifyWindow)
     guidance.set(guidanceMode)
     guideopt = OptionMenu(specifyWindow, guidance, *GuidanceModeList)
-    guideopt.grid(row=13,columnspan=4,sticky=W,)
+    guideopt.grid(row=13,columnspan=6,sticky=W,)
 
 
 ## Save and quit button
+
+    l7 = Label(specifyWindow, text=" \n \n ")
+    l7.grid(row=14,columnspan=4, sticky=W)
+
     saveButton = Button(specifyWindow, text ='Save and quit',
         command =lambda: save_settings(saveBPM=bpmscale.get(), saveBarNumber=numberBars.get(),
                         saveNotesperBar=maxNoteNumber.get(), saveGuidance=guidance.get()))
-    saveButton.grid(row= 14, column = 4, columnspan = 3, pady=(40,0))
+    saveButton.grid(row= 15, column = 4, columnspan = 3, pady=(20,0))
 
     quitButton = Button(specifyWindow, text ='Quit without saving',command =lambda: quit_options())
-    quitButton.grid(row= 14, columnspan = 3, pady=(40,0))
+    quitButton.grid(row= 15, columnspan = 3, pady=(20,0))
 
     root.wait_window(specifyWindow)
 
@@ -224,17 +228,24 @@ def get_pitches():
 
     return pitchesList
 
+def show_empty_list_error():
+    l7 = Label(specifyWindow, text=" Error: \n At least one pitch and one \n notevalue must be selected.",
+		 fg = "red")
+    l7.grid(row=14,column = 2, columnspan=4, sticky=W)
 
 # save settings to generate a new task with it
 def save_settings(saveBPM, saveBarNumber, saveNotesperBar, saveGuidance):
     global bpm, numberOfBars, maxNoteperBar, guidanceMode, noteValuesList, pitchesList
-    bpm = saveBPM
-    numberOfBars = saveBarNumber
-    maxNoteperBar = int(saveNotesperBar)
-    guidanceMode = saveGuidance
-    noteValuesList = get_noteValues()
-    pitchesList = get_pitches()
-    specifyWindow.destroy()
+    if not get_noteValues() or not get_pitches():
+        show_empty_list_error()
+    else:
+        bpm = saveBPM
+        numberOfBars = saveBarNumber
+        maxNoteperBar = int(saveNotesperBar)
+        guidanceMode = saveGuidance
+        noteValuesList = get_noteValues()
+        pitchesList = get_pitches()
+        specifyWindow.destroy()
 
 # quit options window without saving settings
 def quit_options():
