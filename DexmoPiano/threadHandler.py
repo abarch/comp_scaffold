@@ -33,12 +33,18 @@ def startThreads(midiFileLocation, guidance):
 
 	#midiFile = './testFiles/output.mid'
 	#midiFile = './testFiles/easy.mid'
-	outPort = 'Synth input port (qsynth:0)'
+	#outPort = 'FLUID Synth (5011):Synth input port (5011:0) 130:0'
 
 	# initialize MIDI file player thread
 	#playerThread = Thread(target=midiPlayer.playMidi,args=(midiFile, outPort, targetTemp, targetTimes))
 
-	playerThread = Thread(target = DexmoOutput.practice_task(midiFileLocation, targetTemp, targetTimes, guidance))
+	playerThread = Thread(target=DexmoOutput.practice_task,
+						  args=(midiFileLocation, targetTemp, targetTimes, guidance))
+
+	#playerThread = Thread(target = DexmoOutput.practice_task(midiFileLocation,
+	#														 targetTemp,
+	#														 targetTimes,
+	#														 guidance))
 
 	playerThread.start()
 
@@ -49,7 +55,7 @@ def startThreads(midiFileLocation, guidance):
 
 	#inPort = 'Q25 MIDI 1'
 
-	inPort = 'VMPK Output:out 130:0'
+	inPort = 'VMPK Output:out 131:0'
 
 	# initialize keyboard MIDI input thread
 	inputThread = Thread(target=midiInput.getMidiInput,

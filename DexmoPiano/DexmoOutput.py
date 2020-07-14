@@ -3,14 +3,9 @@ from mido import Message
 from mido import MidiFile
 import time
 
-import curses
 import datetime
 
 import noteHandler as nh
-
-stdscr = curses.initscr()
-curses.noecho()
-stdscr.nodelay(1) # set getch() non-blocking
 
 
 # FIXME: this needs to be adapted
