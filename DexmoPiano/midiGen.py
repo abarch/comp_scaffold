@@ -158,7 +158,7 @@ def generateMidi(bpm=120,
 
 
 	# write MIDI file
-	with open("output.mid", 'wb') as outf:
+	with open("./output/output.mid", 'wb') as outf:
 	    mf.writeFile(outf)
 
 

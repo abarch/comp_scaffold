@@ -10,7 +10,7 @@ import noteHandler as nh
 
 # FIXME: this needs to be adapted
 midi_interface = 'DEXMO_R:DEXMO_R MIDI 1 20:0'
-midi_interface_sound = 'Midi Through:Midi Through Port-0 14:0'
+midi_interface_sound = 'Synth input port (Qsynth1:0)'
 
 # abstract in python of the MIDI_HAPTIC_DEFINITION
 # define channel of the device here

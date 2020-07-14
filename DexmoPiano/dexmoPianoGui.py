@@ -1,44 +1,52 @@
 from tkinter import *
-from tkinter import filedialog
 from PIL import Image, ImageDraw, ImageFilter, ImageTk
-import numpy as py
 import time
-import os
-import DexmoOutput
+import subprocess
+import dexmoOutput
 import midiGen
 import threadHandler
 
 global bpm, numberOfBars, noteValuesList, pitchesList, maxNoteperBar
 guidanceMode = "At every note"
 maxNoteperBar = 1
-numberOfBars = 8
+numberOfBars = 5
 bpm = 120
 noteValuesList = [1, 1/2, 1/4, 1/8]
-pitchesList = [60, 62, 64, 65, 67, 69, 71, 72]
+pitchesList = [62, 64]
+
+# directory/filename strings
+outputSubdir = './output/'
+inputMidiStr = outputSubdir + 'output.mid'
+outputLyStr = outputSubdir + 'output-midi.ly'
+outputPngStr = outputSubdir + 'output-midi.png'
 
 
 # starts only metronome output and haptic impulse from dexmo for every note
 def startTask():
-    threadHandler.startThreads('output.mid', guidanceMode)
+    threadHandler.startThreads(inputMidiStr, guidanceMode)
     #DexmoOutput.practice_task('output.mid')
 
 # starts Demo with sound output and haptic impulse from dexmo for every note
 def startDemo():
-    DexmoOutput.play_demo('output.mid')
+    dexmoOutput.play_demo(inputMidiStr)
 
 # generate new midiFile and Notesheet and displays it
 def nextTask():
     midiGen.generateMidi(bpm=bpm, noteValues=noteValuesList,
     				 notesPerBar=list(range(1, maxNoteperBar+1)),
     				 noOfBars=numberOfBars, pitches=pitchesList)
-    os.system('midi2ly output.mid')
-    os.system('lilypond --png output-midi.ly')
+
+    subprocess.run(['midi2ly', inputMidiStr, '--output=' + outputLyStr],
+                    stderr=subprocess.DEVNULL)
+    subprocess.run(['lilypond', '--png', '-o', outputSubdir, outputLyStr],
+                    stderr=subprocess.DEVNULL)
+
     clearFrame()
-    load_Notesheet("output-midi.png")
+    load_notesheet(outputPngStr)
     load_taskButtons()
 
 # loads notesheet for actual task
-def load_Notesheet(png):
+def load_notesheet(png):
     global background
     background = Image.open(png)
     background = background.convert("RGBA")
@@ -289,6 +297,11 @@ def quit():
     root.destroy()
 
 ##_____________________________START LOOP HERE________________________________##
+
+
+# create file output folder if it does not already exist
+subprocess.run(['mkdir', '-p', outputSubdir], stderr=subprocess.DEVNULL)
+
 # Create a window and title
 root = Tk()
 root.title("Piano with Dexmo")

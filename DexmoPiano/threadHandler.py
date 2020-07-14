@@ -8,7 +8,7 @@ import sys
 import time
 
 import midiPlayer
-import DexmoOutput
+import dexmoOutput
 import midiInput
 import errorCalc
 
@@ -31,20 +31,11 @@ def startThreads(midiFileLocation, guidance):
 
 	# MIDI PLAYER THREAD
 
-	#midiFile = './testFiles/output.mid'
-	#midiFile = './testFiles/easy.mid'
 	#outPort = 'FLUID Synth (5011):Synth input port (5011:0) 130:0'
 
 	# initialize MIDI file player thread
-	#playerThread = Thread(target=midiPlayer.playMidi,args=(midiFile, outPort, targetTemp, targetTimes))
-
-	playerThread = Thread(target=DexmoOutput.practice_task,
+	playerThread = Thread(target=dexmoOutput.practice_task,
 						  args=(midiFileLocation, targetTemp, targetTimes, guidance))
-
-	#playerThread = Thread(target = DexmoOutput.practice_task(midiFileLocation,
-	#														 targetTemp,
-	#														 targetTimes,
-	#														 guidance))
 
 	playerThread.start()
 
