@@ -58,13 +58,7 @@ def startThreads(midiFileLocation, guidance):
 
 	inputThread.start()
 
-
-	### remove
-	# for i in range(10):
-	# 	print(i)
-	# 	time.sleep(1)
-
-
+	# ... MIDI playing ...
 
 	# wait for MIDI player thread to terminate
 	playerThread.join()

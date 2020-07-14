@@ -12,8 +12,8 @@ def computeError(targetNoteInfoList, actualNoteInfoList):
 		for noteInfo in noteInfoList:
 			tempSum += noteInfo[3] - noteInfo[2]
 
-		timeSums.append(tempSum)
+		timeSums.append(round(tempSum, 3))
 
-	errorDiff = timeSums[1] - timeSums[0]
+	errorDiff = round(timeSums[1] - timeSums[0], 3)
 
 	return timeSums, errorDiff

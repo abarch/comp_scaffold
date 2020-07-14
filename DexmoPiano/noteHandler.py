@@ -1,9 +1,25 @@
 import time
 
 
+# number of digits up to which a float is rounded
+ROUND_DIGITS = 3
+
+startTime = 0.0
+
+
+# set start time (used as offset)
+def initTime():
+	global startTime
+
+	startTime = time.time()
+
+	###TODO: remove
+	print("Start time:", startTime)
+
+
 # get current time in milliseconds
 def getTime():
-	return int(round(time.time() * 1000))
+	return round(time.time() - startTime, ROUND_DIGITS)
 
 
 #TODO: documentation

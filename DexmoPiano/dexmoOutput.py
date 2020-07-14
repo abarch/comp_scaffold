@@ -49,6 +49,10 @@ def play_demo(midiFile):
 def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
     with mido.open_output(midi_interface_sound) as port:
         noteCounter = 1
+
+        # set start time
+        nh.initTime()
+
         for msg in MidiFile(midiFile).play():
             if msg.channel == 9:
                 port.send(msg)      # sound only from metronome track
