@@ -49,6 +49,8 @@ def nextTask():
         GuidanceModeList = ["None"]
         guidanceMode = "None"
         add_Dexmo_Warning()
+    else:
+        GuidanceModeList = ["None","At every note","Individual"]    
     load_taskButtons()
 
 # loads notesheet for actual task
