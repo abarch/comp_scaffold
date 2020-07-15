@@ -11,9 +11,6 @@ def getMidiInput(inportName, noteInfoTemp, noteInfoList):
 	# open MIDI input port
 	inport = mido.open_input(inportName)
 
-
-	print("keyboard thread startet")
-
 	###TODO: remove?
 	noteCounter = 1
 

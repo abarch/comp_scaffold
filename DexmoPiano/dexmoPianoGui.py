@@ -6,7 +6,9 @@ import dexmoOutput
 import midiGen
 import threadHandler
 
-global bpm, numberOfBars, noteValuesList, pitchesList, maxNoteperBar
+global bpm, numberOfBars, noteValuesList, pitchesList, maxNoteperBar, guidanceMode, GuidanceModeList
+
+GuidanceModeList = ["None","At every note","Individual"]
 guidanceMode = "At every note"
 maxNoteperBar = 1
 numberOfBars = 5
@@ -24,11 +26,11 @@ outputPngStr = outputSubdir + 'output-midi.png'
 # starts only metronome output and haptic impulse from dexmo for every note
 def startTask():
     threadHandler.startThreads(inputMidiStr, guidanceMode)
-    #DexmoOutput.practice_task('output.mid')
+    #dexmoOutput.practice_task('output.mid')
 
 # starts Demo with sound output and haptic impulse from dexmo for every note
 def startDemo():
-    dexmoOutput.play_demo(inputMidiStr)
+    dexmoOutput.play_demo(inputMidiStr, guidanceMode)
 
 # generate new midiFile and Notesheet and displays it
 def nextTask():
@@ -40,9 +42,13 @@ def nextTask():
                     stderr=subprocess.DEVNULL)
     subprocess.run(['lilypond', '--png', '-o', outputSubdir, outputLyStr],
                     stderr=subprocess.DEVNULL)
-
     clearFrame()
     load_notesheet(outputPngStr)
+    if (dexmoOutput.check_Dexmo() == False):
+        global GuidanceModeList, guidanceMode
+        GuidanceModeList = ["None"]
+        guidanceMode = "None"
+        add_Dexmo_Warning()
     load_taskButtons()
 
 # loads notesheet for actual task
@@ -177,8 +183,6 @@ def spezifyTask():
     l6 = Label(specifyWindow, text=" Guidance mode:")
     l6.grid(row=12,columnspan=4, sticky=W, pady=(20,0))
 
-
-    GuidanceModeList = ["None","At every note","Individual"]
     guidance = StringVar(specifyWindow)
     guidance.set(guidanceMode)
     guideopt = OptionMenu(specifyWindow, guidance, *GuidanceModeList)
@@ -261,19 +265,25 @@ def quit_options():
 
 ##____________________________OPTIONS-END_____________________________________##
 
+# create warning if Dexmo is not plugged in
+def add_Dexmo_Warning():
+    l = Label(root, text=" Warning: \n No Dexmo connected, \n no guidance possible.",
+    	 fg = "red").place(x = 10, y = 230, width =150, height= 70)
 
 # create button for demo, practicing, next task, back to start menu
 def load_taskButtons():
-    startMenuButton = Button(root, text ='Back to Menu',
-        command = backToMenu).place(x = 10, y = 940, height=50, width=150)
     startTaskcButton = Button(root, text ='Start Task',
         command = startTask).place(x = 10, y = 100, height=50, width=150)
     startDemoButton = Button(root, text ='Start Demo',
         command = startDemo).place(x = 10, y = 160, height=50, width=150)
+
     nextTaskButton = Button(root, text ='Next Task',
         command = nextTask).place(x = 10, y = 400, height=50, width=150)
     nextTaskButton = Button(root, text ='Specify next Task',
         command = spezifyTask).place(x = 10, y = 460, height=25, width=150)
+
+    startMenuButton = Button(root, text ='Back to Menu',
+        command = backToMenu).place(x = 10, y = 940, height=50, width=150)
 
 # load start menu with button for first task and exit button
 def load_Startmenu():

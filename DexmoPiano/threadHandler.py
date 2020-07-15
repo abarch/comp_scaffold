@@ -7,7 +7,6 @@ import sys
 ###remove
 import time
 
-import midiPlayer
 import dexmoOutput
 import midiInput
 import errorCalc
@@ -46,7 +45,7 @@ def startThreads(midiFileLocation, guidance):
 
 	#inPort = 'Q25 MIDI 1'
 
-	inPort = 'VMPK Output:out 131:0'
+	inPort = 'VMPK Output:out 130:0'
 
 	# initialize keyboard MIDI input thread
 	inputThread = Thread(target=midiInput.getMidiInput,

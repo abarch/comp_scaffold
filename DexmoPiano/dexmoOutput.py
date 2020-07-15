@@ -9,7 +9,7 @@ import noteHandler as nh
 
 
 # FIXME: this needs to be adapted
-midi_interface = 'DEXMO_R:DEXMO_R MIDI 1 20:0'
+midi_interface = 'DEXMO_R:DEXMO_R MIDI 1 24:0'
 midi_interface_sound = 'Synth input port (Qsynth1:0)'
 
 # abstract in python of the MIDI_HAPTIC_DEFINITION
@@ -21,6 +21,17 @@ MHP_ACT_IND = 36
 NOTE_E= 4
 NOTE_F= 5
 NOTE_A= 9
+
+
+# check if DEXMO is plugged in and set right interface port
+def check_Dexmo():
+    outportNames = []
+    outportNames = mido.get_output_names()
+    matching = [s for s in outportNames if "DEXMO" in s]
+    if matching:
+        midi_interface = matching[0]
+        return True
+    else: return False
 
 # Send an action to the haptic device over the midi interface
 def haptic_action(char):
@@ -35,15 +46,16 @@ def haptic_action(char):
             outport.send(msg)
 
 # play demo: sound output of notes and haptic feedback impulse
-def play_demo(midiFile):
+def play_demo(midiFile, guidanceMode):
     with mido.open_output(midi_interface_sound) as port:
         for msg in MidiFile(midiFile).play():
             port.send(msg)       # sound from piano and metronome track
             if msg.channel == 0: # haptic feeback for notes in Piano track
-                if msg.type == 'note_on':
-                    haptic_action('i')
-                elif msg.type == 'note_off':
-                    haptic_action('o')
+                if (guidanceMode != "None"):
+                    if msg.type == 'note_on':
+                        haptic_action('i')
+                    elif msg.type == 'note_off':
+                        haptic_action('o')
 
 # only haptic feedback impulse
 def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
@@ -53,26 +65,30 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
         # set start time
         nh.initTime()
 
-        for msg in MidiFile(midiFile).play():
-            if msg.channel == 9:
-                port.send(msg)      # sound only from metronome track
+        for msg in MidiFile(midiFile):
+            if not msg.is_meta:
+    			# do not play all notes at once
+                time.sleep(msg.time)
 
-            if msg.channel == 0:    # haptic feeback for notes in Piano track
+                if msg.channel == 9:
+                    port.send(msg)      # sound only from metronome track
 
-            ##____________________HANDLE note_________________________________##
-                if (msg.type == 'note_on') or (msg.type == 'note_off'):
-					# handle note
-                    noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity, noteInfoTemp, noteInfoList)
+                if msg.channel == 0:    # haptic feeback for notes in Piano track
 
-                    if type(noteInfo) == list:
-                        print("TARGET:", noteCounter, "\t", noteInfo)
-                        noteCounter += 1
-            ##____________________HANDLE note_________________________________##
-                if (guidanceMode == "At every note"):
-                    if msg.type == 'note_on':
-                        haptic_action('i')
-                    elif msg.type == 'note_off':
-                        haptic_action('o')
+                ##____________________HANDLE note_____________________________##
+                    if (msg.type == 'note_on') or (msg.type == 'note_off'):
+    					# handle note
+                        noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity, noteInfoTemp, noteInfoList)
+
+                        if type(noteInfo) == list:
+                            print("TARGET:", noteCounter, "\t", noteInfo)
+                            noteCounter += 1
+                ##____________________HANDLE note_____________________________##
+                    if (guidanceMode == "At every note"):
+                        if msg.type == 'note_on':
+                            haptic_action('i')
+                        elif msg.type == 'note_off':
+                            haptic_action('o')
 
 if __name__ == '__main__':
     #start_music()
