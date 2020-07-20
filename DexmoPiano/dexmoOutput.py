@@ -9,6 +9,7 @@ import noteHandler as nh
 
 
 # FIXME: this needs to be adapted
+global midi_interface
 midi_interface = 'DEXMO_R:DEXMO_R MIDI 1 24:0'
 midi_interface_sound = 'Synth input port (Qsynth1:0)'
 
@@ -25,6 +26,7 @@ NOTE_A= 9
 
 # check if DEXMO is plugged in and set right interface port
 def check_Dexmo():
+    global midi_interface
     outportNames = []
     outportNames = mido.get_output_names()
     matching = [s for s in outportNames if "DEXMO" in s]

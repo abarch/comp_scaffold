@@ -45,7 +45,7 @@ def startThreads(midiFileLocation, guidance):
 
 	#inPort = 'Q25 MIDI 1'
 
-	inPort = 'VMPK Output:out 130:0'
+	inPort = 'VMPK Output:out'
 
 	# initialize keyboard MIDI input thread
 	inputThread = Thread(target=midiInput.getMidiInput,
@@ -72,12 +72,16 @@ def startThreads(midiFileLocation, guidance):
 
 
 	# COMPUTE ERROR (naive example)
+	global errorDiff
 
 	timeSums, errorDiff = errorCalc.computeError(targetTimes, actualTimes)
 	print("\n\n--- ERRORS ---")
 	print("\nTARGET TIME:", timeSums[0])
 	print("\nACTUAl TIME:", timeSums[1])
 	print("\nDIFFERENCE: ", errorDiff)
+
+def get_errors():
+	return errorDiff
 
 
 

@@ -1,5 +1,8 @@
 from tkinter import *
 from PIL import Image, ImageDraw, ImageFilter, ImageTk
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import numpy as np
 import time
 import subprocess
 import dexmoOutput
@@ -16,6 +19,9 @@ bpm = 120
 noteValuesList = [1, 1/2, 1/4, 1/8]
 pitchesList = [62, 64]
 
+global errors
+errors = []
+
 # directory/filename strings
 outputSubdir = './output/'
 inputMidiStr = outputSubdir + 'output.mid'
@@ -27,6 +33,8 @@ outputPngStr = outputSubdir + 'output-midi.png'
 def startTask():
     threadHandler.startThreads(inputMidiStr, guidanceMode)
     #dexmoOutput.practice_task('output.mid')
+
+    add_error_plot()
 
 # starts Demo with sound output and haptic impulse from dexmo for every note
 def startDemo():
@@ -50,7 +58,7 @@ def nextTask():
         guidanceMode = "None"
         add_Dexmo_Warning()
     else:
-        GuidanceModeList = ["None","At every note","Individual"]    
+        GuidanceModeList = ["None","At every note","Individual"]
     load_taskButtons()
 
 # loads notesheet for actual task
@@ -64,7 +72,7 @@ def load_notesheet(png):
     img = ImageTk.PhotoImage(background)
     panel = Label(root, image = img)
     panel.image = img
-    panel.pack(side = RIGHT)
+    panel.place(x = 170, y = 0, width =835, height= 1181)
 
 ##_______________________________OPTIONS______________________________________##
 # create Window to specify next task, root waiting until this window is closed
@@ -265,7 +273,37 @@ def save_settings(saveBPM, saveBarNumber, saveNotesperBar, saveGuidance):
 def quit_options():
     specifyWindow.destroy()
 
-##____________________________OPTIONS-END_____________________________________##
+##_____________________________ERROR-PLOT_____________________________________##
+def add_error_plot():
+    l = Label(root, text=" Error visualization:").place(x = 1200, y = 10, width =150, height= 20)
+
+    fig = Figure(figsize = (9, 6), facecolor = "white")
+    axis = fig.add_subplot(111)
+    x = np.linspace(0, 10, 1000)
+
+    global errors
+    errorvalue = threadHandler.get_errors()
+    errors.append(abs(errorvalue))
+
+    xvalues = []
+    for i in range(len(errors)):
+        xvalues.append(i)
+    axis.plot(xvalues,errors)
+
+    axis.set_xticks([0,1,2,3,4,5,6,7,8,9,10])
+    #axis.set_xticks(xvalues)
+    axis.set_yticks([0, 1, 2, 3])
+    axis.set_ylim(0, 4)
+    axis.set_xlabel("Trials")
+    axis.set_ylabel("Error")
+
+    #axis.legend()
+    axis.grid()
+
+    canvas = FigureCanvasTkAgg(fig, master = root)
+    canvas._tkcanvas.place(x = 1050, y = 30, width =400, height= 400)
+##____________________________________________________________________________##
+
 
 # create warning if Dexmo is not plugged in
 def add_Dexmo_Warning():
@@ -290,9 +328,9 @@ def load_taskButtons():
 # load start menu with button for first task and exit button
 def load_Startmenu():
     nextTaskButton = Button(root, text ='Start first task',
-        command = nextTask).place(x = 425, y = 440, height=50, width=150)
+        command = nextTask).place(x = 675, y = 440, height=50, width=150)
     quitButton = Button(root, text ='Quit',
-        command = quit).place(x = 425, y = 500, height=50, width=150)
+        command = quit).place(x = 675, y = 500, height=50, width=150)
 
 # destroy all widgets from frame
 def clearFrame():
@@ -319,5 +357,5 @@ root = Tk()
 root.title("Piano with Dexmo")
 load_Startmenu()
 # Set the resolution of window
-root.geometry("1000x1000")
+root.geometry("1500x1000")
 root.mainloop()
