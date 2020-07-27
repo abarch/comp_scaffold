@@ -1,5 +1,6 @@
 from midiutil.MidiFile import MIDIFile
 
+import os
 import random
 
 # some code taken from https://github.com/Michael-F-Ellis/tbon
@@ -8,7 +9,8 @@ def generateMidi(bpm=120,
 				 noteValues=[1, 1/2, 1/4, 1/8],
 				 notesPerBar=[1],	# range
 				 noOfBars=8,
-				 pitches=[60, 62, 64, 65, 67, 69, 71, 72]):
+				 pitches=[60, 62, 64, 65, 67, 69, 71, 72],
+				 outFile="./output/output.mid"):
 
 
 	### CONSTANTS ###
@@ -158,9 +160,15 @@ def generateMidi(bpm=120,
 
 
 	# write MIDI file
-	with open("./output/output.mid", 'wb') as outf:
+	with open(outFile, 'wb') as outf:
 	    mf.writeFile(outf)
 
 
 if __name__ == "__main__":
+
+	# create folder if it does not exist yet
+	outDir = "./output/"
+	if not os.path.exists(outDir):
+		os.makedirs(outDir)
+
 	generateMidi()
