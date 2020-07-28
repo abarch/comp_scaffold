@@ -224,6 +224,9 @@ def quit():
 # create file output folder if it does not already exist
 subprocess.run(['mkdir', '-p', outputSubdir], stderr=subprocess.DEVNULL)
 
+# initialize keyboard input thread (done here to avoid multiple instances)
+threadHandler.initInputThread()
+
 # Create a window and title
 root = Tk()
 root.title("Piano with Dexmo")

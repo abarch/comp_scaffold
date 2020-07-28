@@ -8,25 +8,55 @@ import sys
 import time
 
 import dexmoOutput
-import midiInput
+from midiInput import MidiInputThread
 import errorCalc
 
 
-def startThreads(midiFileLocation, guidance):
-	# CONSTANTS
-	MAX_NOTE = 128
+# GLOBAL CONSTANTS
+MAX_NOTE = 128
+
+
+# reset global arrays (target times/temp)
+def resetArrays():
+	global actualTemp, actualTimes, targetTemp, targetTimes
+
+	print("\nRESET!!!\n")
 
 	# arrays for target and actual note times
-	actualTimes = []
+	#actualTimes = []
 	targetTimes = []
 
 	# initialize list of tuples for note on/off times
 	# index = note: [t_on, t_off, velocity]
 	###TODO: documentation (temporary etc.)
-	actualTemp = [[-1, -1, -1]] * MAX_NOTE
+	#actualTemp = [[-1, -1, -1]] * MAX_NOTE
 	targetTemp = [[-1, -1, -1]] * MAX_NOTE
 
 
+
+# initialize keyboard input thread (avoid multiple instances)
+def initInputThread():
+	global inputThread
+
+	#inPort = 'Q25 MIDI 1'
+	inPort = 'VMPK Output:out'
+
+	inputThread = MidiInputThread(inPort, MAX_NOTE)
+
+	# set MIDI input thread as daemon is killed on main termination)
+	# necessary as the thread is blocking for MIDI input data
+	inputThread.daemon = True
+
+	inputThread.start()
+
+
+
+def startThreads(midiFileLocation, guidance):
+	global targetTemp, targetTimes, inputThread
+
+	###TODO: change?
+	resetArrays()
+	inputThread.resetArrays()
 
 	# MIDI PLAYER THREAD
 
@@ -40,28 +70,23 @@ def startThreads(midiFileLocation, guidance):
 
 
 
-
 	# KEYBOARD MIDI INPUT THREAD
+	# (has been started before)
 
-	#inPort = 'Q25 MIDI 1'
-
-	inPort = 'VMPK Output:out'
-
-	# initialize keyboard MIDI input thread
-	inputThread = Thread(target=midiInput.getMidiInput,
-						 args=(inPort, actualTemp, actualTimes))
-
-	# set MIDI input thread as daemon is killed on main termination)
-	# necessary as the thread is blocking for MIDI input data
-	inputThread.daemon = True
-
-	inputThread.start()
+	# activate input handling
+	inputThread.inputOn()
 
 	# ... MIDI playing ...
 
 	# wait for MIDI player thread to terminate
 	playerThread.join()
 
+	# deactivate input handling
+	inputThread.inputOff()
+
+
+	# get array with actual notes
+	actualTimes = inputThread.noteInfoList
 
 	###TODO: remove/change
 	# print results
