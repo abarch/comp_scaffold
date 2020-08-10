@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import filedialog
 from PIL import Image, ImageTk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -47,13 +48,20 @@ def startDemo():
 
 
 # generate new midiFile and Notesheet and displays it
-def nextTask():
-    midiGen.generateMidi(bpm=bpm, noteValues=noteValuesList,
-                         notesPerBar=list(range(1, maxNotePerBar + 1)),
-                         noOfBars=numberOfBars, pitches=pitchesList, outFile=outFile)
+# dont generate new task if user opened a midi file
+def nextTask(userSelectedTask=False, userSelectedLocation=inputMidiStr):
+    if userSelectedTask == False:
+        midiGen.generateMidi(bpm=bpm, noteValues=noteValuesList,
+                             notesPerBar=list(range(1, maxNotePerBar + 1)),
+                             noOfBars=numberOfBars, pitches=pitchesList, outFile=outFile)
 
-    subprocess.run(['midi2ly', inputMidiStr, '--output=' + outputLyStr],
-                   stderr=subprocess.DEVNULL)
+        subprocess.run(['midi2ly', inputMidiStr, '--output=' + outputLyStr],
+                       stderr=subprocess.DEVNULL)
+
+    else:
+        subprocess.run(['midi2ly', userSelectedLocation, '--output=' + outputLyStr],
+                       stderr=subprocess.DEVNULL)
+
     subprocess.run(['lilypond', '--png', '-o', outputSubdir, outputLyStr],
                    stderr=subprocess.DEVNULL)
     clearFrame()
@@ -208,7 +216,13 @@ def load_taskButtons():
     Button(root, text='Next Task', command=nextTask).place(x=10, y=400, height=50, width=150)
     Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=460, height=25, width=150)
 
+    Button(root, text='Open Midi file', command=openfile).place(x=10, y=520, height=25, width=150)
+
     Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
+
+# open midi file user can choose
+def openfile():
+    nextTask(userSelectedTask=True, userSelectedLocation=filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")]))
 
 
 # load start menu with button for first task and exit button
