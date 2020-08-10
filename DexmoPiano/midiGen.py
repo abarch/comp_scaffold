@@ -81,15 +81,17 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
     ### CHOOSE TIMESTEPS ###
 
     timesteps = []
+    minNoteVal = min(noteValues)
 
     # randomly generate the chosen number of timesteps (notes) per bar
+    stepRange = [temp for temp in range(numerator) if temp % (minNoteVal * numerator) == 0]
     for bar in range(noOfBars):
         # determine no. of notes in this bar
         noOfNotes = random.choice(notesPerBar)
 
         # shift step numbers
         shift = (bar + INTRO_BARS) * numerator
-        steps = [temp + shift for temp in range(numerator)]
+        steps = [temp + shift for temp in stepRange]
 
         timesteps.append(random.sample(steps, noOfNotes))
 
@@ -107,7 +109,9 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
     # add music (piano) notes
     mf.addProgramChange(muTrack, CHANNEL_PIANO, TIME, INSTRUM_PIANO)
 
-    for t in range(len(timesteps) - 1):
+    # custom for-loop
+    t = 0
+    while t < (len(timesteps) - 1):
         # compute maximum note length until next note
         maxNoteVal = (timesteps[t + 1] - timesteps[t]) / denominator
         ###temp = maxNoteVal
@@ -119,8 +123,16 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
 
         ###print(timesteps[t], "min(", temp, maxToNextBar, ") =", maxNoteVal)
 
+        # calculate possible note values at current time step
+        possNoteValues = [v for v in noteValues if v <= maxNoteVal]
+        # if list is empty, increment time step by 1 and try again
+        if not possNoteValues:
+            print(t, timesteps[t], maxNoteVal)
+            timesteps[t] = timesteps[t] + 1
+            continue
+        
         # TODO: multiply with timeSig[1] here (instead below) when not printing anymore
-        duration = random.choice([v for v in noteValues if v <= maxNoteVal])
+        duration = random.choice(possNoteValues)
         # print(duration, "\n")
 
         pitch = random.choice(pitches)
@@ -130,6 +142,9 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
                    time=timesteps[t],
                    duration=denominator * duration,
                    volume=VOLUME)
+
+        t += 1
+
 
     # add metronome notes
     mf.addProgramChange(meTrack, CHANNEL_METRO, TIME, INSTRUM_DRUMS)
@@ -163,7 +178,7 @@ if __name__ == "__main__":
         os.makedirs(outDir)
 
     generateMidi(bpm=120,
-                 noteValues=[1, 1 / 2, 1 / 4, 1 / 8],
+                 noteValues=[1, 1/2, 1/4, 1/8],
                  notesPerBar=[1],  # range
                  noOfBars=8,
                  pitches=[60, 62, 64, 65, 67, 69, 71, 72],
