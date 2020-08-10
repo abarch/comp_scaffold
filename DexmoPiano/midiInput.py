@@ -1,6 +1,5 @@
 import mido
 import threading
-import time
 
 import noteHandler as nh
 
@@ -10,90 +9,81 @@ testMode = False
 
 class MidiInputThread(threading.Thread):
 
-	def __init__(self, inportName, tempSize):
-		threading.Thread.__init__(self)
-		self.inportName = inportName
-		self.tempSize = tempSize
-		# initialize note array and list
-		self.noteInfoList = []
-		self.noteInfoTemp = [[-1, -1, -1]] * self.tempSize
+    def __init__(self, inportName, tempSize):
+        threading.Thread.__init__(self)
+        self.inportName = inportName
+        self.tempSize = tempSize
+        # initialize note array and list
+        self.noteInfoList = []
+        self.noteInfoTemp = [[-1, -1, -1]] * self.tempSize
 
+        # only handle input if true
+        self.handleInput = False
 
-	# target function of the thread class
-	def run(self):
-		# only handle input if true
-		self.handleInput = False
+    # target function of the thread class
+    def run(self):
+        # start keyboard input handler
+        self.getMidiInput()
 
-		# start keyboard input handler
-		self.getMidiInput()
+    # get keyboard input
+    def getMidiInput(self):
+        # open MIDI input port
+        inport = mido.open_input(self.inportName)
 
+        ###TODO: remove? needs to be reset after each run!
+        noteCounter = 1
 
-	# get keyboard input
-	def getMidiInput(self):
-		# open MIDI input port
-		inport = mido.open_input(self.inportName)
+        while True:
 
-		###TODO: remove? needs to be reset after each run!
-		noteCounter = 1
+            # event-triggered
+            msg = inport.receive()
 
-		while True:
+            ###TODO: after removing testMode: enclose code below instead continuing
+            if not self.handleInput:
+                continue
 
-			# event-triggered
-			msg = inport.receive()
+            ###TODO: remove? needed for testing
+            if not testMode:
 
-			###TODO: after removing testMode: enclose code below instead continuing
-			if not self.handleInput:
-				continue
+                if not msg.is_meta:
+                    if (msg.type == 'note_on') or (msg.type == 'note_off'):
 
-			###TODO: remove? needed for testing
-			if not testMode:
+                        # handle note
+                        noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity,
+                                                 self.noteInfoTemp, self.noteInfoList)
 
-				if not msg.is_meta:
-					if (msg.type == 'note_on') or (msg.type == 'note_off'):
+                        if type(noteInfo) == list:
+                            print("ACTUAL:", noteCounter, "\t", noteInfo)
+                            noteCounter += 1
 
-						# handle note
-						noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity,
-												 self.noteInfoTemp, self.noteInfoList)
+                        # if retVal > 0:
+                        # print("Note", msg.note, "pressed for", retVal, "ms")
 
-						if type(noteInfo) == list:
-							print("ACTUAL:", noteCounter, "\t", noteInfo)
-							noteCounter += 1
+            else:
+                # just print all incoming MIDI messages
+                print(msg)
 
-						#if retVal > 0:
-							#print("Note", msg.note, "pressed for", retVal, "ms")
+    ###TODO: needed?
+    def resetArrays(self):
+        self.noteInfoList = []
+        self.noteInfoTemp = [[-1, -1, -1]] * self.tempSize
 
-			else:
-				# just print all incoming MIDI messages
-				print(msg)
+    # activate input handler
+    def inputOn(self):
+        self.handleInput = True
 
-
-	###TODO: needed?
-	def resetArrays(self):
-		self.noteInfoList = []
-		self.noteInfoTemp = [[-1, -1, -1]] * self.tempSize
-
-
-	# activate input handler
-	def inputOn(self):
-		self.handleInput = True
-
-	# deactivate input handler
-	def inputOff(self):
-		self.handleInput = False
-
-
+    # deactivate input handler
+    def inputOff(self):
+        self.handleInput = False
 
 
 if __name__ == "__main__":
+    ###TODO: remove? (just needed for testing)
 
-	###TODO: remove? (just needed for testing)
+    # port = 'Q25 MIDI 1'
+    port = 'VMPK Output:out 130:0'
+    testMode = True
 
-	#port = 'Q25 MIDI 1'
-	port = 'VMPK Output:out 130:0'
-	testMode = True
+    # print available MIDI input ports
+    print(mido.get_input_names())
 
-	# print available MIDI input ports
-	print(mido.get_input_names())
-
-	# this will just print all incoming MIDI messages
-	#getMidiInput(port, [], [])

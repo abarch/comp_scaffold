@@ -2,10 +2,6 @@
 # kill by Ctrl-C
 
 from threading import Thread
-import sys
-
-###remove
-import time
 
 import dexmoOutput
 from midiInput import MidiInputThread
@@ -18,18 +14,16 @@ MAX_NOTE = 128
 
 # reset global arrays (target times/temp)
 def resetArrays():
-	global actualTemp, actualTimes, targetTemp, targetTimes
+	global targetTemp, targetTimes
 
 	print("\nRESET!!!\n")
 
 	# arrays for target and actual note times
-	#actualTimes = []
 	targetTimes = []
 
 	# initialize list of tuples for note on/off times
 	# index = note: [t_on, t_off, velocity]
 	###TODO: documentation (temporary etc.)
-	#actualTemp = [[-1, -1, -1]] * MAX_NOTE
 	targetTemp = [[-1, -1, -1]] * MAX_NOTE
 
 
@@ -110,5 +104,5 @@ def get_errors():
 
 
 
-	# inputThread will die on main termination
-	#sys.exit()
+# inputThread will die on main termination
+#sys.exit()
