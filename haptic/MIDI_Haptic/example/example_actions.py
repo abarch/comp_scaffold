@@ -10,18 +10,18 @@ stdscr = curses.initscr()
 curses.noecho()
 stdscr.nodelay(1) # set getch() non-blocking
 
-        
-# FIXME: this needs to be adapted 
+
+# FIXME: this needs to be adapted
 midi_interface = 'DEXMO_R MIDI 1'
 
 # abstract in python of the MIDI_HAPTIC_DEFINITION
 # define channel of the device here
-CHAN = 9
+CHAN = 10
 # choosing action on the index here
 MHP_ACT_IND = 36
 # various action modes
-NOTE_E= 4  
-NOTE_F= 5  
+NOTE_E= 4
+NOTE_F= 5
 NOTE_A= 9
 
 # Send an action to the haptic device over the midi interface from the computer keyboard.

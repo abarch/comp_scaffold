@@ -12,7 +12,7 @@ from optionsWindow import optionsWindowClass
 import threadHandler
 
 
-GuidanceModeList = ["None", "At every note", "Individual"]
+GuidanceModeList = ["None", "At every note", "At every note (note C-G)", "Individual"]
 guidanceMode = "At every note"
 maxNotePerBar = 1
 numberOfBars = 5
@@ -85,8 +85,6 @@ def check_dexmo_connected(mainWindow):
         guidanceMode = "None"
         if(mainWindow):
             add_Dexmo_Warning()
-    else:
-        GuidanceModeList = ["None", "At every note", "Individual"]
 
 
 # loads notesheet for actual task

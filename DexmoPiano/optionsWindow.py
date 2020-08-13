@@ -131,9 +131,10 @@ class optionsWindowClass():
         l6 = Label(self.specifyWindow, text=" Guidance mode:")
         l6.grid(row=12,columnspan=4, sticky=W, pady=(20,0))
 
+    ## Guidance options
         guidance = StringVar(self.specifyWindow)
         guidance.set(self.guidanceMode)
-        guideopt = OptionMenu(self.specifyWindow, guidance, self.guidanceModeList)
+        guideopt = OptionMenu(self.specifyWindow, guidance, *self.guidanceModeList)
         guideopt.grid(row=13,columnspan=6,sticky=W,)
 
 
@@ -207,6 +208,10 @@ class optionsWindowClass():
             self.noteValuesList = self.get_noteValues()
             self.pitchesList = self.get_pitches()
             self.specifyWindow.destroy()
+            if (self.guidanceMode == "At every note (note C-G)"):
+                # remove A, B, C5 to have only five notes for domputeing finger numbers easily
+                unwanted= {69,71,72}
+                self.pitchesList = [ele for ele in self.pitchesList if ele not in unwanted]
 
     # quit options window without saving settings
     def quit_options(self):
