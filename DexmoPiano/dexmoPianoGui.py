@@ -12,6 +12,12 @@ from optionsWindow import optionsWindowClass
 import threadHandler
 
 
+# directory/filename strings
+outputSubdir = './output/'
+inputMidiStrs = [outputSubdir + 'output.mid', outputSubdir + 'output-m.mid']
+outputLyStr = outputSubdir + 'output-midi.ly'
+outputPngStr = outputSubdir + 'output-midi.png'
+
 GuidanceModeList = ["None", "At every note", "At every note (note C-G)", "Individual"]
 guidanceMode = "At every note"
 maxNotePerBar = 1
@@ -19,23 +25,18 @@ numberOfBars = 5
 bpm = 120
 noteValuesList = [1, 1/2, 1/4, 1/8]
 pitchesList = [62, 64]
-outFile="./output/output.mid"
+#outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
 
 errors = []
 changetask = []
-
-# directory/filename strings
-outputSubdir = './output/'
-inputMidiStr = outputSubdir + 'output.mid'
-outputLyStr = outputSubdir + 'output-midi.ly'
-outputPngStr = outputSubdir + 'output-midi.png'
 
 
 # starts only metronome output and haptic impulse from dexmo for every note
 def startTask():
     global errors
 
-    threadHandler.startThreads(inputMidiStr, guidanceMode)
+    # use MIDI file with metronome staff
+    threadHandler.startThreads(inputMidiStrs[1], guidanceMode)
 
     errorvalue = threadHandler.get_errors()
     errors.append(abs(errorvalue))
@@ -44,18 +45,24 @@ def startTask():
 
 # starts Demo with sound output and haptic impulse from dexmo for every note
 def startDemo():
-    dexmoOutput.play_demo(inputMidiStr, guidanceMode)
+    # use MIDI file with metronome staff
+    dexmoOutput.play_demo(inputMidiStrs[1], guidanceMode)
 
 
 # generate new midiFile and Notesheet and displays it
 # dont generate new task if user opened a midi file
-def nextTask(userSelectedTask=False, userSelectedLocation=inputMidiStr):
+def nextTask(userSelectedTask=False, userSelectedLocation=inputMidiStrs[0]):
     if userSelectedTask == False:
-        midiGen.generateMidi(bpm=bpm, noteValues=noteValuesList,
+        midiGen.generateMidi(bpm=bpm,
+                             noteValues=noteValuesList,
                              notesPerBar=list(range(1, maxNotePerBar + 1)),
-                             noOfBars=numberOfBars, pitches=pitchesList, outFile=outFile)
+                             noOfBars=numberOfBars,
+                             #pitches=pitchesList,
+                             pitches=list(range(52, 68)),
+                             twoHands=True,
+                             outFiles=inputMidiStrs)
 
-        subprocess.run(['midi2ly', inputMidiStr, '--output=' + outputLyStr],
+        subprocess.run(['midi2ly', inputMidiStrs[0], '--output=' + outputLyStr],
                        stderr=subprocess.DEVNULL)
 
     else:

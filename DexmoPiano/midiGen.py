@@ -1,12 +1,13 @@
 from midiutil.MidiFile import MIDIFile
 
+import copy
 import os
 import random
 
 
 # some code taken from https://github.com/Michael-F-Ellis/tbon
 
-def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
+def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outFiles):
 
     ### CONSTANTS ###
 
@@ -19,7 +20,7 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
     PITCH_METRO_HI = 76  # high wood block
     PITCH_METRO_LO = 77  # low wood block
 
-    VOLUME = 100  ### change?
+    VOLUME = 100
 
     TIME = 0  # start at the beginning
 
@@ -27,19 +28,27 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
 
     ACROSS_BARS = 0  # allow notes to reach across two bars
 
+    NUM_OF_TRACKS = 2 + twoHands
+
+
     ### INITIALIZATION ###
 
     # create MIDI object
-    mf = MIDIFile(numTracks=2)  # music and metronome track
+    mf = MIDIFile(numTracks=3)  # right (+ left) hand + metronome
 
     # TODO: make constant?
-    muTrack = 0  # music track
-    meTrack = 1  # metronome track
+    rTrack = 0  	# right hand track
+    lTrack = 1		# left hand track
+    mTrack = 2      # metronome track
+    
 
-    mf.addTrackName(muTrack, TIME, "Piano")
-    mf.addTrackName(meTrack, TIME, "Metronome")
+    #if twoHands:
+    mf.addTrackName(lTrack, TIME, "Left Hand")
+    mf.addTrackName(rTrack, TIME, "Right Hand")
+    mf.addTrackName(mTrack, TIME, "Metronome")
 
-    mf.addTempo(muTrack, TIME, bpm)
+    mf.addTempo(rTrack, TIME, bpm)	# in file format 1, track doesn't matter
+
 
     ### EXERCISE GENERATION ###
 
@@ -72,7 +81,7 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
     else:
         metro_clocks = 24
 
-    mf.addTimeSignature(track=muTrack,
+    mf.addTimeSignature(track=rTrack,
                         time=TIME,
                         numerator=numerator,
                         denominator=midiDenom,
@@ -104,10 +113,11 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
     # print("timesteps:", timesteps[:-1])
 
 
-    ### ADD NOTES ###
+    ### ADD PIANO NOTES ###
 
     # add music (piano) notes
-    mf.addProgramChange(muTrack, CHANNEL_PIANO, TIME, INSTRUM_PIANO)
+    mf.addProgramChange(rTrack, CHANNEL_PIANO, TIME, INSTRUM_PIANO)
+    mf.addProgramChange(lTrack, CHANNEL_PIANO, TIME, INSTRUM_PIANO)
 
     # custom for-loop
     t = 0
@@ -136,7 +146,14 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
         # print(duration, "\n")
 
         pitch = random.choice(pitches)
-        mf.addNote(track=muTrack,
+
+        # choose right/left hand, split at C4 (MIDI: pitch 60)
+        if twoHands and (pitch < 60):
+            handTrack = lTrack
+        else:
+            handTrack = rTrack
+
+        mf.addNote(track=handTrack,
                    channel=CHANNEL_PIANO,
                    pitch=pitch,
                    time=timesteps[t],
@@ -146,8 +163,16 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
         t += 1
 
 
+    # write 1st MIDI file (piano only)
+    with open(outFiles[0], 'wb') as outf:
+       # copy object, avoid reference
+        copy.deepcopy(mf).writeFile(outf)
+
+
+    ### METRONOME ###
+
     # add metronome notes
-    mf.addProgramChange(meTrack, CHANNEL_METRO, TIME, INSTRUM_DRUMS)
+    mf.addProgramChange(mTrack, CHANNEL_METRO, TIME, INSTRUM_DRUMS)
 
     for t in range(bars * numerator):
 
@@ -158,15 +183,15 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, outFile):
         else:
             pitch = PITCH_METRO_LO
 
-        mf.addNote(track=meTrack,
+        mf.addNote(track=mTrack,
                    channel=CHANNEL_METRO,
                    pitch=pitch,
                    time=t,
                    duration=1,
                    volume=VOLUME)
 
-    # write MIDI file
-    with open(outFile, 'wb') as outf:
+    # write 2nd MIDI file (with metronome)
+    with open(outFiles[1], 'wb') as outf:
         mf.writeFile(outf)
 
 
@@ -181,5 +206,7 @@ if __name__ == "__main__":
                  noteValues=[1, 1/2, 1/4, 1/8],
                  notesPerBar=[1],  # range
                  noOfBars=8,
-                 pitches=[60, 62, 64, 65, 67, 69, 71, 72],
-                 outFile="./output/output.mid")
+                 #pitches=[60, 62, 64, 65, 67, 69, 71, 72],
+                 pitches=list(range(52, 68)),
+                 twoHands=True,
+                 outFiles=["./output/output.mid", "./output/output-m.mid"])
