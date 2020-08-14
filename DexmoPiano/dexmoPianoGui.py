@@ -24,7 +24,8 @@ maxNotePerBar = 1
 numberOfBars = 5
 bpm = 120
 noteValuesList = [1, 1/2, 1/4, 1/8]
-pitchesList = [62, 64]
+pitchesList = [60, 62]
+twoHandsBool = False
 #outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
 
 errors = []
@@ -57,9 +58,9 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputMidiStrs[0]):
                              noteValues=noteValuesList,
                              notesPerBar=list(range(1, maxNotePerBar + 1)),
                              noOfBars=numberOfBars,
-                             #pitches=pitchesList,
-                             pitches=list(range(52, 68)),
-                             twoHands=True,
+                             pitches=pitchesList,
+                             #pitches=list(range(52, 68)),
+                             twoHands=twoHandsBool,
                              outFiles=inputMidiStrs)
 
         subprocess.run(['midi2ly', inputMidiStrs[0], '--output=' + outputLyStr],
@@ -111,8 +112,8 @@ def load_notesheet(png):
 ##_______________________________OPTIONS______________________________________##
 
 def specifyTask():
-    global bpm, numberOfBars, maxNotePerBar, guidanceMode, noteValuesList, pitchesList, errors, changetask
-    values = bpm, numberOfBars, maxNotePerBar, guidanceMode, noteValuesList, pitchesList
+    global bpm, numberOfBars, maxNotePerBar, guidanceMode, noteValuesList, pitchesList, twoHandsBool, errors, changetask
+    values = bpm, numberOfBars, maxNotePerBar, guidanceMode, noteValuesList, pitchesList, twoHandsBool
     options.changeParameter()
 
     newValues = options.get_data()
@@ -120,7 +121,7 @@ def specifyTask():
     if values != newValues:
         errors = []
         changetask = []
-    bpm, numberOfBars, maxNotePerBar, guidanceMode, noteValuesList, pitchesList = newValues
+    bpm, numberOfBars, maxNotePerBar, guidanceMode, noteValuesList, pitchesList, twoHandsBool = newValues
 
 
 ##_____________________________ERROR-PLOT_____________________________________##
@@ -271,6 +272,6 @@ root.geometry("1500x1000")
 
 check_dexmo_connected(mainWindow=False)
 options = optionsWindowClass(root=root, guidanceModeList=GuidanceModeList, bpm=bpm, numberOfBars=numberOfBars, maxNoteperBar=maxNotePerBar,
-                             noteValuesList=noteValuesList, pitchesList=pitchesList, guidanceMode=guidanceMode)
+                             noteValuesList=noteValuesList, pitchesList=pitchesList, guidanceMode=guidanceMode, twoHandsBool=twoHandsBool)
 
 root.mainloop()

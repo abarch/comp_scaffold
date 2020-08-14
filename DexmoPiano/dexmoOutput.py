@@ -67,11 +67,31 @@ def play_demo(midiFile, guidanceMode):
         for msg in MidiFile(midiFile).play():
             port.send(msg)  # sound from piano and metronome track
             if msg.channel == 0:  # haptic feeback for notes in Piano track
-                if (guidanceMode != "None"):
+
+                ##____________________HANDLE note_____________________________##
+                if (guidanceMode == "At every note"):
                     if msg.type == 'note_on':
                         haptic_action('i')
                     elif msg.type == 'note_off':
                         haptic_action('o')
+
+                ##__________HANDLE note  C-G for different fingers____________##
+                if (guidanceMode == "At every note (note C-G)"):
+                    if (msg.type == 'note_on') or (msg.type == 'note_off'):
+                        if msg.note == 60:
+                            finger = 24
+                        elif msg.note == 62:
+                            finger = 36
+                        elif msg.note == 64:
+                            finger = 48
+                        elif msg.note == 65:
+                            finger = 60
+                        elif msg.note == 67:
+                            finger = 72
+                    if msg.type == 'note_on':
+                        haptic_action2('i', finger)
+                    elif msg.type == 'note_off':
+                        haptic_action2('o', finger)
 
 
 # only haptic feedback impulse
