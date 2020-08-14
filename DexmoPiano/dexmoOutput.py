@@ -9,9 +9,9 @@ import noteHandler as nh
 
 
 # FIXME: this needs to be adapted
-global midi_interface
-midi_interface = 'DEXMO_R:DEXMO_R MIDI 1 24:0'
-midi_interface_sound = 'Synth input port (Qsynth1:0)'
+global midi_interface, midi_interface_sound
+#midi_interface = 'DEXMO_R:DEXMO_R MIDI 1 24:0'
+#midi_interface_sound = 'Synth input port (Qsynth1:0)'
 
 # abstract in python of the MIDI_HAPTIC_DEFINITION
 # define channel of the device here
@@ -24,17 +24,18 @@ NOTE_F = 5
 NOTE_A = 9
 
 
-# check if DEXMO is plugged in and set right interface port
-def check_Dexmo():
+# set dexmo port
+def set_dexmo(port):
     global midi_interface
-    outportNames = mido.get_output_names()
-    matching = [s for s in outportNames if "DEXMO" in s]
-    if matching:
-        midi_interface = matching[0]
-        return True
-    else:
-        return False
+    midi_interface = port
 
+# set sound port
+def set_sound_outport(port):
+    global midi_interface_sound
+    midi_interface_sound = port
+
+def get_midi_interfaces():
+    return mido.get_output_names(), mido.get_input_names()
 
 # Send an action to the haptic device over the midi interface
 def haptic_action(char):

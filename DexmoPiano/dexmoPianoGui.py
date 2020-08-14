@@ -87,7 +87,7 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputMidiStrs[0]):
 
 # check if dexmo is connected and change possible guidance modes
 def check_dexmo_connected(mainWindow):
-    if (dexmoOutput.check_Dexmo() == False):
+    if (dexmo_port.get() == "None"):
         global GuidanceModeList, guidanceMode
         GuidanceModeList = ["None"]
         guidanceMode = "None"
@@ -237,21 +237,76 @@ def load_Startmenu():
     Button(root, text='Quit', command=quit).place(x=675, y=500, height=50, width=150)
 
 
+    chose_ports()
+
+
 # destroy all widgets from frame
 def clearFrame():
     for widget in root.winfo_children():
         widget.destroy()
-
 
 # go back to start menu
 def backToMenu():
     clearFrame()
     load_Startmenu()
 
-
 # quit "Piano with dexmo"
 def quit():
     root.destroy()
+
+# chose sound, dexmo and inport ports in startmenu
+def chose_ports():
+    global dexmo_port
+    # chose outport for dexmo/ legodexmo etc
+    outports, inports = dexmoOutput.get_midi_interfaces()
+    outports.append("None")
+    inports.append("None")
+
+    ## Dexmo Port
+    l = Label(root, text=" Chose dexmo outport:")
+    l.place(x=675, y=600, height=50, width=150)
+
+    dexmo_port = StringVar(root)
+    matching = [s for s in outports if "DEXMO" in s]
+    if matching:
+        midi_interface = matching[0]
+        dexmo_port.set(midi_interface)
+    else:
+        dexmo_port.set("None")
+    dexmoOptions = OptionMenu(root, dexmo_port, *outports, command = lambda event: dexmoOutput.set_dexmo(dexmo_port.get()))
+    dexmoOutput.set_dexmo(dexmo_port.get())
+    dexmoOptions.place(x=650, y=640, height=25, width=200)
+
+    # Sound Port
+    l1 = Label(root, text=" Chose sound outport:")
+    l1.place(x=675, y=680, height=50, width=150)
+
+    sound_port = StringVar(root)
+    matching2 = [s for s in outports if "Qsynth" in s]
+    if matching2:
+        sound_interface = matching2[0]
+        sound_port.set(sound_interface)
+    else:
+        sound_port.set("None")
+    dexmoOutput.set_sound_outport(sound_port.get())
+    soundOptions = OptionMenu(root, sound_port, *outports, command = lambda event: dexmoOutput.set_sound_outport(sound_port.get()))
+    soundOptions.place(x=650, y=720, height=25, width=200)
+
+    # Inport
+    l2 = Label(root, text=" Chose inport:")
+    l2.place(x=675, y=760, height=50, width=150)
+
+    inport = StringVar(root)
+    matching3 = [s for s in inports if "VMPK" in s]
+    if matching3:
+        inport_interface = matching3[0]
+        inport.set(inport_interface)
+    else:
+        inport.set("None")
+    threadHandler.set_inport(inport.get())
+    inportOptions = OptionMenu(root, inport, *inports, command = lambda event: threadHandler.set_inport(inport.get()))
+    inportOptions.place(x=650, y=800, height=25, width=200)
+
 
 
 ##_____________________________START LOOP HERE________________________________##
@@ -260,15 +315,15 @@ def quit():
 # create file output folder if it does not already exist
 subprocess.run(['mkdir', '-p', outputSubdir], stderr=subprocess.DEVNULL)
 
-# initialize keyboard input thread (done here to avoid multiple instances)
-threadHandler.initInputThread()
-
 # Create a window and title
 root = Tk()
 root.title("Piano with Dexmo")
 load_Startmenu()
 # Set the resolution of window
 root.geometry("1500x1000")
+
+# initialize keyboard input thread (done here to avoid multiple instances)
+threadHandler.initInputThread()
 
 check_dexmo_connected(mainWindow=False)
 options = optionsWindowClass(root=root, guidanceModeList=GuidanceModeList, bpm=bpm, numberOfBars=numberOfBars, maxNoteperBar=maxNotePerBar,

@@ -12,6 +12,15 @@ import errorCalc
 MAX_NOTE = 128
 
 
+global inPort
+#inPort = 'Q25 MIDI 1'
+#inPort = 'VMPK Output:out'
+
+# set inport from GUI
+def set_inport(port):
+	global inPort
+	inPort = port
+
 # reset global arrays (target times/temp)
 def resetArrays():
 	global targetTemp, targetTimes
@@ -32,8 +41,6 @@ def resetArrays():
 def initInputThread():
 	global inputThread
 
-	#inPort = 'Q25 MIDI 1'
-	inPort = 'VMPK Output:out'
 
 	inputThread = MidiInputThread(inPort, MAX_NOTE)
 
