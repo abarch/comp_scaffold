@@ -13,10 +13,10 @@ import threadHandler
 
 
 # directory/filename strings
-outputSubdir = './output/'
-inputMidiStrs = [outputSubdir + 'output.mid', outputSubdir + 'output-m.mid']
-outputLyStr = outputSubdir + 'output-midi.ly'
-outputPngStr = outputSubdir + 'output-midi.png'
+tempDir = './output/temp/'
+inputMidiStrs = [tempDir + 'output.mid', tempDir + 'output-m.mid']
+outputLyStr = tempDir + 'output-midi.ly'
+outputPngStr = tempDir + 'output-midi.png'
 
 GuidanceModeList = ["None", "At every note", "At every note (note C-G)", "Individual"]
 guidanceMode = "At every note"
@@ -70,7 +70,7 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputMidiStrs[0]):
         subprocess.run(['midi2ly', userSelectedLocation, '--output=' + outputLyStr],
                        stderr=subprocess.DEVNULL)
 
-    subprocess.run(['lilypond', '--png', '-o', outputSubdir, outputLyStr],
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr],
                    stderr=subprocess.DEVNULL)
     clearFrame()
     load_notesheet(outputPngStr)
@@ -237,7 +237,7 @@ def load_Startmenu():
     Button(root, text='Quit', command=quit).place(x=675, y=500, height=50, width=150)
 
 
-    chose_ports()
+    choose_ports()
 
 
 # destroy all widgets from frame
@@ -254,17 +254,17 @@ def backToMenu():
 def quit():
     root.destroy()
 
-# chose sound, dexmo and inport ports in startmenu
-def chose_ports():
+# choose sound, dexmo and inport ports in startmenu
+def choose_ports():
     global dexmo_port
-    # chose outport for dexmo/ legodexmo etc
+    # choose outport for dexmo/ legodexmo etc
     outports, inports = dexmoOutput.get_midi_interfaces()
     outports.append("None")
     inports.append("None")
 
     ## Dexmo Port
-    l = Label(root, text=" Chose dexmo outport:")
-    l.place(x=675, y=600, height=50, width=150)
+    l = Label(root, text="Choose dexmo output port:")
+    l.place(x=660, y=600, height=50, width=200)
 
     dexmo_port = StringVar(root)
     matching = [s for s in outports if "DEXMO" in s]
@@ -278,8 +278,8 @@ def chose_ports():
     dexmoOptions.place(x=650, y=640, height=25, width=200)
 
     # Sound Port
-    l1 = Label(root, text=" Chose sound outport:")
-    l1.place(x=675, y=680, height=50, width=150)
+    l1 = Label(root, text="Choose sound output port:")
+    l1.place(x=660, y=680, height=50, width=200)
 
     sound_port = StringVar(root)
     matching2 = [s for s in outports if "Qsynth" in s]
@@ -293,8 +293,8 @@ def chose_ports():
     soundOptions.place(x=650, y=720, height=25, width=200)
 
     # Inport
-    l2 = Label(root, text=" Chose inport:")
-    l2.place(x=675, y=760, height=50, width=150)
+    l2 = Label(root, text="Choose input port:")
+    l2.place(x=660, y=760, height=50, width=200)
 
     inport = StringVar(root)
     matching3 = [s for s in inports if "VMPK" in s]
@@ -313,7 +313,7 @@ def chose_ports():
 
 
 # create file output folder if it does not already exist
-subprocess.run(['mkdir', '-p', outputSubdir], stderr=subprocess.DEVNULL)
+subprocess.run(['mkdir', '-p', tempDir], stderr=subprocess.DEVNULL)
 
 # Create a window and title
 root = Tk()
