@@ -59,7 +59,6 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputMidiStrs[0]):
                              notesPerBar=list(range(1, maxNotePerBar + 1)),
                              noOfBars=numberOfBars,
                              pitches=pitchesList,
-                             #pitches=list(range(52, 68)),
                              twoHands=twoHandsBool,
                              outFiles=inputMidiStrs)
 
@@ -112,8 +111,8 @@ def load_notesheet(png):
 ##_______________________________OPTIONS______________________________________##
 
 def specifyTask():
-    global bpm, numberOfBars, maxNotePerBar, guidanceMode, noteValuesList, pitchesList, twoHandsBool, errors, changetask
-    values = bpm, numberOfBars, maxNotePerBar, guidanceMode, noteValuesList, pitchesList, twoHandsBool
+    global bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool, errors, changetask
+    values = bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool
     options.changeParameter()
 
     newValues = options.get_data()
@@ -121,7 +120,7 @@ def specifyTask():
     if values != newValues:
         errors = []
         changetask = []
-    bpm, numberOfBars, maxNotePerBar, guidanceMode, noteValuesList, pitchesList, twoHandsBool = newValues
+    bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool = newValues
 
 
 ##_____________________________ERROR-PLOT_____________________________________##
@@ -211,13 +210,22 @@ def add_error_details():
 # create warning if Dexmo is not plugged in
 def add_Dexmo_Warning():
     Label(root, text=" Warning: \n No Dexmo connected, \n no guidance possible.",
-              fg="red").place(x=10, y=230, width=150, height=70)
+              fg="red").place(x=10, y=300, width=150, height=70)
 
 
-# create button for demo, practicing, next task, back to start menu
+# create button for demo, practicing, next task, back to start menu, guidance mode
 def load_taskButtons():
     Button(root, text='Start Task', command=startTask).place(x=10, y=100, height=50, width=150)
     Button(root, text='Start Demo', command=startDemo).place(x=10, y=160, height=50, width=150)
+
+    ##  GUIDANCE Mode
+    l = Label(root, text=" Guidance mode:")
+    l.place(x=10, y=210, width=150, height=70)
+
+    guidance = StringVar(root)
+    guidance.set(guidanceMode)
+    guideopt = OptionMenu(root, guidance, *GuidanceModeList, command=set_guidance)
+    guideopt.place(x=10, y=260, width=150, height=30)
 
     Button(root, text='Next Task', command=nextTask).place(x=10, y=400, height=50, width=150)
     Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=460, height=25, width=150)
@@ -225,6 +233,11 @@ def load_taskButtons():
     Button(root, text='Open Midi file', command=openfile).place(x=10, y=520, height=25, width=150)
 
     Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
+
+# set guidance for task
+def set_guidance(guidance):
+    global guidanceMode
+    guidanceMode = guidance
 
 # open midi file user can choose
 def openfile():
@@ -235,7 +248,6 @@ def openfile():
 def load_Startmenu():
     Button(root, text='Start first task', command=nextTask).place(x=675, y=440, height=50, width=150)
     Button(root, text='Quit', command=quit).place(x=675, y=500, height=50, width=150)
-
 
     choose_ports()
 
@@ -326,7 +338,7 @@ root.geometry("1500x1000")
 threadHandler.initInputThread()
 
 check_dexmo_connected(mainWindow=False)
-options = optionsWindowClass(root=root, guidanceModeList=GuidanceModeList, bpm=bpm, numberOfBars=numberOfBars, maxNoteperBar=maxNotePerBar,
-                             noteValuesList=noteValuesList, pitchesList=pitchesList, guidanceMode=guidanceMode, twoHandsBool=twoHandsBool)
+options = optionsWindowClass(root=root, bpm=bpm, numberOfBars=numberOfBars, maxNoteperBar=maxNotePerBar,
+                             noteValuesList=noteValuesList, pitchesList=pitchesList, twoHandsBool=twoHandsBool)
 
 root.mainloop()

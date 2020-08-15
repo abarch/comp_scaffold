@@ -3,20 +3,17 @@ from tkinter import *
 
 class optionsWindowClass():
 
-    def __init__(self, root, guidanceModeList, bpm, maxNoteperBar, numberOfBars, guidanceMode, noteValuesList, pitchesList, twoHandsBool):
+    def __init__(self, root, bpm, maxNoteperBar, numberOfBars, noteValuesList, pitchesList, twoHandsBool):
         self.root = root
-        self.guidanceModeList = guidanceModeList
         self.bpm = bpm
         self.maxNoteperBar = maxNoteperBar
         self.numberOfBars = numberOfBars
-        self.guidanceMode = guidanceMode
         self.noteValuesList = noteValuesList
         self.pitchesList = pitchesList
         self.twoHandsBool = twoHandsBool
 
         self.pitchesOptions = ["One note (C)", "Two notes (C,D)", "Notes C-G (for 5 fingers)", "One octave",
-                          "Two octaves (two hands)"]
-
+                               "Two octaves (two hands)"]
 
     # create Window to specify next task, root waiting until this window is closed
     def changeParameter(self):
@@ -106,27 +103,17 @@ class optionsWindowClass():
         chk = Checkbutton(self.specifyWindow, text='Use two hands', command=self.change_pitches, var=twoHands)
         chk.grid(column=1,columnspan=3, row=13)
 
-    ##  GUIDANCE Mode
-        l7 = Label(self.specifyWindow, text=" Guidance mode:")
-        l7.grid(row=14,columnspan=4, sticky=W, pady=(20,0))
-
-        guidance = StringVar(self.specifyWindow)
-        guidance.set(self.guidanceMode)
-        guideopt = OptionMenu(self.specifyWindow, guidance, *self.guidanceModeList)
-        guideopt.grid(row=15,columnspan=6,sticky=W,)
-
-
     ## SAVE and QUIT button
         l8 = Label(self.specifyWindow, text=" \n \n ")
-        l8.grid(row=16,columnspan=4, sticky=W)
+        l8.grid(row=16, columnspan=4, sticky=W)
 
-        saveButton = Button(self.specifyWindow, text ='Save and quit',
-                            command =lambda: self.save_settings(saveBPM=bpmscale.get(), saveBarNumber=numberBars.get(),
-                                                                saveNotesPerBar=maxNoteNumber.get(), saveGuidance=guidance.get()))
-        saveButton.grid(row= 17, column = 4, columnspan = 3, pady=(20,0))
+        saveButton = Button(self.specifyWindow, text='Save and quit',
+                            command=lambda: self.save_settings(saveBPM=bpmscale.get(), saveBarNumber=numberBars.get(),
+                                                               saveNotesPerBar=maxNoteNumber.get()))
+        saveButton.grid(row=17, column=4, columnspan=3, pady=(20, 0))
 
-        quitButton = Button(self.specifyWindow, text ='Quit without saving',command =lambda: self.quit_options())
-        quitButton.grid(row= 17, columnspan = 3, pady=(20,0))
+        quitButton = Button(self.specifyWindow, text='Quit without saving', command=lambda: self.quit_options())
+        quitButton.grid(row=17, columnspan=3, pady=(20, 0))
 
         self.root.wait_window(self.specifyWindow)
 
@@ -189,22 +176,17 @@ class optionsWindowClass():
         l7.grid(row=16,column = 2, columnspan=4, sticky=W)
 
     # save settings to generate a new task with it
-    def save_settings(self, saveBPM, saveBarNumber, saveNotesPerBar, saveGuidance):
+    def save_settings(self, saveBPM, saveBarNumber, saveNotesPerBar):
         if not self.get_noteValues() or not self.get_pitches():
             self.show_empty_list_error()
         else:
             self.bpm = saveBPM
             self.numberOfBars = saveBarNumber
             self.maxNoteperBar = int(saveNotesPerBar)
-            self.guidanceMode = saveGuidance
             self.noteValuesList = self.get_noteValues()
             self.pitchesList = self.get_pitches()
             self.specifyWindow.destroy()
             self.twoHandsBool = twoHands.get()
-            if (self.guidanceMode == "At every note (note C-G)"):
-                # remove A, B, C5 to have only five notes for domputeing finger numbers easily
-                unwanted= {69,71,72}
-                self.pitchesList = [ele for ele in self.pitchesList if ele not in unwanted]
 
     # quit options window without saving settings
     def quit_options(self):
@@ -212,4 +194,4 @@ class optionsWindowClass():
 
     # return all choosen options to main
     def get_data(self):
-        return self.bpm, self.numberOfBars, self.maxNoteperBar, self.guidanceMode, self.noteValuesList, self.pitchesList, self.twoHandsBool
+        return self.bpm, self.numberOfBars, self.maxNoteperBar, self.noteValuesList, self.pitchesList, self.twoHandsBool
