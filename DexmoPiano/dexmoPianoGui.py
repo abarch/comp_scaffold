@@ -116,63 +116,49 @@ def nextSavedTask(goToTask=False):
         return False
 
     files = getTimeSortedMidiFiles()
-    if len(files) < 1:
-        return False
-    max = files[0];
-
-# if actual is already the newest there is no next task
-    if files.index(actualMidi) +1  == len(files):
+    # if actual is already the newest or there are no midis there is no next task
+    if len(files) < 1 or (files.index(actualMidi)+1)  == len(files):
         return False
 
-# if actual task is already saved, use second newest to go back
-    if midiNotSaved == False:
-        max = files[files.index(actualMidi) +1]
-    else:
-        max = files[files.index(actualMidi) +1]
+    newMidi = files[files.index(actualMidi)+1]
 
     if (goToTask == True):
-
         #TODO: delete? and add errors from xml in GUI
         errors = []
         changetask = []
 
         midiNotSaved = False
-        timestr = time.strftime(max)
-        actualMidi = max
-        nextTask(userSelectedTask=True,userSelectedLocation= './output/' + max + '.mid')
+        actualMidi = newMidi
+        nextTask(userSelectedTask=True,userSelectedLocation= './output/' + newMidi + '.mid')
 
-# load prevous midi task again
+# load previous midi task again
 def previousTask(goToTask= False):
     global midiNotSaved, actualMidi, errors, changetask
 
     files = getTimeSortedMidiFiles()
-# if there are no midi files return false
+    # if there are no midi files return false
     if len(files) < 1:
         return False
-    max = files[0];
 
-# if actual is already the oldest there is no previous task
+    # if actual is already the oldest there is no previous task
     if(actualMidi != None):
         if files.index(actualMidi) == 0:
             return False
 
-# if actual task is already saved, use second newest to go back
+    # if actual task is already saved, use second newest to go back
     if midiNotSaved == False:
-        #max = files[len(files) -2]
-        max = files[files.index(actualMidi) -1]
+        newMidi = files[files.index(actualMidi) -1]
     else:
-        max = files[len(files) -1]
+        newMidi = files[len(files) -1]
 
     if (goToTask == True):
-
         #TODO: delete? and add errors from xml in GUI
         errors = []
         changetask = []
 
         midiNotSaved = False
-        timestr = time.strftime(max)
-        actualMidi = max
-        nextTask(userSelectedTask=True,userSelectedLocation= './output/' + max + '.mid')
+        actualMidi = newMidi
+        nextTask(userSelectedTask=True,userSelectedLocation= './output/' + newMidi + '.mid')
 
 # check if dexmo is connected and change possible guidance modes
 def check_dexmo_connected(mainWindow):
@@ -188,7 +174,6 @@ def load_notesheet(png):
     global background
     background = Image.open(png)
     background = background.convert("RGBA")
-    #global width, height
     #width, height = background.size
 
     img = ImageTk.PhotoImage(background)
