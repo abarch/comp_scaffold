@@ -362,7 +362,7 @@ def choose_ports():
     l.place(x=660, y=600, height=50, width=200)
 
     dexmo_port = StringVar(root)
-    matching = [s for s in outports if "DEXMO" in s]
+    matching = [s for s in outports if "dexmo" in s.lower()]
     if matching:
         midi_interface = matching[0]
         dexmo_port.set(midi_interface)
@@ -377,7 +377,7 @@ def choose_ports():
     l1.place(x=660, y=680, height=50, width=200)
 
     sound_port = StringVar(root)
-    matching2 = [s for s in outports if "Qsynth" in s]
+    matching2 = [s for s in outports if "qsynth" in s.lower()]
     if matching2:
         sound_interface = matching2[0]
         sound_port.set(sound_interface)
@@ -392,7 +392,7 @@ def choose_ports():
     l2.place(x=660, y=760, height=50, width=200)
 
     inport = StringVar(root)
-    matching3 = [s for s in inports if "VMPK" in s]
+    matching3 = [s for s in inports if "vmpk" in s.lower()]
     if matching3:
         inport_interface = matching3[0]
         inport.set(inport_interface)
