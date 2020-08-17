@@ -162,6 +162,7 @@ def previousTask(goToTask= False):
 
 # check if dexmo is connected and change possible guidance modes
 def check_dexmo_connected(mainWindow):
+    #TODO: Why is dexmo_port not declared global here?
     if (dexmo_port.get() == "None"):
         global GuidanceModeList, guidanceMode
         GuidanceModeList = ["None"]
@@ -352,55 +353,47 @@ def quit():
 # choose sound, dexmo and inport ports in startmenu
 def choose_ports():
     global dexmo_port
-    # choose outport for dexmo/ legodexmo etc
+
+    # CONSTANTS
+    X_POS = 660
+    X_DIFF = 10
+    Y_DIFF = 40
+    TEXT_HEIGHT = 50
+    FIELD_HEIGHT = 25
+    WIDTH = 200
+
+    def createPortButton(portText, findStr, yPos, portList, setFunc):
+        # place button label (text)
+        l = Label(root, text = portText + " port:")
+        l.place(x=X_POS, y=yPos, height=TEXT_HEIGHT, width=WIDTH)
+
+        # match port
+        midiPort = StringVar(root)
+        matching = [s for s in portList if findStr in s.lower()]
+        if matching:
+            midiPort.set(matching[0])
+        else:
+            midiPort.set("None")
+
+        setFunc(midiPort.get())
+
+        # place drop-down menu
+        options = OptionMenu(root, midiPort, *portList, command=setFunc)
+        options.place(x=X_POS-X_DIFF, y=yPos+Y_DIFF, height=FIELD_HEIGHT, width=WIDTH)
+
+        return midiPort
+
+    # choose outport for (lego)dexmo etc
     outports, inports = dexmoOutput.get_midi_interfaces()
     outports.append("None")
     inports.append("None")
 
-    ## Dexmo Port
-    l = Label(root, text="Choose dexmo output port:")
-    l.place(x=660, y=600, height=50, width=200)
+    # create port buttons with automatic portname choice (if possible) 
+    dexmo_port = createPortButton("Dexmo output", "dexmo", 600, outports, dexmoOutput.set_dexmo)
+    sound_port = createPortButton("Sound output", "qsynth", 680, outports, dexmoOutput.set_sound_outport)
+    input_port = createPortButton("Piano input", "vmpk", 760, inports, threadHandler.set_inport)
 
-    dexmo_port = StringVar(root)
-    matching = [s for s in outports if "dexmo" in s.lower()]
-    if matching:
-        midi_interface = matching[0]
-        dexmo_port.set(midi_interface)
-    else:
-        dexmo_port.set("None")
-    dexmoOptions = OptionMenu(root, dexmo_port, *outports, command = lambda event: dexmoOutput.set_dexmo(dexmo_port.get()))
-    dexmoOutput.set_dexmo(dexmo_port.get())
-    dexmoOptions.place(x=650, y=640, height=25, width=200)
 
-    # Sound Port
-    l1 = Label(root, text="Choose sound output port:")
-    l1.place(x=660, y=680, height=50, width=200)
-
-    sound_port = StringVar(root)
-    matching2 = [s for s in outports if "qsynth" in s.lower()]
-    if matching2:
-        sound_interface = matching2[0]
-        sound_port.set(sound_interface)
-    else:
-        sound_port.set("None")
-    dexmoOutput.set_sound_outport(sound_port.get())
-    soundOptions = OptionMenu(root, sound_port, *outports, command = lambda event: dexmoOutput.set_sound_outport(sound_port.get()))
-    soundOptions.place(x=650, y=720, height=25, width=200)
-
-    # Inport
-    l2 = Label(root, text="Choose input port:")
-    l2.place(x=660, y=760, height=50, width=200)
-
-    inport = StringVar(root)
-    matching3 = [s for s in inports if "vmpk" in s.lower()]
-    if matching3:
-        inport_interface = matching3[0]
-        inport.set(inport_interface)
-    else:
-        inport.set("None")
-    threadHandler.set_inport(inport.get())
-    inportOptions = OptionMenu(root, inport, *inports, command = lambda event: threadHandler.set_inport(inport.get()))
-    inportOptions.place(x=650, y=800, height=25, width=200)
 
 ##_____________________________START LOOP HERE________________________________##
 
