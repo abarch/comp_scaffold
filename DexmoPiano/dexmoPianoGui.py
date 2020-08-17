@@ -10,12 +10,14 @@ import time
 import os
 
 import dexmoOutput
+import fileIO
 import midiGen
 from optionsWindow import optionsWindowClass
 import threadHandler
 
 
 # directory/filename strings
+outputDir = './output/'
 tempDir = './output/temp/'
 inputMidiStrs = [tempDir + 'output.mid', tempDir + 'output-m.mid']
 outputLyStr = tempDir + 'output-midi.ly'
@@ -34,21 +36,29 @@ twoHandsBool = False
 errors = []
 changetask = []
 
-global midiNotSaved, actualMidi
-midiNotSaved = True
-actualMidi = None
+midiSaved = False
+currentMidi = None
 
 # starts only metronome output and haptic impulse from dexmo for every note
 def startTask():
-    global midiNotSaved,errors
-    if(midiNotSaved):
-        saveMidi()
-        midiNotSaved = False
+    global currentMidi, midiSaved, errors
+
+    timestr = getCurrentTimestamp()
 
     # use MIDI file with metronome staff
-    threadHandler.startThreads(inputMidiStrs[1], guidanceMode)
+    targetNotes, actualNotes, errorvalue = threadHandler.startThreads(inputMidiStrs[1], guidanceMode)
 
-    errorvalue = threadHandler.get_errors()
+    if not midiSaved:
+        saveMidiAndXML(targetNotes)
+        midiSaved = True
+
+    # create entry containing actual notes in XML
+    fileIO.createTrialEntry(outputDir, currentMidi, timestr, guidanceMode, actualNotes)
+    ###TODO: remove (testing)
+    fileIO.printXML(outputDir + currentMidi + ".xml", True)
+
+
+    #errorvalue = threadHandler.get_errors()
     errors.append(abs(errorvalue))
     add_error_plot()
 
@@ -57,17 +67,28 @@ def startDemo():
     # use MIDI file with metronome staff
     dexmoOutput.play_demo(inputMidiStrs[1], guidanceMode)
 
-# save midi in output folder
-def saveMidi():
-    global actualMidi
-    timestr = time.strftime("%Y%m%d-%H%M%S")
-    actualMidi = timestr
-    outputDir = './output/'
+# save midi and XML file to output folder
+def saveMidiAndXML(targetNotes):
+    global currentMidi
+
+    timestr = getCurrentTimestamp()
+
+    # MIDI
+    print("\nMIDI SAVED:", timestr)    ###TODO: Delete
+    currentMidi = timestr
     shutil.move(inputMidiStrs[0], outputDir + timestr + '.mid')
 
+    # XML
+    currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool]
+    fileIO.createXML(outputDir, timestr, currOptions, targetNotes)
+    
+
+def getCurrentTimestamp():
+    return time.strftime("%Y%m%d-%H%M%S")
+
 def getTimeSortedMidiFiles():
-    ll=os.listdir('./output/')
-    files=[x.split('.')[0] for x in ll if ".mid" in x]
+    ll=os.listdir(outputDir)
+    files=[x.split('.')[0] for x in ll if '.mid' in x]
     for i in files:
         i = time.strftime(i)
     files.sort()
@@ -76,7 +97,7 @@ def getTimeSortedMidiFiles():
 # generate new midiFile and Notesheet and displays it
 # dont generate new task if user opened a midi file
 def nextTask(userSelectedTask=False, userSelectedLocation=inputMidiStrs[0]):
-    global midiNotSaved, actualMidi
+    global midiSaved, currentMidi
     if userSelectedTask == False:
         midiGen.generateMidi(bpm=bpm,
                              noteValues=noteValuesList,
@@ -88,8 +109,8 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputMidiStrs[0]):
 
         subprocess.run(['midi2ly', inputMidiStrs[0], '--output=' + outputLyStr],
                        stderr=subprocess.DEVNULL)
-        actualMidi = None
-        midiNotSaved = True
+        currentMidi = None
+        midiSaved = False
 
     else:
         subprocess.run(['midi2ly', userSelectedLocation, '--output=' + outputLyStr],
@@ -111,29 +132,29 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputMidiStrs[0]):
 
 # load next midi task again
 def nextSavedTask(goToTask=False):
-    global midiNotSaved, actualMidi, errors, changetask
-    if actualMidi == None:
+    global midiSaved, currentMidi, errors, changetask
+    if currentMidi == None:
         return False
 
     files = getTimeSortedMidiFiles()
     # if actual is already the newest or there are no midis there is no next task
-    if len(files) < 1 or (files.index(actualMidi)+1)  == len(files):
+    if len(files) < 1 or (files.index(currentMidi)+1)  == len(files):
         return False
 
-    newMidi = files[files.index(actualMidi)+1]
+    newMidi = files[files.index(currentMidi)+1]
 
     if (goToTask == True):
         #TODO: delete? and add errors from xml in GUI
         errors = []
         changetask = []
 
-        midiNotSaved = False
-        actualMidi = newMidi
-        nextTask(userSelectedTask=True,userSelectedLocation= './output/' + newMidi + '.mid')
+        midiSaved = True
+        currentMidi = newMidi
+        nextTask(userSelectedTask=True,userSelectedLocation= outputDir + newMidi + '.mid')
 
 # load previous midi task again
 def previousTask(goToTask= False):
-    global midiNotSaved, actualMidi, errors, changetask
+    global midiSaved, currentMidi, errors, changetask
 
     files = getTimeSortedMidiFiles()
     # if there are no midi files return false
@@ -141,13 +162,13 @@ def previousTask(goToTask= False):
         return False
 
     # if actual is already the oldest there is no previous task
-    if(actualMidi != None):
-        if files.index(actualMidi) == 0:
+    if(currentMidi != None):
+        if files.index(currentMidi) == 0:
             return False
 
     # if actual task is already saved, use second newest to go back
-    if midiNotSaved == False:
-        newMidi = files[files.index(actualMidi) -1]
+    if midiSaved:
+        newMidi = files[files.index(currentMidi) -1]
     else:
         newMidi = files[len(files) -1]
 
@@ -156,9 +177,9 @@ def previousTask(goToTask= False):
         errors = []
         changetask = []
 
-        midiNotSaved = False
-        actualMidi = newMidi
-        nextTask(userSelectedTask=True,userSelectedLocation= './output/' + newMidi + '.mid')
+        midiSaved = True
+        currentMidi = newMidi
+        nextTask(userSelectedTask=True,userSelectedLocation= outputDir + newMidi + '.mid')
 
 # check if dexmo is connected and change possible guidance modes
 def check_dexmo_connected(mainWindow):
@@ -182,17 +203,17 @@ def load_notesheet(png):
     panel.image = img
     panel.place(x=170, y=0, width=835, height=1181)
 
-# delete saved midis from last programm run
-def deleteOldMidis():
-    dir_name = './output/'
-    files = os.listdir(dir_name)
+# delete saved midis and XMLs from last programm run
+def deleteOldFiles():
+    files = os.listdir(outputDir)
     for item in files:
-        if item.endswith('.mid'):
-            os.remove(os.path.join(dir_name, item))
+        if item.endswith('.mid') or item.endswith('.xml'):
+            os.remove(os.path.join(outputDir, item))
 
 ##_______________________________OPTIONS______________________________________##
 def specifyTask():
     global bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool, errors, changetask
+    
     values = bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool
     options.changeParameter()
 
@@ -286,7 +307,7 @@ def add_Dexmo_Warning():
 
 # create button for demo, practicing, next task, back to start menu, guidance mode
 def load_taskButtons():
-    global actualMidi
+    global currentMidi
     Button(root, text='Start Task', command=startTask).place(x=10, y=100, height=50, width=150)
     Button(root, text='Start Demo', command=startDemo).place(x=10, y=160, height=50, width=150)
 
@@ -309,9 +330,9 @@ def load_taskButtons():
         Button(root, text='Next Task >>', command=lambda: nextSavedTask(True)).place(x=10, y=800, height=50, width=150)
 
     files = getTimeSortedMidiFiles()
-    if actualMidi != None:
-        int = files.index(actualMidi) +1
-        l2 = Label(root, text=" Midi File " + str(int) + " of " + str(len(files)))
+    if currentMidi != None:
+        currMidiIdx = files.index(currentMidi) +1
+        l2 = Label(root, text=" Midi File " + str(currMidiIdx) + " of " + str(len(files)))
         l2.place(x=10, y=860, width=150, height=20)
 
     if (previousTask() == False):
@@ -403,7 +424,7 @@ subprocess.run(['mkdir', '-p', tempDir], stderr=subprocess.DEVNULL)
 root = Tk()
 root.title("Piano with Dexmo")
 
-deleteOldMidis()
+deleteOldFiles()
 load_Startmenu()
 # Set the resolution of window
 root.geometry("1500x1000")

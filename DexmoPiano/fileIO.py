@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 
-def createXML(outpath, midiPrefix, options, targetNotes):
+def createXML(path, midiPrefix, options, targetNotes):
     """
     Creates a new XML tree containing the necessary nodes.
     """
@@ -10,21 +10,24 @@ def createXML(outpath, midiPrefix, options, targetNotes):
     root = ET.Element("MIDI", midiNo=midiPrefix)
 
     targets = ET.SubElement(root, "target_notes")
-    ET.SubElement(targets, "notes", name="Target Notes").text = str(targetNotes)
+    ET.SubElement(targets, "notes", name="Note List").text = str(targetNotes)
     ET.SubElement(targets, "options", name="Option List").text = str(options)
 
     ET.SubElement(root, "trials")
 
     tree = ET.ElementTree(root)
-    tree.write(outpath)
+    tree.write(path + midiPrefix + ".xml")
 
 
-def createTrialEntry(file, trialNo, timestamp, actualNotes):
+def createTrialEntry(path, midiPrefix, timestamp, guidanceMode, actualNotes):
     """
     Creates a new trial entry in an existing XML file.
+    The trial number will be the file's current max trial
+    number plus one.
     """
 
     # parse XML file
+    file = path + midiPrefix + ".xml"
     try:
         tree = ET.parse(file)
     except:
@@ -34,9 +37,11 @@ def createTrialEntry(file, trialNo, timestamp, actualNotes):
     root = tree.getroot()
     trials = root.find("trials")
 
+    trialNo = len(trials.getchildren()) + 1
+
     trial = ET.SubElement(trials, "trial", trial_no=str(trialNo), timestamp=str(timestamp))
     ET.SubElement(trial, "notes", name="Played Notes").text = str(actualNotes)
-    ET.SubElement(trial, "guidance", name="Guidance Mode").text = "Hier könnte Ihre Werbung stehen"
+    ET.SubElement(trial, "guidance", name="Guidance Mode").text = str(guidanceMode)
 
     tree.write(file)
 
@@ -66,16 +71,17 @@ def printXML(filepath, pretty):
 
 if __name__ == "__main__":
 
-    outpath = "output/test.xml"
+    outpath = "./output/"
     midiPrefix = "midi001"   # without .mid
+    outfile = outpath + midiPrefix + ".xml"
     options = [1, True, "bla"]
     targetNotes = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]
     actualNotes = [[11, 22, 33, 44], [55, 66, 77, 88], [99, 0, 0, 0]]
 
     createXML(outpath, midiPrefix, options, targetNotes)
-    printXML(outpath, True)
+    printXML(outfile, True)
     print("\n\n")
-    createTrialEntry(outpath, 666, "01-11-1999", actualNotes)
-    createTrialEntry(outpath, 42, "22-02-2222", actualNotes)
-    printXML(outpath, True)
+    createTrialEntry(outpath, midiPrefix, "01-11-1999", "guidance1", actualNotes)
+    createTrialEntry(outpath, midiPrefix, "22-02-2222", "guidance2", actualNotes)
+    printXML(outfile, True)
 

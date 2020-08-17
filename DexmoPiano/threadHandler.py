@@ -106,7 +106,10 @@ def startThreads(midiFileLocation, guidance):
 	print("\nACTUAl TIME:", timeSums[1])
 	print("\nDIFFERENCE: ", errorDiff)
 
+	return targetTimes, actualTimes, errorDiff
 
+
+###TODO: remove?
 def get_errors():
 	return errorDiff
 
