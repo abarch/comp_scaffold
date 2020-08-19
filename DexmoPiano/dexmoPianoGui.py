@@ -81,7 +81,7 @@ def saveMidiAndXML(targetNotes):
     # XML
     currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool]
     fileIO.createXML(outputDir, timestr, currOptions, targetNotes)
-    
+
 
 def getCurrentTimestamp():
     return time.strftime("%Y%m%d-%H%M%S")
@@ -184,12 +184,14 @@ def previousTask(goToTask= False):
 # check if dexmo is connected and change possible guidance modes
 def check_dexmo_connected(mainWindow):
     #TODO: Why is dexmo_port not declared global here?
+    global GuidanceModeList, guidanceMode, dexmo_port
     if (dexmo_port.get() == "None"):
-        global GuidanceModeList, guidanceMode
         GuidanceModeList = ["None"]
         guidanceMode = "None"
         if(mainWindow):
             add_Dexmo_Warning()
+    else:
+        GuidanceModeList = ["None", "At every note", "At every note (note C-G)", "Individual"]
 
 # loads notesheet for actual task
 def load_notesheet(png):
@@ -213,7 +215,7 @@ def deleteOldFiles():
 ##_______________________________OPTIONS______________________________________##
 def specifyTask():
     global bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool, errors, changetask
-    
+
     values = bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool
     options.changeParameter()
 
@@ -409,7 +411,7 @@ def choose_ports():
     outports.append("None")
     inports.append("None")
 
-    # create port buttons with automatic portname choice (if possible) 
+    # create port buttons with automatic portname choice (if possible)
     dexmo_port = createPortButton("Dexmo output", "dexmo", 600, outports, dexmoOutput.set_dexmo)
     sound_port = createPortButton("Sound output", "qsynth", 680, outports, dexmoOutput.set_sound_outport)
     input_port = createPortButton("Piano input", "vmpk", 760, inports, threadHandler.set_inport)

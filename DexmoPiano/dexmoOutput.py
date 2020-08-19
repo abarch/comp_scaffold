@@ -2,14 +2,12 @@ import mido
 from mido import Message
 from mido import MidiFile
 import time
-
 import datetime
 
 import noteHandler as nh
 
-
 # FIXME: this needs to be adapted
-global midi_interface, midi_interface_sound
+global midi_interface, midi_interface_sound, actualNote
 #midi_interface = 'DEXMO_R:DEXMO_R MIDI 1 24:0'
 #midi_interface_sound = 'Synth input port (Qsynth1:0)'
 
@@ -37,33 +35,50 @@ def set_sound_outport(port):
 def get_midi_interfaces():
     return mido.get_output_names(), mido.get_input_names()
 
+
+def stop_haptic_actions():
+    global actualNote
+    if (actualNote != None):
+        with mido.open_output(midi_interface) as outport:
+            msg = Message('note_off', channel=CHAN, note=actualNote + NOTE_E)
+            outport.send(msg)
+
 # Send an action to the haptic device over the midi interface
 def haptic_action(char):
+    global actualNote
     with mido.open_output(midi_interface) as outport:
-
-        if char == 'i':  # inwards dexmo impulse
+        if char == 'i':  # inwards dexmo impulse, stop last outwards impulse
+            stop_haptic_actions()
             msg = Message('note_on', channel=CHAN, note=MHP_ACT_IND + NOTE_F, velocity=50)
             outport.send(msg)
-        elif char == 'o':  # outwards dexmo impulse
-            # msg = Message('note_off', channel=CHAN, note=MHP_ACT_IND+NOTE_F, velocity=50)
+        elif char == 'o':  # outwards dexmo impulse, stop inwards impulse
+            msg = Message('note_off', channel=CHAN, note=actualNote+NOTE_F, velocity=50)
+            outport.send(msg)
             msg = Message('note_on', channel=CHAN, note=MHP_ACT_IND + NOTE_E, velocity=50)
             outport.send(msg)
+        actualNote = MHP_ACT_IND
 
 
 # Send an action to the haptic device over the midi interface
 def haptic_action2(char, pitch):
+    global actualNote
     with mido.open_output(midi_interface) as outport:
-        if char == 'i':  # inwards dexmo impulse
+        if char == 'i':  # inwards dexmo impulse, stop last outwards impulse
+            stop_haptic_actions()
             msg = Message('note_on', channel=CHAN, note=pitch + NOTE_F, velocity=50)
             outport.send(msg)
-        elif char == 'o':  # outwards dexmo impulse
-            # msg = Message('note_off', channel=CHAN, note=MHP_ACT_IND+NOTE_F, velocity=50)
+        elif char == 'o':  # outwards dexmo impulse, stop inwards impulse
+            msg = Message('note_off', channel=CHAN, note=actualNote+NOTE_F, velocity=50)
+            outport.send(msg)
             msg = Message('note_on', channel=CHAN, note=pitch + NOTE_E, velocity=50)
             outport.send(msg)
+        actualNote = pitch
 
 
 # play demo: sound output of notes and haptic feedback impulse
 def play_demo(midiFile, guidanceMode):
+    global actualNote
+    actualNote = None
     with mido.open_output(midi_interface_sound) as port:
         for msg in MidiFile(midiFile).play():
             port.send(msg)  # sound from piano and metronome track
@@ -93,10 +108,13 @@ def play_demo(midiFile, guidanceMode):
                         haptic_action2('i', finger)
                     elif msg.type == 'note_off':
                         haptic_action2('o', finger)
+    stop_haptic_actions()
 
 
 # only haptic feedback impulse
 def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
+    global actualNote
+    actualNote = None
     with mido.open_output(midi_interface_sound) as port:
         noteCounter = 1
 
@@ -146,6 +164,7 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
                             haptic_action2('i', finger)
                         elif msg.type == 'note_off':
                             haptic_action2('o', finger)
+    stop_haptic_actions()
 
 
 
