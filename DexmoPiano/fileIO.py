@@ -19,7 +19,7 @@ def createXML(path, midiPrefix, options, targetNotes):
     tree.write(path + midiPrefix + ".xml")
 
 
-def createTrialEntry(path, midiPrefix, timestamp, guidanceMode, actualNotes):
+def createTrialEntry(path, midiPrefix, timestamp, guidanceMode, actualNotes, error):
     """
     Creates a new trial entry in an existing XML file.
     The trial number will be the file's current max trial
@@ -42,6 +42,7 @@ def createTrialEntry(path, midiPrefix, timestamp, guidanceMode, actualNotes):
     trial = ET.SubElement(trials, "trial", trial_no=str(trialNo), timestamp=str(timestamp))
     ET.SubElement(trial, "notes", name="Played Notes").text = str(actualNotes)
     ET.SubElement(trial, "guidance", name="Guidance Mode").text = str(guidanceMode)
+    ET.SubElement(trial, "error", name="Error value").text = str(error)
 
     tree.write(file)
 
@@ -81,7 +82,6 @@ if __name__ == "__main__":
     createXML(outpath, midiPrefix, options, targetNotes)
     printXML(outfile, True)
     print("\n\n")
-    createTrialEntry(outpath, midiPrefix, "01-11-1999", "guidance1", actualNotes)
-    createTrialEntry(outpath, midiPrefix, "22-02-2222", "guidance2", actualNotes)
+    createTrialEntry(outpath, midiPrefix, "01-11-1999", "guidance1", actualNotes, "123")
+    createTrialEntry(outpath, midiPrefix, "22-02-2222", "guidance2", actualNotes, "42.666")
     printXML(outfile, True)
-
