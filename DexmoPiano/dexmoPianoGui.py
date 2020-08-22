@@ -48,20 +48,20 @@ def startTask():
     timestr = getCurrentTimestamp()
 
     # use MIDI file with metronome staff
-    targetNotes, actualNotes, errorvalue = threadHandler.startThreads(inputMidiStrs[1], guidanceMode)
+    targetNotes, actualNotes, errorVal = threadHandler.startThreads(inputMidiStrs[1], guidanceMode)
 
     if not midiSaved:
         saveMidiAndXML(targetNotes)
         midiSaved = True
 
     # create entry containing actual notes in XML
-    fileIO.createTrialEntry(outputDir, currentMidi, timestr, guidanceMode, actualNotes)
+    fileIO.createTrialEntry(outputDir, currentMidi, timestr, guidanceMode, actualNotes, errorVal)
     ###TODO: remove (testing)
     fileIO.printXML(outputDir + currentMidi + ".xml", True)
 
 
-    #errorvalue = threadHandler.get_errors()
-    errors.append(abs(errorvalue))
+    #errorVal = threadHandler.get_errors()
+    errors.append(abs(errorVal))
     add_error_plot()
 
 # starts Demo with sound output and haptic impulse from dexmo for every note
