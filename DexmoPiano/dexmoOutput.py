@@ -114,7 +114,9 @@ def play_demo(midiFile, guidanceMode):
 # only haptic feedback impulse
 def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
     global actualNote
+
     actualNote = None
+    
     with mido.open_output(midi_interface_sound) as port:
         noteCounter = 1
 

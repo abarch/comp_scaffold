@@ -1,17 +1,16 @@
 import mido
-import threading
 
 import noteHandler as nh
 
-###TODO: remove? needed for testing
-testMode = False
 
+class MidiInputThread():
 
-class MidiInputThread(threading.Thread):
+    ###TODO: remove
+    testPort = ""
 
-    def __init__(self, inportName, tempSize):
-        threading.Thread.__init__(self)
-        self.inportName = inportName
+    def __init__(self, tempSize):
+        #threading.Thread.__init__(self)
+        self.inport = None
         self.tempSize = tempSize
         # initialize note array and list
         self.noteInfoList = []
@@ -20,48 +19,52 @@ class MidiInputThread(threading.Thread):
         # only handle input if true
         self.handleInput = False
 
-    # target function of the thread class
-    def run(self):
-        # start keyboard input handler
-        self.getMidiInput()
+        self.noteCounter = 1
 
-    # get keyboard input
-    def getMidiInput(self):
-        # open MIDI input port
-        inport = mido.open_input(self.inportName)
 
-        ###TODO: remove? needs to be reset after each run!
-        noteCounter = 1
+    # close old and open new MIDI input port
+    def setPort(self, portName):
+        ###TODO: remove
+        global testPort
 
-        while True:
+        # close old MIDI input port (if it exists)
+        try:
+            #print("Trying to close port", testPort)
+            self.inport.close()
+            #print("Port closed")
+        except:
+            pass
 
-            # event-triggered
-            msg = inport.receive()
+        # open new MIDI input port and install callback
+        # (callback is necessary to avoid blocking after port changes)
+        try:
+            self.inport = mido.open_input(portName, callback=self.handleMidiInput)
+        except IOError as e:
+            print(e)
 
-            ###TODO: after removing testMode: enclose code below instead continuing
-            if not self.handleInput:
-                continue
+        ###TODO FOR TESTING
+        testPort = portName
 
-            ###TODO: remove? needed for testing
-            if not testMode:
 
-                if not msg.is_meta:
-                    if (msg.type == 'note_on') or (msg.type == 'note_off'):
+    # handle MIDI input message (callback function of input port)
+    def handleMidiInput(self, msg):
+        global testPort
 
-                        # handle note
-                        noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity,
-                                                 self.noteInfoTemp, self.noteInfoList)
+        #print("current input port:", testPort)
 
-                        if type(noteInfo) == list:
-                            print("ACTUAL:", noteCounter, "\t", noteInfo)
-                            noteCounter += 1
+        if self.handleInput:
 
-                        # if retVal > 0:
-                        # print("Note", msg.note, "pressed for", retVal, "ms")
+            if not msg.is_meta:
+                if (msg.type == 'note_on') or (msg.type == 'note_off'):
 
-            else:
-                # just print all incoming MIDI messages
-                print(msg)
+                    # handle note
+                    noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity,
+                                             self.noteInfoTemp, self.noteInfoList)
+
+                    if type(noteInfo) == list:
+                        print("ACTUAL:", self.noteCounter, "\t", noteInfo)
+                        self.noteCounter += 1
+
 
     ###TODO: needed?
     def resetArrays(self):
@@ -86,4 +89,3 @@ if __name__ == "__main__":
 
     # print available MIDI input ports
     print(mido.get_input_names())
-

@@ -427,12 +427,14 @@ root = Tk()
 root.title("Piano with Dexmo")
 
 deleteOldFiles()
+
+# initialize keyboard input thread
+threadHandler.initInputThread()
+
 load_Startmenu()
 # Set the resolution of window
 root.geometry("1500x1000")
 
-# initialize keyboard input thread (done here to avoid multiple instances)
-threadHandler.initInputThread()
 
 check_dexmo_connected(mainWindow=False)
 options = optionsWindowClass(root=root, bpm=bpm, numberOfBars=numberOfBars, maxNoteperBar=maxNotePerBar,

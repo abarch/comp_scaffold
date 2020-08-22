@@ -12,15 +12,6 @@ import errorCalc
 MAX_NOTE = 128
 
 
-global inPort
-#inPort = 'Q25 MIDI 1'
-#inPort = 'VMPK Output:out'
-
-# set inport from GUI
-def set_inport(port):
-	global inPort
-	inPort = port
-
 # reset global arrays (target times/temp)
 def resetArrays():
 	global targetTemp, targetTimes
@@ -37,19 +28,23 @@ def resetArrays():
 
 
 
-# initialize keyboard input thread (avoid multiple instances)
+# initialize keyboard input thread
 def initInputThread():
 	global inputThread
 
+	# create inputThread instance (port is set to None in constructor)
+	inputThread = MidiInputThread(MAX_NOTE)
 
-	inputThread = MidiInputThread(inPort, MAX_NOTE)
 
-	# set MIDI input thread as daemon is killed on main termination)
-	# necessary as the thread is blocking for MIDI input data
-	inputThread.daemon = True
+# set MIDI input port from GUI (installing callback for input messages)
+def set_inport(portName):
+	global inputThread
 
-	inputThread.start()
-
+	# check if inputThread was defined
+	if 'inputThread' in globals():
+		inputThread.setPort(portName)
+	else:
+		print("ERROR: inputThread was not defined yet")
 
 
 def startThreads(midiFileLocation, guidance):
@@ -59,9 +54,8 @@ def startThreads(midiFileLocation, guidance):
 	resetArrays()
 	inputThread.resetArrays()
 
-	# MIDI PLAYER THREAD
 
-	#outPort = 'FLUID Synth (5011):Synth input port (5011:0) 130:0'
+	# MIDI PLAYER THREAD
 
 	# initialize MIDI file player thread
 	playerThread = Thread(target=dexmoOutput.practice_task,
@@ -112,8 +106,3 @@ def startThreads(midiFileLocation, guidance):
 ###TODO: remove?
 def get_errors():
 	return errorDiff
-
-
-
-# inputThread will die on main termination
-#sys.exit()
