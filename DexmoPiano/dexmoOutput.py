@@ -40,7 +40,7 @@ def stop_haptic_actions(outport):
     global actualNote
     if (actualNote != None):
         msg = Message('note_off', channel=CHAN, note=actualNote + NOTE_E, velocity=50)
-        print(msg)
+        #print(msg)
         outport.send(msg)
 
 
@@ -53,14 +53,14 @@ def haptic_action(char, pitch, outport):
     if char == 'i':  # inwards dexmo impulse, stop last outwards impulse
         stop_haptic_actions(outport)
         msg = Message('note_on', channel=CHAN, note=pitch + NOTE_F, velocity=50)
-        print(msg)
+        # print(msg)
         outport.send(msg)
     elif char == 'o':  # outwards dexmo impulse, stop inwards impulse
         msg = Message('note_off', channel=CHAN, note=actualNote+NOTE_F, velocity=50)
-        print(msg)
+        # print(msg)
         outport.send(msg)
         msg = Message('note_on', channel=CHAN, note=pitch + NOTE_E, velocity=50)
-        print(msg)
+        # print(msg)
         outport.send(msg)
     actualNote = pitch
 
