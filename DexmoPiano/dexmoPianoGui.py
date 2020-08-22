@@ -39,6 +39,8 @@ changetask = []
 midiSaved = False
 currentMidi = None
 
+firstStart = True
+
 # starts only metronome output and haptic impulse from dexmo for every note
 def startTask():
     global currentMidi, midiSaved, errors
@@ -373,9 +375,9 @@ def backToMenu():
 def quit():
     root.destroy()
 
-# choose sound, dexmo and inport ports in startmenu
+#  create port buttons to choose sound, dexmo and inport ports in startmenu
 def choose_ports():
-    global dexmo_port
+    global dexmo_port, firstStart
 
     # CONSTANTS
     X_POS = 660
@@ -386,19 +388,28 @@ def choose_ports():
     WIDTH = 200
 
     def createPortButton(portText, findStr, yPos, portList, setFunc):
+        global firstStart
         # place button label (text)
         l = Label(root, text = portText + " port:")
         l.place(x=X_POS, y=yPos, height=TEXT_HEIGHT, width=WIDTH)
 
         # match port
         midiPort = StringVar(root)
-        matching = [s for s in portList if findStr in s.lower()]
-        if matching:
-            midiPort.set(matching[0])
-        else:
-            midiPort.set("None")
+        if firstStart == True:
+            matching = [s for s in portList if findStr in s.lower()]
+            if matching:
+                midiPort.set(matching[0])
+            else:
+                midiPort.set("None")
 
-        setFunc(midiPort.get())
+            setFunc(midiPort.get())
+        else:
+            if portText == "Dexmo output":
+                midiPort.set(dexmoOutput.midi_interface)
+            elif portText == "Sound output":
+                midiPort.set(dexmoOutput.midi_interface_sound)
+            elif portText == "Piano input":
+                midiPort.set(threadHandler.portname)
 
         # place drop-down menu
         options = OptionMenu(root, midiPort, *portList, command=setFunc)
@@ -415,6 +426,7 @@ def choose_ports():
     dexmo_port = createPortButton("Dexmo output", "dexmo", 600, outports, dexmoOutput.set_dexmo)
     sound_port = createPortButton("Sound output", "qsynth", 680, outports, dexmoOutput.set_sound_outport)
     input_port = createPortButton("Piano input", "vmpk", 760, inports, threadHandler.set_inport)
+    firstStart = False
 
 
 

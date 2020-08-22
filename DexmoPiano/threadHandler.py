@@ -10,6 +10,7 @@ import errorCalc
 
 # GLOBAL CONSTANTS
 MAX_NOTE = 128
+global portname
 
 
 # reset global arrays (target times/temp)
@@ -33,12 +34,12 @@ def initInputThread():
 	global inputThread
 
 	# create inputThread instance (port is set to None in constructor)
-	inputThread = MidiInputThread(MAX_NOTE)
-
+	inputThread = MidiInputThread(MAX_NOTE)	
 
 # set MIDI input port from GUI (installing callback for input messages)
 def set_inport(portName):
-	global inputThread
+	global inputThread, portname
+	portname = portName
 
 	# check if inputThread was defined
 	if 'inputThread' in globals():
