@@ -11,7 +11,7 @@ def convertNoteToDexmoNote(note):
     if len(note.articulations) == 0:
         return None
     finger = note.articulations[0].fingerNumber
-    print(finger)
+    #print(finger)
     if finger is 1:
         # thumb
         return 29
@@ -217,7 +217,8 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
 
     # write 2nd MIDI file (with metronome)
     with open(outFiles[1], 'wb') as outf:
-        mf.writeFile(outf)
+        #mf.writeFile(outf)
+        copy.deepcopy(mf).writeFile(outf)
 
     ### add fingernumbers ###
     mf.addProgramChange(rdTrack, CHANNEL_RH, TIME, INSTRUM_DEXMO)
@@ -229,18 +230,22 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
     for note in sf.parts[0].notesAndRests:
         if note.isNote:
             pitch = convertNoteToDexmoNote(note)
+            print("time " + str(note.offset))
+            print("duration " + str(note.duration.ordinal))
             if pitch is not None:
                 mf.addNote(track=rdTrack,
                            channel=CHANNEL_RH,
                            pitch=pitch,
-                           time=note.offset,
-                           duration=note.duration.ordinal,
+                           time=int(note.offset),
+                           #duration=note.duration.ordinal,
+                           duration=1.0,
                            volume=VOLUME)
 
 
     # write 3rd MIDI file (with dexmo notes)
     with open(outFiles[2], 'wb') as outf:
-        mf.writeFile(outf)
+        copy.deepcopy(mf).writeFile(outf)
+        #mf.writeFile(outf)
 
 
 if __name__ == "__main__":
