@@ -4,11 +4,12 @@ import copy
 import os
 import random
 
+import pianoplayer_interface
+
 
 # some code taken from https://github.com/Michael-F-Ellis/tbon
 
 def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outFiles):
-
     ### CONSTANTS ###
 
     CHANNEL_PIANO = 0
@@ -30,25 +31,22 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
 
     NUM_OF_TRACKS = 2 + twoHands
 
-
     ### INITIALIZATION ###
 
     # create MIDI object
     mf = MIDIFile(numTracks=3)  # right (+ left) hand + metronome
 
     # TODO: make constant?
-    rTrack = 0  	# right hand track
-    lTrack = 1		# left hand track
-    mTrack = 2      # metronome track
-    
+    rTrack = 0  # right hand track
+    lTrack = 1  # left hand track
+    mTrack = 2  # metronome track
 
-    #if twoHands:
+    # if twoHands:
     mf.addTrackName(lTrack, TIME, "Left Hand")
     mf.addTrackName(rTrack, TIME, "Right Hand")
     mf.addTrackName(mTrack, TIME, "Metronome")
 
-    mf.addTempo(rTrack, TIME, bpm)	# in file format 1, track doesn't matter
-
+    mf.addTempo(rTrack, TIME, bpm)  # in file format 1, track doesn't matter
 
     ### EXERCISE GENERATION ###
 
@@ -112,7 +110,6 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
 
     # print("timesteps:", timesteps[:-1])
 
-
     ### ADD PIANO NOTES ###
 
     # add music (piano) notes
@@ -140,7 +137,7 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
             print(t, timesteps[t], maxNoteVal)
             timesteps[t] = timesteps[t] + 1
             continue
-        
+
         # TODO: multiply with timeSig[1] here (instead below) when not printing anymore
         duration = random.choice(possNoteValues)
         # print(duration, "\n")
@@ -162,12 +159,10 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
 
         t += 1
 
-
     # write 1st MIDI file (piano only)
     with open(outFiles[0], 'wb') as outf:
-       # copy object, avoid reference
+        # copy object, avoid reference
         copy.deepcopy(mf).writeFile(outf)
-
 
     ### METRONOME ###
 
@@ -194,6 +189,10 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
     with open(outFiles[1], 'wb') as outf:
         mf.writeFile(outf)
 
+    # add fingernumbers
+    pianoplayer = pianoplayer_interface.PianoplayerInterface()
+    pianoplayer.generate_fingernumbers(outFiles[0], twoHands, True, 0, 1, noOfBars, "output/output.xml")
+
 
 if __name__ == "__main__":
 
@@ -203,10 +202,10 @@ if __name__ == "__main__":
         os.makedirs(outDir)
 
     generateMidi(bpm=120,
-                 noteValues=[1, 1/2, 1/4, 1/8],
+                 noteValues=[1, 1 / 2, 1 / 4, 1 / 8],
                  notesPerBar=[1],  # range
-                 noOfBars=8,
-                 #pitches=[60, 62, 64, 65, 67, 69, 71, 72],
-                 pitches=list(range(52, 68)),
-                 twoHands=True,
+                 noOfBars=20,
+                 pitches=[60, 62, 64, 65, 67, 69, 71, 72],
+                 # pitches=list(range(52, 68)),
+                 twoHands=False,
                  outFiles=["./output/output.mid", "./output/output-m.mid"])
