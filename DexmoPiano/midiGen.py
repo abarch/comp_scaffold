@@ -7,6 +7,29 @@ import random
 import pianoplayer_interface
 
 
+def convertNoteToDexmoNote(note):
+    if len(note.articulations) == 0:
+        return None
+    finger = note.articulations[0].fingerNumber
+    print(finger)
+    if finger is 1:
+        # thumb
+        return 29
+    elif finger is 2:
+        # idx
+        return 41
+    elif finger is 3:
+        # mid
+        return 53
+    elif finger is 4:
+        # ring
+        return 65
+    elif finger is 5:
+        # pinky
+        return 77
+    return None
+
+
 # some code taken from https://github.com/Michael-F-Ellis/tbon
 
 def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outFiles):
@@ -14,9 +37,12 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
 
     CHANNEL_PIANO = 0
     CHANNEL_METRO = 9
+    CHANNEL_LH = 11
+    CHANNEL_RH = 10
 
     INSTRUM_PIANO = 0
     INSTRUM_DRUMS = 9
+    INSTRUM_DEXMO = 10
 
     PITCH_METRO_HI = 76  # high wood block
     PITCH_METRO_LO = 77  # low wood block
@@ -34,17 +60,21 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
     ### INITIALIZATION ###
 
     # create MIDI object
-    mf = MIDIFile(numTracks=3)  # right (+ left) hand + metronome
+    mf = MIDIFile(numTracks=5)  # right (+ left) hand + metronome
 
     # TODO: make constant?
     rTrack = 0  # right hand track
     lTrack = 1  # left hand track
     mTrack = 2  # metronome track
+    rdTrack = 3 # right hand dexmo track
+    ldTrack = 4 # left hand dexmo track
 
     # if twoHands:
     mf.addTrackName(lTrack, TIME, "Left Hand")
     mf.addTrackName(rTrack, TIME, "Right Hand")
     mf.addTrackName(mTrack, TIME, "Metronome")
+    mf.addTrackName(ldTrack, TIME, "Left Hand Dexmo")
+    mf.addTrackName(rdTrack, TIME, "Right Hand Dexmo")
 
     mf.addTempo(rTrack, TIME, bpm)  # in file format 1, track doesn't matter
 
@@ -189,9 +219,28 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
     with open(outFiles[1], 'wb') as outf:
         mf.writeFile(outf)
 
-    # add fingernumbers
-    pianoplayer = pianoplayer_interface.PianoplayerInterface()
-    pianoplayer.generate_fingernumbers(outFiles[0], twoHands, True, 0, 1, noOfBars, "output/output.xml")
+    ### add fingernumbers ###
+    mf.addProgramChange(rdTrack, CHANNEL_RH, TIME, INSTRUM_DEXMO)
+
+    pianoplayer = pianoplayer_interface.PianoplayerInterface(outFiles[0])
+    pianoplayer.generate_fingernumbers(twoHands, True, 0, 1, noOfBars)
+    pianoplayer.write_output("output/output.xml")
+    sf = pianoplayer.get_score()
+    for note in sf.parts[0].notesAndRests:
+        if note.isNote:
+            pitch = convertNoteToDexmoNote(note)
+            if pitch is not None:
+                mf.addNote(track=rdTrack,
+                           channel=CHANNEL_RH,
+                           pitch=pitch,
+                           time=note.offset,
+                           duration=note.duration.ordinal,
+                           volume=VOLUME)
+
+
+    # write 3rd MIDI file (with dexmo notes)
+    with open(outFiles[2], 'wb') as outf:
+        mf.writeFile(outf)
 
 
 if __name__ == "__main__":
@@ -208,4 +257,4 @@ if __name__ == "__main__":
                  pitches=[60, 62, 64, 65, 67, 69, 71, 72],
                  # pitches=list(range(52, 68)),
                  twoHands=False,
-                 outFiles=["./output/output.mid", "./output/output-m.mid"])
+                 outFiles=["./output/output.mid", "./output/output-m.mid", "./output/output-md.mid"])
