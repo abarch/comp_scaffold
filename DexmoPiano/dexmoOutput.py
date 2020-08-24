@@ -7,7 +7,7 @@ import datetime
 import noteHandler as nh
 
 # FIXME: this needs to be adapted
-global midi_interface, midi_interface_sound, actualNote
+global midi_interface, midi_interface_sound, CHAN, actualNote, metronome
 #midi_interface = 'DEXMO_R:DEXMO_R MIDI 1 24:0'
 #midi_interface_sound = 'Synth input port (Qsynth1:0)'
 
@@ -21,6 +21,8 @@ NOTE_E = 4
 NOTE_F = 5
 NOTE_A = 9
 
+metronome = True
+
 
 # set dexmo port
 def set_dexmo(port):
@@ -31,6 +33,16 @@ def set_dexmo(port):
 def set_sound_outport(port):
     global midi_interface_sound
     midi_interface_sound = port
+
+# set Channel for dexmo
+def set_channel(channel):
+    global CHAN
+    CHAN = channel
+
+# should metronome sound be played
+def set_metronome():
+    global metronome
+    metronome = not metronome
 
 def get_midi_interfaces():
     return mido.get_output_names(), mido.get_input_names()
@@ -73,7 +85,11 @@ def play_demo(midiFile, guidanceMode):
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
         for msg in MidiFile(midiFile).play():
-            soundPort.send(msg)  # sound from piano and metronome track
+            if metronome == True:
+                soundPort.send(msg)  # sound from piano and metronome track
+            elif msg.channel != 9:
+                soundPort.send(msg)
+
             if msg.channel == 0:  # haptic feeback for notes in Piano track
                 ##____________________HANDLE note_____________________________##
                 if (guidanceMode == "At every note"):
@@ -122,7 +138,7 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
                 # do not play all notes at once
                 time.sleep(msg.time)
 
-                if msg.channel == 9:
+                if msg.channel == 9 and metronome == True:
                     soundPort.send(msg)  # sound only from metronome track
 
                 if msg.channel == 0:  # haptic feeback for notes in Piano track
