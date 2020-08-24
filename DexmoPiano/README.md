@@ -2,7 +2,7 @@
 
 This project is about guided learning of rhythm and timing.
 
-A hand-exoskeleton and a keyboard (connected via MIDI) are used to record the user's musical performance as well as to give respective feedback to his/her fingers.
+A hand-exoskeleton and a keyboard (connected via MIDI) are used to record the user's musical performance as well as to give respective feedback to their fingers.
 
 
 ## Features
