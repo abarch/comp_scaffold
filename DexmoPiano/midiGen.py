@@ -231,14 +231,14 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
         if note.isNote:
             pitch = convertNoteToDexmoNote(note)
             print("time " + str(note.offset))
-            print("duration " + str(note.duration.ordinal))
+            print("duration " + str(note.duration.quarterLength))
             if pitch is not None:
                 mf.addNote(track=rdTrack,
                            channel=CHANNEL_RH,
                            pitch=pitch,
                            time=int(note.offset),
-                           #duration=note.duration.ordinal,
-                           duration=1.0,
+                           duration=note.duration.quarterLength,
+                           #duration=1.0,
                            volume=VOLUME)
 
 
