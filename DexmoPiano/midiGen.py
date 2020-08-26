@@ -7,11 +7,12 @@ import random
 import pianoplayer_interface
 
 
-def convertNoteToDexmoNote(note):
+def convert_note_to_dexmo_note(note):
     if len(note.articulations) == 0:
+        # print("no fingernumber")
         return None
     finger = note.articulations[0].fingerNumber
-    #print(finger)
+    # print("finger: " + str(finger))
     if finger is 1:
         # thumb
         return 29
@@ -28,6 +29,20 @@ def convertNoteToDexmoNote(note):
         # pinky
         return 77
     return None
+
+
+def add_dexmo_note_to_midi(note, track, channel, volume, mf):
+    if note.isNote:
+        # print("note: " + str(note) + " pitch: " + note.pitch.ps)
+        pitch = convert_note_to_dexmo_note(note)
+        # print("dexmo pitch: " + str(pitch))
+        if pitch is not None:
+            mf.addNote(track=track,
+                       channel=channel,
+                       pitch=pitch,
+                       time=int(note.offset),
+                       duration=note.duration.quarterLength,
+                       volume=volume)
 
 
 # some code taken from https://github.com/Michael-F-Ellis/tbon
@@ -66,8 +81,8 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
     rTrack = 0  # right hand track
     lTrack = 1  # left hand track
     mTrack = 2  # metronome track
-    rdTrack = 3 # right hand dexmo track
-    ldTrack = 4 # left hand dexmo track
+    rdTrack = 3  # right hand dexmo track
+    ldTrack = 4  # left hand dexmo track
 
     # if twoHands:
     mf.addTrackName(lTrack, TIME, "Left Hand")
@@ -217,35 +232,28 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
 
     # write 2nd MIDI file (with metronome)
     with open(outFiles[1], 'wb') as outf:
-        #mf.writeFile(outf)
+        # mf.writeFile(outf)
         copy.deepcopy(mf).writeFile(outf)
 
     ### add fingernumbers ###
     mf.addProgramChange(rdTrack, CHANNEL_RH, TIME, INSTRUM_DEXMO)
+    mf.addProgramChange(ldTrack, CHANNEL_LH, TIME, INSTRUM_DEXMO)
 
     pianoplayer = pianoplayer_interface.PianoplayerInterface(outFiles[0])
-    pianoplayer.generate_fingernumbers(twoHands, True, 0, 1, noOfBars)
+    pianoplayer.generate_fingernumbers(False, not twoHands, 0, 1, noOfBars)
+    # pianoplayer.generate_fingernumbers(False, False, 0, 1, noOfBars)
     pianoplayer.write_output("output/output.xml")
     sf = pianoplayer.get_score()
     for note in sf.parts[0].notesAndRests:
-        if note.isNote:
-            pitch = convertNoteToDexmoNote(note)
-            print("time " + str(note.offset))
-            print("duration " + str(note.duration.quarterLength))
-            if pitch is not None:
-                mf.addNote(track=rdTrack,
-                           channel=CHANNEL_RH,
-                           pitch=pitch,
-                           time=int(note.offset),
-                           duration=note.duration.quarterLength,
-                           #duration=1.0,
-                           volume=VOLUME)
-
+        add_dexmo_note_to_midi(note, rdTrack, CHANNEL_RH, VOLUME, mf)
+    if twoHands:
+        for note in sf.parts[1].notesAndRests:
+            add_dexmo_note_to_midi(note, ldTrack, CHANNEL_LH, VOLUME, mf)
 
     # write 3rd MIDI file (with dexmo notes)
     with open(outFiles[2], 'wb') as outf:
         copy.deepcopy(mf).writeFile(outf)
-        #mf.writeFile(outf)
+        # mf.writeFile(outf)
 
 
 if __name__ == "__main__":
@@ -258,8 +266,9 @@ if __name__ == "__main__":
     generateMidi(bpm=120,
                  noteValues=[1, 1 / 2, 1 / 4, 1 / 8],
                  notesPerBar=[1],  # range
-                 noOfBars=20,
-                 pitches=[60, 62, 64, 65, 67, 69, 71, 72],
+                 noOfBars=40,
+                 pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72],
+                 # pitches=[60, 62, 64, 65, 67, 69, 71, 72], # right hand only
                  # pitches=list(range(52, 68)),
-                 twoHands=False,
+                 twoHands=True,
                  outFiles=["./output/output.mid", "./output/output-m.mid", "./output/output-md.mid"])
