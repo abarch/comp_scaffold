@@ -33,7 +33,7 @@ def convert_note_to_dexmo_note(note):
 
 def add_dexmo_note_to_midi(note, track, channel, volume, mf):
     if note.isNote:
-        # print("note: " + str(note) + " pitch: " + note.pitch.ps)
+        # print("note: " + str(note) + " pitch: " + str(note.pitch.ps))
         pitch = convert_note_to_dexmo_note(note)
         # print("dexmo pitch: " + str(pitch))
         if pitch is not None:
@@ -57,7 +57,7 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
 
     INSTRUM_PIANO = 0
     INSTRUM_DRUMS = 9
-    INSTRUM_DEXMO = 10
+    INSTRUM_DEXMO = 0
 
     PITCH_METRO_HI = 76  # high wood block
     PITCH_METRO_LO = 77  # low wood block
@@ -195,6 +195,7 @@ def generateMidi(bpm, noteValues, notesPerBar, noOfBars, pitches, twoHands, outF
         else:
             handTrack = rTrack
 
+        # print("original note pitches: " + str(pitch))
         mf.addNote(track=handTrack,
                    channel=CHANNEL_PIANO,
                    pitch=pitch,
