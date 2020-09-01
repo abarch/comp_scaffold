@@ -131,7 +131,7 @@ class MidiProcessing:
 
         # randomly generate the chosen number of timesteps (notes) per bar
         stepRange = [temp for temp in range(numerator) if temp % (minNoteVal * numerator) == 0]
-        for bar in range(noOfBars):
+        for bar in range(noOfBars - 1):			# last bar is for extra notes
             # determine no. of notes in this bar
             noOfNotes = random.choice(notesPerBar)
 
@@ -200,6 +200,17 @@ class MidiProcessing:
                             volume=self.VOLUME)
 
             t += 1
+
+
+        # add 3 extra notes for proper fingering numbers
+        for t in range(3):
+        	tempTime = ((bars - 1) * numerator) + t + 1
+	        self.mf.addNote(track=handTrack,
+				            channel=self.CHANNEL_PIANO,
+				            pitch=pitch,
+				            time=tempTime,
+				            duration=1,
+				            volume=self.VOLUME)
 
         # write 1st MIDI file (piano only)
         self.write_midi(self.outFiles[0])
@@ -331,11 +342,11 @@ if __name__ == "__main__":
 
     midProc = MidiProcessing(left=True, right=True, bpm=120, outFiles=outFiles)
 
-    # midProc.generateMidi(noteValues=[1, 1 / 2, 1 / 4, 1 / 8],
-    #                       notesPerBar=[2],  # range
-    #                       noOfBars=noOfBars,
-    #                       pitches=list(range(52, 68)))
+    midProc.generateMidi(noteValues=[1, 1 / 2, 1 / 4, 1 / 8],
+                          notesPerBar=[2],  # range
+                          noOfBars=noOfBars,
+                          pitches=list(range(52, 68)))
     #pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72])
 
     # midProc.generate_metronome_and_fingers_for_midi('test_input/TripletsAndQuarters.mid', 8)
-    midProc.generate_metronome_and_fingers_for_midi(fileList=outFiles, noOfBars=noOfBars)
+    #midProc.generate_metronome_and_fingers_for_midi(fileList=outFiles, noOfBars=noOfBars)
