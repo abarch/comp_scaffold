@@ -311,7 +311,7 @@ def add_Dexmo_Warning():
 
 # create button for demo, practicing, next task, back to start menu, guidance mode
 def load_taskButtons():
-    global currentMidi
+    global currentMidi, metronome
     Button(root, text='Start Task', command=startTask).place(x=10, y=100, height=50, width=150)
     Button(root, text='Start Demo', command=startDemo).place(x=10, y=160, height=50, width=150)
 
@@ -326,6 +326,12 @@ def load_taskButtons():
     Button(root, text='Generate new Task', command=nextTask).place(x=10, y=400, height=50, width=150)
     Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=460, height=25, width=150)
     Button(root, text='Open Midi file', command=openfile).place(x=10, y=520, height=25, width=150)
+
+    # add button to disable metronome sound
+    metronome = BooleanVar()
+    metronome.set(dexmoOutput.metronome)
+    checkmetronome = Checkbutton(root, text='play metronome', variable=metronome, command=dexmoOutput.set_metronome)
+    checkmetronome.place(x=10, y=550)
 
     ## next and previous tasks buttons
     if (nextSavedTask() == False):
@@ -410,6 +416,8 @@ def choose_ports():
                 midiPort.set(dexmoOutput.midi_interface_sound)
             elif portText == "Piano input":
                 midiPort.set(threadHandler.portname)
+            elif portText == "Dexmo channel":
+                midiPort.set(dexmoOutput.CHAN)
 
         # place drop-down menu
         options = OptionMenu(root, midiPort, *portList, command=setFunc)
@@ -426,6 +434,10 @@ def choose_ports():
     dexmo_port = createPortButton("Dexmo output", "dexmo", 600, outports, dexmoOutput.set_dexmo)
     sound_port = createPortButton("Sound output", "qsynth", 680, outports, dexmoOutput.set_sound_outport)
     input_port = createPortButton("Piano input", "vmpk", 760, inports, threadHandler.set_inport)
+
+    # TODO delete? only for debugging when left lego
+    dexmo_channel = createPortButton("Dexmo channel", "10", 840, ["10", "11"], dexmoOutput.set_channel)
+
     firstStart = False
 
 
