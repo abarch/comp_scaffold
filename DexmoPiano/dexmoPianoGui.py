@@ -11,7 +11,8 @@ import os
 
 import dexmoOutput
 import fileIO
-from midiProcessing import MidiProcessing
+import midiProcessing
+#from midiProcessing import MidiProcessing
 from optionsWindow import optionsWindowClass
 import threadHandler
 
@@ -28,11 +29,11 @@ outputPngStr = tempDir + 'output.png'
 GuidanceModeList = ["None", "At every note", "At every note (note C-G)", "Individual"]
 guidanceMode = "At every note"
 maxNotePerBar = 2
-numberOfBars = 30
+numberOfBars = 7
 bpm = 120
 noteValuesList = [1, 1/2, 1/4, 1/8]
 #pitchesList = [60, 62]
-pitchesList = list(range(52, 68))
+pitchesList = list(range(48, 72))
 twoHandsTup = (False, True)
 #outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
 
@@ -99,23 +100,28 @@ def getTimeSortedMidiFiles():
     files.sort()
     return files
 
-# generate new midiFile and Notesheet and display it
+# generate new midiFile and note sheet and display it
 # dont generate new task if user opened a midi file
 def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
-    global midProc, midiSaved, currentMidi
+    global midiSaved, currentMidi
 
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
+        subprocess.run(['midi2ly', chosenMidiFile, '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
 
-        fileList = [chosenMidiFile, inputFileStrs[1], inputFileStrs[2], inputFileStrs[3]]
-        midProc.generate_metronome_and_fingers_for_midi(fileList=fileList,
-                                                        noOfBars=numberOfBars)
+
+        #fileList = [chosenMidiFile, inputFileStrs[1], inputFileStrs[2], inputFileStrs[3]]
+        # TODO metronome and fingers for midi
 
     else:
-        midProc.generateMidi(noteValues=noteValuesList,
+        midiProcessing.generateMidi(noteValues=noteValuesList,
                              notesPerBar=list(range(1, maxNotePerBar + 1)),
                              noOfBars=numberOfBars,
-                             pitches=pitchesList)
+                             pitches=pitchesList,
+                             bpm=bpm,
+                             left=twoHandsTup[0],
+                             right=twoHandsTup[1],
+                             outFiles=inputFileStrs)
 
         currentMidi = None
         midiSaved = False
@@ -124,8 +130,10 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
         
 
     # create musicXML and png
-    subprocess.run(['musicxml2ly', inputFileStrs[3], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
+        subprocess.run(['musicxml2ly', inputFileStrs[3], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
+
     subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+
     
     clearFrame()
     load_notesheet(outputPngStr)
@@ -460,8 +468,8 @@ root.title("Piano with Dexmo")
 deleteOldFiles()
 
 # initialize MIDI processor
-midProc = MidiProcessing(left=twoHandsTup[0], right=twoHandsTup[1], bpm=120,
-                         outFiles=inputFileStrs)
+#midProc = MidiProcessing(left=twoHandsTup[0], right=twoHandsTup[1], bpm=120,
+#                         outFiles=inputFileStrs)
 
 # initialize keyboard input thread
 threadHandler.initInputThread()

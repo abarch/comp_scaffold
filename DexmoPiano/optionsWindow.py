@@ -97,12 +97,16 @@ class optionsWindowClass():
         l6 = Label(self.specifyWindow, text=" One or both hands:")
         l6.grid (row=12,columnspan=4,sticky=W, pady=(20,0))
 
-        #TODO: Adjust to twoHandsTup
-        global twoHands
-        twoHands = BooleanVar()
-        twoHands.set(self.twoHandsBool)
-        chk = Checkbutton(self.specifyWindow, text='Use two hands', command=self.change_pitches, var=twoHands)
+        global rightHand, leftHand
+        rightHand = BooleanVar()
+        rightHand.set(self.twoHandsTup[1])
+        chk = Checkbutton(self.specifyWindow, text='Use right hand', var=rightHand)
         chk.grid(column=1,columnspan=3, row=13)
+
+        leftHand = BooleanVar()
+        leftHand.set(self.twoHandsTup[0])
+        chk = Checkbutton(self.specifyWindow, text='Use left hand', var=leftHand)
+        chk.grid(column=3, columnspan=3, row=13)
 
     ## SAVE and QUIT button
         l8 = Label(self.specifyWindow, text=" \n \n ")
@@ -110,20 +114,14 @@ class optionsWindowClass():
 
         saveButton = Button(self.specifyWindow, text='Save and quit',
                             command=lambda: self.save_settings(saveBPM=bpmscale.get(), saveBarNumber=numberBars.get(),
-                                                               saveNotesPerBar=maxNoteNumber.get()))
+                                                               saveNotesPerBar=maxNoteNumber.get(),
+                                                               saveRightHand=rightHand.get(), saveLeftHand=leftHand.get()))
         saveButton.grid(row=17, column=4, columnspan=3, pady=(20, 0))
 
         quitButton = Button(self.specifyWindow, text='Quit without saving', command=lambda: self.quit_options())
         quitButton.grid(row=17, columnspan=3, pady=(20, 0))
 
         self.root.wait_window(self.specifyWindow)
-
-    def change_pitches(self):
-        #if (self.guidanceMode == "At every note (note C-G)"):
-        #   chosenpitches.set(self.pitchesList[2])
-        if (twoHands.get()):
-            chosenpitches.set(self.pitchesOptions[4])
-            
 
     # get list of choosen notevalues
     def get_noteValues(self):
@@ -172,13 +170,13 @@ class optionsWindowClass():
 
     # show error if no pitch or no note value is choosen
     def show_empty_list_error(self):
-        l7 = Label(self.specifyWindow, text=" Error: \n At least one notevalue \n must be selected.",
+        l7 = Label(self.specifyWindow, text=" Error: \n At least one notevalue and \n one hand must be selected.",
              fg = "red")
         l7.grid(row=16,column = 2, columnspan=4, sticky=W)
 
     # save settings to generate a new task with it
-    def save_settings(self, saveBPM, saveBarNumber, saveNotesPerBar):
-        if not self.get_noteValues() or not self.get_pitches():
+    def save_settings(self, saveBPM, saveBarNumber, saveNotesPerBar, saveRightHand, saveLeftHand):
+        if (saveRightHand == False and saveLeftHand == False) or not self.get_noteValues() or not self.get_pitches():
             self.show_empty_list_error()
         else:
             self.bpm = saveBPM
@@ -186,10 +184,8 @@ class optionsWindowClass():
             self.maxNoteperBar = int(saveNotesPerBar)
             self.noteValuesList = self.get_noteValues()
             self.pitchesList = self.get_pitches()
+            self.twoHandsTup = (saveLeftHand, saveRightHand)
             self.specifyWindow.destroy()
-            #TODO: Adjust to twoHandsTup
-            #self.twoHandsBool = twoHands.get()
-            self.twoHandsTup = (True, True)
 
     # quit options window without saving settings
     def quit_options(self):
@@ -197,4 +193,4 @@ class optionsWindowClass():
 
     # return all choosen options to main
     def get_data(self):
-        return self.bpm, self.numberOfBars, self.maxNoteperBar, self.noteValuesList, self.pitchesList, self.twoHandsBool
+        return self.bpm, self.numberOfBars, self.maxNoteperBar, self.noteValuesList, self.pitchesList, self.twoHandsTup
