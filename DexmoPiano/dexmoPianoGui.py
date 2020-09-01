@@ -11,7 +11,7 @@ import os
 
 import dexmoOutput
 import fileIO
-import midiGen
+from midiProcessing import MidiProcessing
 from optionsWindow import optionsWindowClass
 import threadHandler
 
@@ -19,18 +19,21 @@ import threadHandler
 # directory/filename strings
 outputDir = './output/'
 tempDir = './output/temp/'
-inputMidiStrs = [tempDir + 'output.mid', tempDir + 'output-m.mid']
-outputLyStr = tempDir + 'output-midi.ly'
-outputPngStr = tempDir + 'output-midi.png'
+inputFileStrs = [tempDir + 'output.mid', tempDir + 'output-m.mid', tempDir + 'output-md.mid', tempDir + 'output.xml']
+outputLyStr = tempDir + 'output.ly'
+outputPngStr = tempDir + 'output.png'
+#outputLyStr = tempDir + 'output-midi.ly'
+#outputPngStr = tempDir + 'output-midi.png'
 
 GuidanceModeList = ["None", "At every note", "At every note (note C-G)", "Individual"]
 guidanceMode = "At every note"
-maxNotePerBar = 1
-numberOfBars = 5
+maxNotePerBar = 2
+numberOfBars = 30
 bpm = 120
 noteValuesList = [1, 1/2, 1/4, 1/8]
-pitchesList = [60, 62]
-twoHandsBool = False
+#pitchesList = [60, 62]
+pitchesList = list(range(52, 68))
+twoHandsTup = (False, True)
 #outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
 
 errors = []
@@ -48,7 +51,7 @@ def startTask():
     timestr = getCurrentTimestamp()
 
     # use MIDI file with metronome staff
-    targetNotes, actualNotes, errorVal = threadHandler.startThreads(inputMidiStrs[1], guidanceMode)
+    targetNotes, actualNotes, errorVal = threadHandler.startThreads(inputFileStrs[1], guidanceMode)
 
     if not midiSaved:
         saveMidiAndXML(targetNotes)
@@ -67,7 +70,7 @@ def startTask():
 # starts Demo with sound output and haptic impulse from dexmo for every note
 def startDemo():
     # use MIDI file with metronome staff
-    dexmoOutput.play_demo(inputMidiStrs[1], guidanceMode)
+    dexmoOutput.play_demo(inputFileStrs[1], guidanceMode)
 
 # save midi and XML file to output folder
 def saveMidiAndXML(targetNotes):
@@ -78,10 +81,10 @@ def saveMidiAndXML(targetNotes):
     # MIDI
     print("\nMIDI SAVED:", timestr)    ###TODO: Delete
     currentMidi = timestr
-    shutil.move(inputMidiStrs[0], outputDir + timestr + '.mid')
+    shutil.move(inputFileStrs[0], outputDir + timestr + '.mid')
 
     # XML
-    currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool]
+    currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsTup]
     fileIO.createXML(outputDir, timestr, currOptions, targetNotes)
 
 
@@ -96,30 +99,34 @@ def getTimeSortedMidiFiles():
     files.sort()
     return files
 
-# generate new midiFile and Notesheet and displays it
+# generate new midiFile and Notesheet and display it
 # dont generate new task if user opened a midi file
-def nextTask(userSelectedTask=False, userSelectedLocation=inputMidiStrs[0]):
-    global midiSaved, currentMidi
-    if userSelectedTask == False:
-        midiGen.generateMidi(bpm=bpm,
-                             noteValues=noteValuesList,
+def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
+    global midProc, midiSaved, currentMidi
+
+    if userSelectedTask:
+        chosenMidiFile = userSelectedLocation
+
+        fileList = [chosenMidiFile, inputFileStrs[1], inputFileStrs[2], inputFileStrs[3]]
+        midProc.generate_metronome_and_fingers_for_midi(fileList=fileList,
+                                                        noOfBars=numberOfBars)
+
+    else:
+        midProc.generateMidi(noteValues=noteValuesList,
                              notesPerBar=list(range(1, maxNotePerBar + 1)),
                              noOfBars=numberOfBars,
-                             pitches=pitchesList,
-                             twoHands=twoHandsBool,
-                             outFiles=inputMidiStrs)
+                             pitches=pitchesList)
 
-        subprocess.run(['midi2ly', inputMidiStrs[0], '--output=' + outputLyStr],
-                       stderr=subprocess.DEVNULL)
         currentMidi = None
         midiSaved = False
 
-    else:
-        subprocess.run(['midi2ly', userSelectedLocation, '--output=' + outputLyStr],
-                       stderr=subprocess.DEVNULL)
+        chosenMidiFile = inputFileStrs[0]
+        
 
-    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr],
-                   stderr=subprocess.DEVNULL)
+    # create musicXML and png
+    subprocess.run(['musicxml2ly', inputFileStrs[3], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    
     clearFrame()
     load_notesheet(outputPngStr)
 
@@ -216,9 +223,9 @@ def deleteOldFiles():
 
 ##_______________________________OPTIONS______________________________________##
 def specifyTask():
-    global bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool, errors, changetask
+    global bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsTup, errors, changetask
 
-    values = bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool
+    values = bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsTup
     options.changeParameter()
 
     newValues = options.get_data()
@@ -226,7 +233,7 @@ def specifyTask():
     if values != newValues:
         errors = []
         changetask = []
-    bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsBool = newValues
+    bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsTup = newValues
 
 ##_____________________________ERROR-PLOT_____________________________________##
 #TODO: add error plot with saved xml errors, if previous or next task is choosen
@@ -452,6 +459,10 @@ root.title("Piano with Dexmo")
 
 deleteOldFiles()
 
+# initialize MIDI processor
+midProc = MidiProcessing(left=twoHandsTup[0], right=twoHandsTup[1], bpm=120,
+                         outFiles=inputFileStrs)
+
 # initialize keyboard input thread
 threadHandler.initInputThread()
 
@@ -462,6 +473,6 @@ root.geometry("1500x1000")
 
 check_dexmo_connected(mainWindow=False)
 options = optionsWindowClass(root=root, bpm=bpm, numberOfBars=numberOfBars, maxNoteperBar=maxNotePerBar,
-                             noteValuesList=noteValuesList, pitchesList=pitchesList, twoHandsBool=twoHandsBool)
+                             noteValuesList=noteValuesList, pitchesList=pitchesList, twoHandsTup=twoHandsTup)
 
 root.mainloop()

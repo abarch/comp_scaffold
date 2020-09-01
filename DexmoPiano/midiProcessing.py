@@ -27,17 +27,16 @@ class MidiProcessing:
     INTRO_BARS = 1  # no. of empty first bars for metronome intro
     ACROSS_BARS = 0  # allow notes to reach across two bars
 
-    def __init__(self, left, right, bpm=120,
-                 outFiles=["./output/output.mid", "./output/output-m.mid", "./output/output-md.mid"]):
+    # time signature (ex. 4/4 = (4, 4))
+    # TODO: USE AS INPUT?
+    timeSig = (4, 4)
+
+    # outFiles: [midi, midi+metronome, midi+metronome+dexmo, musicXML)
+    def __init__(self, left, right, bpm, outFiles):
         self.bpm = bpm
         self.left = left
         self.right = right
         self.outFiles = outFiles
-
-        # create folder if it does not exist yet
-        outDir = "./output/"
-        if not os.path.exists(outDir):
-            os.makedirs(outDir)
 
         if left and right:
             self.r_track = 0  # right hand track
@@ -105,22 +104,20 @@ class MidiProcessing:
         with open(out_file, 'wb') as outf:
             copy.deepcopy(self.mf).writeFile(outf)
 
-    def generate_metronom_and_fingers_for_midi(self, midiFile, numerator=4, denominator=4,
-                                               noOfBars=40):  # numerator = timeSig[0]
+    # fileList: [midi, midi+metronome, midi+metronome+dexmo, musicXML)
+    ###TODO: Fix! Dexmo notes somehow get into the metronome-only file
+    def generate_metronome_and_fingers_for_midi(self, fileList, noOfBars):
+        numerator, denominator = self.timeSig
+
         self.set_time_signature(numerator, denominator)
-        sf = self.generate_fingers_and_write_xml(midiFile, noOfBars)
-        self.add_metronome(noOfBars + self.INTRO_BARS, numerator, self.outFiles[1])
-        self.add_fingernumbers(self.outFiles[2], sf, True)
+        sf = self.generate_fingers_and_write_xml(fileList[0], fileList[3], noOfBars)
+        self.add_metronome(noOfBars + self.INTRO_BARS, numerator, fileList[1])
+        self.add_fingernumbers(fileList[2], sf, True)
 
     def generateMidi(self, noteValues, notesPerBar, noOfBars, pitches):
         ### EXERCISE GENERATION ###
 
-        # time signature (ex. 4/4 = (4, 4))
-        # TODO: USE AS INPUT?
-        timeSig = (4, 4)
-
-        numerator = timeSig[0]
-        denominator = timeSig[1]
+        numerator, denominator = self.timeSig
 
         # adjust no. of bars (in case of intro bars)
         bars = noOfBars + self.INTRO_BARS
@@ -211,7 +208,7 @@ class MidiProcessing:
         self.add_metronome(bars, numerator, self.outFiles[1])
 
         ### FINGERNUMBERS ###
-        sf = self.generate_fingers_and_write_xml(self.outFiles[0], noOfBars)
+        sf = self.generate_fingers_and_write_xml(self.outFiles[0], self.outFiles[3], noOfBars)
         self.add_fingernumbers(self.outFiles[2], sf, False)
 
     def add_metronome(self, bars, numerator, outFile):
@@ -237,7 +234,7 @@ class MidiProcessing:
         # write 2nd MIDI file (with metronome)
         self.write_midi(outFile)
 
-    def generate_fingers_and_write_xml(self, midiFile, noOfBars):
+    def generate_fingers_and_write_xml(self, midiFile, mxmlFile, noOfBars):
         pianoplayer = pianoplayer_interface.PianoplayerInterface(midiFile)
         lbeam = 1
         if self.left and not self.right:
@@ -245,7 +242,7 @@ class MidiProcessing:
         pianoplayer.generate_fingernumbers(self.left and not self.right, self.right and not self.left, 0, lbeam,
                                            noOfBars)
         # pianoplayer.generate_fingernumbers(False, False, 0, 1, noOfBars)
-        pianoplayer.write_output("output/output.xml")
+        pianoplayer.write_output(mxmlFile)
         return pianoplayer.get_score()
 
     def add_fingernumbers(self, outFile, sf, with_note):
@@ -321,21 +318,24 @@ class MidiProcessing:
 
 
 if __name__ == "__main__":
-    processor = MidiProcessing(True, True)
-    # processor.generateMidi(noteValues=[1, 1 / 2, 1 / 4, 1 / 8],
-    #                       notesPerBar=[1],  # range
-    #                       noOfBars=40,
-    #                       pitches=[48, 50, 52, 53, 55, 57, 59])
-    # pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72])
 
-    # processor.generate_metronom_and_fingers_for_midi('test_input/TripletsAndQuarters.mid', 4, 4, 8)
-    processor.generate_metronom_and_fingers_for_midi('test_input/test.mid', 4, 4, 40)
-    # generateMidi(bpm=120,
-    #             noteValues=[1, 1 / 2, 1 / 4, 1 / 8],
-    #             notesPerBar=[1],  # range
-    #             noOfBars=40,
-    #             pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72],
-    #             # pitches=[60, 62, 64, 65, 67, 69, 71, 72], # right hand only
-    #             # pitches=list(range(52, 68)),
-    #             twoHands=True,
-    #             outFiles=["./output/output.mid", "./output/output-m.mid", "./output/output-md.mid"])
+    noOfBars = 30
+
+    outFiles=["./output/output.mid", "./output/output-m.mid",
+              "./output/output-md.mid", "./output/output.xml"]
+
+    # create folder if it does not exist yet
+    outDir = "./output/"
+    if not os.path.exists(outDir):
+        os.makedirs(outDir)
+
+    midProc = MidiProcessing(left=True, right=True, bpm=120, outFiles=outFiles)
+
+    # midProc.generateMidi(noteValues=[1, 1 / 2, 1 / 4, 1 / 8],
+    #                       notesPerBar=[2],  # range
+    #                       noOfBars=noOfBars,
+    #                       pitches=list(range(52, 68)))
+    #pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72])
+
+    # midProc.generate_metronome_and_fingers_for_midi('test_input/TripletsAndQuarters.mid', 8)
+    midProc.generate_metronome_and_fingers_for_midi(fileList=outFiles, noOfBars=noOfBars)

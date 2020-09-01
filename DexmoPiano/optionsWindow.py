@@ -3,14 +3,14 @@ from tkinter import *
 
 class optionsWindowClass():
 
-    def __init__(self, root, bpm, maxNoteperBar, numberOfBars, noteValuesList, pitchesList, twoHandsBool):
+    def __init__(self, root, bpm, maxNoteperBar, numberOfBars, noteValuesList, pitchesList, twoHandsTup):
         self.root = root
         self.bpm = bpm
         self.maxNoteperBar = maxNoteperBar
         self.numberOfBars = numberOfBars
         self.noteValuesList = noteValuesList
         self.pitchesList = pitchesList
-        self.twoHandsBool = twoHandsBool
+        self.twoHandsTup = twoHandsTup
 
         self.pitchesOptions = ["One note (C)", "Two notes (C,D)", "Notes C-G (for 5 fingers)", "One octave",
                                "Two octaves (two hands)"]
@@ -97,6 +97,7 @@ class optionsWindowClass():
         l6 = Label(self.specifyWindow, text=" One or both hands:")
         l6.grid (row=12,columnspan=4,sticky=W, pady=(20,0))
 
+        #TODO: Adjust to twoHandsTup
         global twoHands
         twoHands = BooleanVar()
         twoHands.set(self.twoHandsBool)
@@ -186,7 +187,9 @@ class optionsWindowClass():
             self.noteValuesList = self.get_noteValues()
             self.pitchesList = self.get_pitches()
             self.specifyWindow.destroy()
-            self.twoHandsBool = twoHands.get()
+            #TODO: Adjust to twoHandsTup
+            #self.twoHandsBool = twoHands.get()
+            self.twoHandsTup = (True, True)
 
     # quit options window without saving settings
     def quit_options(self):
