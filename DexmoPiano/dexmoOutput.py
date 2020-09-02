@@ -34,11 +34,6 @@ def set_sound_outport(port):
     global midi_interface_sound
     midi_interface_sound = port
 
-# set Channel for dexmo
-def set_channel(channel):
-    global CHAN
-    CHAN = channel
-
 # should metronome sound be played
 def set_metronome():
     global metronome
@@ -47,48 +42,38 @@ def set_metronome():
 def get_midi_interfaces():
     return mido.get_output_names(), mido.get_input_names()
 
-
-def stop_haptic_actions(outport):
-    global actualNote
-    if (actualNote != None):
-        msg = Message('note_off', channel=CHAN, note=actualNote + NOTE_E, velocity=50)
+# stop guidance outwards when new note starts or after track is finished
+def stop_guidance_out(outport):
+    if actualMsg != Message('clock'):
+        msg = Message('note_off', channel=actualMsg.channel, note=actualMsg.note -1, velocity=actualMsg.velocity)
+        outport.send(msg)
         #print(msg)
-        outport.send(msg)
 
-# TODO delete? old haptic dexmo messages
-# Send an action to the haptic device over the midi interface
-def haptic_action(char, pitch, outport):
-    global actualNote
-    if pitch == None: #if pitch so finger isnt choosen, use index finger
-        pitch =  MHP_ACT_IND
-
-    if char == 'i':  # inwards dexmo impulse, stop last outwards impulse
-        stop_haptic_actions(outport)
-        msg = Message('note_on', channel=CHAN, note=pitch + NOTE_F, velocity=50)
-        # print(msg)
-        outport.send(msg)
-    elif char == 'o':  # outwards dexmo impulse, stop inwards impulse
-        msg = Message('note_off', channel=CHAN, note=actualNote+NOTE_F, velocity=50)
-        # print(msg)
-        outport.send(msg)
-        msg = Message('note_on', channel=CHAN, note=pitch + NOTE_E, velocity=50)
-        # print(msg)
-        outport.send(msg)
-    actualNote = pitch
-
-#TODO add outwards guidance after note off, stop this befor next note with note_off
-def dexmo_action(msg, outport):
+# guidance outwards after note is finished
+def guidance_outwards(msg, outport):
+    global actualMsg
+    actualMsg = msg
+    msg = Message('note_on', channel=actualMsg.channel, note=actualMsg.note -1, velocity=actualMsg.velocity)
     outport.send(msg)
-    #if (msg.type == 'note_on'):
-    #    outport.send(msg)
-    #elif (msg.type == 'note_off'):
-    #    outport.send(msg)
+    #print(msg)
+
+# send midi message to dexmo for finger guidance
+def dexmo_action(msg, outport):
+    #outport.send(msg)
+    if (msg.type == 'note_on'):
+        stop_guidance_out(outport) # stop last guidance out before next note
+        outport.send(msg)
+        #print(msg)
+    elif (msg.type == 'note_off'):
+        outport.send(msg)
+        #print(msg)
+        guidance_outwards(msg, outport) # start guidance outward after note is finished
 
 
 # play demo: sound output of notes and haptic feedback guidance
 def play_demo(midiFile, guidanceMode):
-    global actualNote
-    actualNote = None
+    global  actualMsg
+    actualMsg = Message('clock') # use message clock instead of None, cause its note comparable
     if (midi_interface != "None"):
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
@@ -108,15 +93,15 @@ def play_demo(midiFile, guidanceMode):
                     elif msg.type == 'note_off':
                         dexmo_action(msg=msg, outport=dexmoPort)
 
-    #if (midi_interface != "None"): # stop outwards guidance
-    #    stop_haptic_actions(dexmoPort)
+    if (midi_interface != "None"): # stop outwards guidance
+        stop_guidance_out(dexmoPort)
         dexmoPort.close()
 
 
 # only haptic feedback guidance
 def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
-    global actualNote
-    actualNote = None
+    global actualMsg
+    actualMsg = Message('clock') # use message clock instead of None, cause its note comparable
     if (midi_interface != "None"):
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
@@ -143,39 +128,16 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
                         if type(noteInfo) == list:
                             print("TARGET:", noteCounter, "\t", noteInfo)
                             noteCounter += 1
-
+                # haptic feedback on dexmo for right (channel 10) and left hand (channel 11)
                 if msg.channel != 0 and msg.channel != 9:
                     if guidanceMode != "None":
                         if msg.type == 'note_on':
                             dexmo_action(msg=msg, outport=dexmoPort)
                         elif msg.type == 'note_off':
                             dexmo_action(msg=msg, outport=dexmoPort)
-                    ##____________________HANDLE note_____________________________##
-                    #if (guidanceMode == "At every note"):
-                    #    if msg.type == 'note_on':
-                    #        haptic_action(char='i',pitch=None, outport=dexmoPort)
-                    #    elif msg.type == 'note_off':
-                    #        haptic_action(char='o',pitch=None, outport=dexmoPort)
 
-                    ##__________HANDLE note  C-G for different fingers____________##
-                    #if (guidanceMode == "At every note (note C-G)"):
-                    #    if (msg.type == 'note_on') or (msg.type == 'note_off'):
-                    #        if msg.note == 60:
-                    #            finger = 24
-                    #        elif msg.note == 62:
-                    #            finger = 36
-                    #        elif msg.note == 64:
-                    #            finger = 48
-                    #        elif msg.note == 65:
-                    #            finger = 60
-                    #        elif msg.note == 67:
-                    #            finger = 72
-                    #    if msg.type == 'note_on':
-                    #        haptic_action(char='i', pitch=finger, outport=dexmoPort)
-                    #    elif msg.type == 'note_off':
-                    #        haptic_action(char='o', pitch=finger, outport=dexmoPort)
-#    if (midi_interface != "None"):
-#        stop_haptic_actions(dexmoPort)
+    if (midi_interface != "None"):
+        stop_guidance_out(dexmoPort)
         dexmoPort.close()
 
 

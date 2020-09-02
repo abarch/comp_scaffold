@@ -461,8 +461,6 @@ def choose_ports():
                 midiPort.set(dexmoOutput.midi_interface_sound)
             elif portText == "Piano input":
                 midiPort.set(threadHandler.portname)
-            elif portText == "Dexmo channel":
-                midiPort.set(dexmoOutput.CHAN)
 
         # place drop-down menu
         options = OptionMenu(root, midiPort, *portList, command=setFunc)
@@ -479,9 +477,6 @@ def choose_ports():
     dexmo_port = createPortButton("Dexmo output", "dexmo", 600, outports, dexmoOutput.set_dexmo)
     sound_port = createPortButton("Sound output", "qsynth", 680, outports, dexmoOutput.set_sound_outport)
     input_port = createPortButton("Piano input", "vmpk", 760, inports, threadHandler.set_inport)
-
-    # TODO delete? only for debugging when left lego
-    dexmo_channel = createPortButton("Dexmo channel", "10", 840, ["10", "11"], dexmoOutput.set_channel)
 
     firstStart = False
 
