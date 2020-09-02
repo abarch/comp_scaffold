@@ -1,11 +1,11 @@
 from midiutil.MidiFile import MIDIFile
+from music21 import converter
 
 import copy
 import os
 import random
 
 import pianoplayer_interface
-
 
 # some code taken from https://github.com/Michael-F-Ellis/tbon
 
@@ -31,15 +31,16 @@ ACROSS_BARS = 0  # allow notes to reach across two bars
 # TODO: USE AS INPUT?
 timeSig = (4, 4)
 
+
 # outFiles: [midi, midi+metronome, midi+metronome+dexmo, musicXML)
 
 def write_midi(out_file, mf):
     with open(out_file, 'wb') as outf:
         copy.deepcopy(mf).writeFile(outf)
 
-def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, outFiles):
 
-   ## from init here: tracknumber, tempo etc
+def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, outFiles):
+    ## from init here: tracknumber, tempo etc
 
     if left and right:
         r_track = 0  # right hand track
@@ -77,7 +78,6 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
     mf.addTrackName(m_track, TIME, "Metronome")
 
     mf.addTempo(m_track, TIME, bpm)  # in file format 1, track doesn't matter; changed to m because always added
-
 
     ### EXERCISE GENERATION ###
 
@@ -120,7 +120,7 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
 
     # randomly generate the chosen number of timesteps (notes) per bar
     stepRange = [temp for temp in range(numerator) if temp % (minNoteVal * numerator) == 0]
-    for bar in range(noOfBars - 1):			# last bar is for extra notes
+    for bar in range(noOfBars - 1):  # last bar is for extra notes
         # determine no. of notes in this bar
         noOfNotes = random.choice(notesPerBar)
 
@@ -145,6 +145,9 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
         mf.addProgramChange(r_track, CHANNEL_PIANO, TIME, INSTRUM_PIANO)
     if left:
         mf.addProgramChange(l_track, CHANNEL_PIANO, TIME, INSTRUM_PIANO)
+
+    count_notes_left = 0
+    count_notes_right = 0
 
     # custom for-loop
     t = 0
@@ -177,7 +180,9 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
         # choose right/left hand, split at C4 (MIDI: pitch 60)
         if left and ((not right) or (pitch < 60)):
             handTrack = l_track
+            count_notes_left += 1
         else:
+            count_notes_right += 1
             handTrack = r_track
 
         # print("original note pitches: " + str(pitch))
@@ -193,12 +198,13 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
     # add 3 extra notes for proper fingering numbers
     for t in range(3):
         tempTime = ((bars - 1) * numerator) + t + 1
+        # count_notes += 1
         mf.addNote(track=handTrack,
-                        channel=CHANNEL_PIANO,
-                        pitch=pitch,
-                        time=tempTime,
-                        duration=1,
-                        volume=VOLUME)
+                   channel=CHANNEL_PIANO,
+                   pitch=pitch,
+                   time=tempTime,
+                   duration=1,
+                   volume=VOLUME)
 
     # write 1st MIDI file (piano only)
     write_midi(outFiles[0], mf)
@@ -207,8 +213,45 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
     add_metronome(bars, numerator, outFiles[1], mf, m_track)
 
     ### FINGERNUMBERS ###
-    sf = generate_fingers_and_write_xml(outFiles[0], outFiles[3], noOfBars, left, right)
-    add_fingernumbers(outFiles[2], sf, False, right, left, mf, rd_track, ld_track, r_track, l_track)
+    print("generated notes right: " + str(count_notes_right) + " generated notes left: " + str(count_notes_left))
+    if (((left and not right) and count_notes_left > 7) or
+            ((right and not left) and count_notes_right > 7) or
+            (left and right and count_notes_left > 7 and count_notes_right > 7)):
+        sf = generate_fingers_and_write_xml(outFiles[0], outFiles[3], noOfBars, left, right)
+        add_fingernumbers(outFiles[2], sf, False, right, left, mf, rd_track, ld_track, r_track, l_track, False)
+    elif right and not left and min(pitches) >= 60 and max(pitches) <= 68:
+        # generate c - g mapping
+        # sf = generate_fingers_and_write_xml(outFiles[0], outFiles[3], noOfBars, left, right)
+        sf = converter.parse(outFiles[0])
+        print("Map Notes between C4 - G#4 for right hand")
+        add_fingernumbers(outFiles[2], sf, False, right, left, mf, rd_track, ld_track, r_track, l_track, True)
+    elif left and not right and min(pitches) >= 48 and max(pitches) <= 55:
+        # generate c-g mapping
+        # sf = generate_fingers_and_write_xml(outFiles[0], outFiles[3], noOfBars, left, right)
+        sf = converter.parse(outFiles[0])
+        print("Map Notes between C3 - G3 for left hand")
+        add_fingernumbers(outFiles[2], sf, False, right, left, mf, rd_track, ld_track, r_track, l_track, True)
+    elif left and right and min(pitches) >= 48 and max(pitches) <= 68 and \
+            not any(item in pitches for item in list(range(56, 59))):
+        # generate c-g mapping
+        # sf = generate_fingers_and_write_xml(outFiles[0], outFiles[3], noOfBars, left, right)
+        sf = converter.parse(outFiles[0])
+        print("Map Notes between C3 - G3 for left hand and C4 - G#4 for right hand")
+        add_fingernumbers(outFiles[2], sf, False, right, left, mf, rd_track, ld_track, r_track, l_track, True)
+    else:
+        # change pitches
+        print("Not enough Notes to generate finger-numbers!")
+        if left and right:
+            print("Generate again with Notes between C3 - G3 for left hand and C4 - G#4 for right hand")
+            pitches = [48, 50, 52, 53, 55, 60, 62, 64, 65, 67, 68]
+        elif left and not right:
+            print("Generate again with Notes between C3 - G3 for left hand)")
+            pitches = [48, 50, 52, 53, 55]
+        elif right and not left:
+            print("Generate again with Notes between C4 - G#4 for right hand")
+            pitches = [60, 62, 64, 65, 67, 68]
+        generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, outFiles)
+
 
 def add_metronome(bars, numerator, outFile, mf, m_track):
     # add metronome notes
@@ -224,14 +267,15 @@ def add_metronome(bars, numerator, outFile, mf, m_track):
             pitch = PITCH_METRO_LO
 
         mf.addNote(track=m_track,
-                        channel=CHANNEL_METRO,
-                        pitch=pitch,
-                        time=t,
-                        duration=1,
-                        volume=VOLUME)
+                   channel=CHANNEL_METRO,
+                   pitch=pitch,
+                   time=t,
+                   duration=1,
+                   volume=VOLUME)
 
     # write 2nd MIDI file (with metronome)
     write_midi(outFile, mf)
+
 
 def generate_fingers_and_write_xml(midiFile, mxmlFile, noOfBars, left, right):
     pianoplayer = pianoplayer_interface.PianoplayerInterface(midiFile)
@@ -244,7 +288,8 @@ def generate_fingers_and_write_xml(midiFile, mxmlFile, noOfBars, left, right):
     pianoplayer.write_output(mxmlFile)
     return pianoplayer.get_score()
 
-def add_fingernumbers(outFile, sf, with_note, right, left, mf, rd_track, ld_track, r_track, l_track):
+
+def add_fingernumbers(outFile, sf, with_note, right, left, mf, rd_track, ld_track, r_track, l_track, c_to_g):
     if right:
         mf.addProgramChange(rd_track, CHANNEL_RH, TIME, INSTRUM_DEXMO)
     if left:
@@ -254,43 +299,49 @@ def add_fingernumbers(outFile, sf, with_note, right, left, mf, rd_track, ld_trac
         if right:
             if with_note:
                 add_note_to_midi(note, r_track, CHANNEL_PIANO, mf)
-            add_dexmo_note_to_midi(note, rd_track, CHANNEL_RH, mf)
+            add_dexmo_note_to_midi(note, rd_track, CHANNEL_RH, mf, c_to_g)
         else:
             if with_note:
                 add_note_to_midi(note, l_track, CHANNEL_PIANO, mf)
-            add_dexmo_note_to_midi(note, ld_track, CHANNEL_LH, mf)
-    if left and right:
+            add_dexmo_note_to_midi(note, ld_track, CHANNEL_LH, mf, c_to_g)
+    if left and right and len(sf.parts) >= 2:
         for note in sf.parts[1].notesAndRests:
             if with_note:
                 add_note_to_midi(note, l_track, CHANNEL_PIANO, mf)
-            add_dexmo_note_to_midi(note, ld_track, CHANNEL_LH, mf)
+            add_dexmo_note_to_midi(note, ld_track, CHANNEL_LH, mf, c_to_g)
 
     # write 3rd MIDI file (with dexmo notes)
     write_midi(outFile, mf)
 
-def add_dexmo_note_to_midi(note, track, channel, mf):
+
+def add_dexmo_note_to_midi(note, track, channel, mf, c_to_g):
     if note.isNote:
-        pitch = convert_note_to_dexmo_note(note)
-        # print("add dexmo note: " + str(note) + " pitch: " + str(pitch))
-        # print("dexmo pitch: " + str(pitch))
+        if c_to_g:
+            pitch = map_note_to_c_till_g(note)
+        else:
+            pitch = convert_note_to_dexmo_note(note)
+        print("add dexmo note: " + str(note) + " original pitch: " + str(note.pitch.ps) + " dexmo pitch: " + str(
+            pitch))
         if pitch is not None:
             mf.addNote(track=track,
-                            channel=channel,
-                            pitch=pitch,
-                            time=note.offset,
-                            duration=note.duration.quarterLength,
-                            volume=VOLUME)
+                       channel=channel,
+                       pitch=pitch,
+                       time=note.offset,
+                       duration=note.duration.quarterLength,
+                       volume=VOLUME)
+
 
 def add_note_to_midi(note, track, channel, mf):
     if note.isNote:
         # print("add note: " + str(note) + " pitch: " + str(note.pitch.ps) + " time: " + str(note.offset) +
         # " duration: " + str(note.duration.quarterLength))
         mf.addNote(track=track,
-                        channel=channel,
-                        pitch=int(note.pitch.ps),
-                        time=note.offset,
-                        duration=note.duration.quarterLength,
-                        volume=VOLUME)
+                   channel=channel,
+                   pitch=int(note.pitch.ps),
+                   time=note.offset,
+                   duration=note.duration.quarterLength,
+                   volume=VOLUME)
+
 
 def convert_note_to_dexmo_note(note):
     if len(note.articulations) == 0:
@@ -316,29 +367,48 @@ def convert_note_to_dexmo_note(note):
     return None
 
 
+def map_note_to_c_till_g(note):
+    if note.pitch.ps == 55 or note.pitch.ps == 60:
+        # thumb
+        return 29
+    elif note.pitch.ps == 53 or note.pitch.ps == 54 or note.pitch.ps == 61 or note.pitch.ps == 62:
+        # idx
+        return 41
+    elif note.pitch.ps == 51 or note.pitch.ps == 52 or note.pitch.ps == 63 or note.pitch.ps == 64:
+        # mid
+        return 53
+    elif note.pitch.ps == 50 or note.pitch.ps == 49 or note.pitch.ps == 65 or note.pitch.ps == 66:
+        # ring
+        return 65
+    elif note.pitch.ps == 48 or note.pitch.ps == 67 or note.pitch.ps == 68:
+        # pinky
+        return 77
+    return None
+
+
 if __name__ == "__main__":
 
     noOfBars = 30
 
-    outFiles=["./output/output.mid", "./output/output-m.mid",
-              "./output/output-md.mid", "./output/output.xml"]
+    outFiles = ["./output/output.mid", "./output/output-m.mid",
+                "./output/output-md.mid", "./output/output.xml"]
 
     # create folder if it does not exist yet
     outDir = "./output/"
     if not os.path.exists(outDir):
         os.makedirs(outDir)
 
-    #midProc = MidiProcessing(left=True, right=True, bpm=120, outFiles=outFiles)
+    # midProc = MidiProcessing(left=True, right=True, bpm=120, outFiles=outFiles)
 
     generateMidi(noteValues=[1, 1 / 2, 1 / 4, 1 / 8],
-                          notesPerBar=[2],  # range
-                          noOfBars=noOfBars,
-                          pitches=list(range(52, 68)),
-                          bpm = 120,
-                          left = False,
-                          right = True,
-                          outFiles=outFiles)
-    #pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72])
+                 notesPerBar=[1, 2],  # range
+                 noOfBars=noOfBars,
+                 pitches=list(range(52, 68)),
+                 bpm=120,
+                 left=True,
+                 right=True,
+                 outFiles=outFiles)
+    # pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72])
 
     # midProc.generate_metronome_and_fingers_for_midi('test_input/TripletsAndQuarters.mid', 8)
-    #midProc.generate_metronome_and_fingers_for_midi(fileList=outFiles, noOfBars=noOfBars)
+    # midProc.generate_metronome_and_fingers_for_midi(fileList=outFiles, noOfBars=noOfBars)
