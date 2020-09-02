@@ -55,7 +55,7 @@ def stop_haptic_actions(outport):
         #print(msg)
         outport.send(msg)
 
-
+# TODO delete? old haptic dexmo messages
 # Send an action to the haptic device over the midi interface
 def haptic_action(char, pitch, outport):
     global actualNote
@@ -76,8 +76,16 @@ def haptic_action(char, pitch, outport):
         outport.send(msg)
     actualNote = pitch
 
+#TODO add outwards guidance after note off, stop this befor next note with note_off
+def dexmo_action(msg, outport):
+    outport.send(msg)
+    #if (msg.type == 'note_on'):
+    #    outport.send(msg)
+    #elif (msg.type == 'note_off'):
+    #    outport.send(msg)
 
-# play demo: sound output of notes and haptic feedback impulse
+
+# play demo: sound output of notes and haptic feedback guidance
 def play_demo(midiFile, guidanceMode):
     global actualNote
     actualNote = None
@@ -85,43 +93,27 @@ def play_demo(midiFile, guidanceMode):
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
         for msg in MidiFile(midiFile).play():
+            # sound from piano and metronome track,channel 9 is metronome, piano is 0
             if metronome == True:
-                soundPort.send(msg)  # sound from piano and metronome track
-            elif msg.channel != 9:
+                if msg.channel == 0 or msg.channel == 9:
+                    soundPort.send(msg)
+            elif msg.channel == 0 : # only piano sound
                 soundPort.send(msg)
 
-            if msg.channel == 0:  # haptic feeback for notes in Piano track
-                ##____________________HANDLE note_____________________________##
-                if (guidanceMode == "At every note"):
+            # haptic feedback on dexmo for right (channel 10) and left hand (channel 11)
+            if msg.channel != 0 and msg.channel != 9:
+                if guidanceMode != "None":
                     if msg.type == 'note_on':
-                        haptic_action(char='i',pitch=None, outport=dexmoPort)
+                        dexmo_action(msg=msg, outport=dexmoPort)
                     elif msg.type == 'note_off':
-                        haptic_action(char='o',pitch=None, outport=dexmoPort)
+                        dexmo_action(msg=msg, outport=dexmoPort)
 
-                ##__________HANDLE note  C-G for different fingers____________##
-                if (guidanceMode == "At every note (note C-G)"):
-                    if (msg.type == 'note_on') or (msg.type == 'note_off'):
-                        if msg.note == 60:
-                            finger = 24
-                        elif msg.note == 62:
-                            finger = 36
-                        elif msg.note == 64:
-                            finger = 48
-                        elif msg.note == 65:
-                            finger = 60
-                        elif msg.note == 67:
-                            finger = 72
-                    if msg.type == 'note_on':
-                        haptic_action(char='i', pitch=finger, outport=dexmoPort)
-                    elif msg.type == 'note_off':
-                        haptic_action(char='o', pitch=finger, outport=dexmoPort)
-
-    if (midi_interface != "None"):
-        stop_haptic_actions(dexmoPort)
+    #if (midi_interface != "None"): # stop outwards guidance
+    #    stop_haptic_actions(dexmoPort)
         dexmoPort.close()
 
 
-# only haptic feedback impulse
+# only haptic feedback guidance
 def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
     global actualNote
     actualNote = None
@@ -152,32 +144,38 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
                             print("TARGET:", noteCounter, "\t", noteInfo)
                             noteCounter += 1
 
-                    ##____________________HANDLE note_____________________________##
-                    if (guidanceMode == "At every note"):
+                if msg.channel != 0 and msg.channel != 9:
+                    if guidanceMode != "None":
                         if msg.type == 'note_on':
-                            haptic_action(char='i',pitch=None, outport=dexmoPort)
+                            dexmo_action(msg=msg, outport=dexmoPort)
                         elif msg.type == 'note_off':
-                            haptic_action(char='o',pitch=None, outport=dexmoPort)
+                            dexmo_action(msg=msg, outport=dexmoPort)
+                    ##____________________HANDLE note_____________________________##
+                    #if (guidanceMode == "At every note"):
+                    #    if msg.type == 'note_on':
+                    #        haptic_action(char='i',pitch=None, outport=dexmoPort)
+                    #    elif msg.type == 'note_off':
+                    #        haptic_action(char='o',pitch=None, outport=dexmoPort)
 
                     ##__________HANDLE note  C-G for different fingers____________##
-                    if (guidanceMode == "At every note (note C-G)"):
-                        if (msg.type == 'note_on') or (msg.type == 'note_off'):
-                            if msg.note == 60:
-                                finger = 24
-                            elif msg.note == 62:
-                                finger = 36
-                            elif msg.note == 64:
-                                finger = 48
-                            elif msg.note == 65:
-                                finger = 60
-                            elif msg.note == 67:
-                                finger = 72
-                        if msg.type == 'note_on':
-                            haptic_action(char='i', pitch=finger, outport=dexmoPort)
-                        elif msg.type == 'note_off':
-                            haptic_action(char='o', pitch=finger, outport=dexmoPort)
-    if (midi_interface != "None"):
-        stop_haptic_actions(dexmoPort)
+                    #if (guidanceMode == "At every note (note C-G)"):
+                    #    if (msg.type == 'note_on') or (msg.type == 'note_off'):
+                    #        if msg.note == 60:
+                    #            finger = 24
+                    #        elif msg.note == 62:
+                    #            finger = 36
+                    #        elif msg.note == 64:
+                    #            finger = 48
+                    #        elif msg.note == 65:
+                    #            finger = 60
+                    #        elif msg.note == 67:
+                    #            finger = 72
+                    #    if msg.type == 'note_on':
+                    #        haptic_action(char='i', pitch=finger, outport=dexmoPort)
+                    #    elif msg.type == 'note_off':
+                    #        haptic_action(char='o', pitch=finger, outport=dexmoPort)
+#    if (midi_interface != "None"):
+#        stop_haptic_actions(dexmoPort)
         dexmoPort.close()
 
 

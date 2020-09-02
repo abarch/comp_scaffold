@@ -25,7 +25,7 @@ outputPngStr = tempDir + 'output.png'
 #outputLyStr = tempDir + 'output-midi.ly'
 #outputPngStr = tempDir + 'output-midi.png'
 
-GuidanceModeList = ["None", "At every note", "At every note (note C-G)", "Individual"]
+GuidanceModeList = ["None", "At every note", "Individual"]
 guidanceMode = "At every note"
 maxNotePerBar = 2
 numberOfBars = 7
@@ -51,7 +51,7 @@ def startTask():
     timestr = getCurrentTimestamp()
 
     # use MIDI file with metronome staff
-    targetNotes, actualNotes, errorVal = threadHandler.startThreads(inputFileStrs[1], guidanceMode)
+    targetNotes, actualNotes, errorVal = threadHandler.startThreads(inputFileStrs[2], guidanceMode)
 
     if not midiSaved:
         saveMidiAndXML(targetNotes)
@@ -69,7 +69,7 @@ def startTask():
 # starts Demo with sound output and haptic impulse from dexmo for every note
 def startDemo():
     # use MIDI file with metronome staff
-    dexmoOutput.play_demo(inputFileStrs[1], guidanceMode)
+    dexmoOutput.play_demo(inputFileStrs[2], guidanceMode)
 
 # save midi and XML file to output folder
 def saveMidiAndXML(targetNotes):
@@ -206,7 +206,7 @@ def check_dexmo_connected(mainWindow):
         if(mainWindow):
             add_Dexmo_Warning()
     else:
-        GuidanceModeList = ["None", "At every note", "At every note (note C-G)", "Individual"]
+        GuidanceModeList = ["None", "At every note", "Individual"]
 
 # loads notesheet for actual task
 def load_notesheet(png):
