@@ -12,7 +12,6 @@ import os
 import dexmoOutput
 import fileIO
 import midiProcessing
-#from midiProcessing import MidiProcessing
 from optionsWindow import optionsWindowClass
 import threadHandler
 
@@ -63,7 +62,6 @@ def startTask():
     ###TODO: remove (testing)
     fileIO.printXML(outputDir + currentMidi + ".xml", True)
 
-
     #errorVal = threadHandler.get_errors()
     errors.append(abs(errorVal))
     add_error_plot()
@@ -88,7 +86,6 @@ def saveMidiAndXML(targetNotes):
     currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsTup]
     fileIO.createXML(outputDir, timestr, currOptions, targetNotes)
 
-
 def getCurrentTimestamp():
     return time.strftime("%Y%m%d-%H%M%S")
 
@@ -105,15 +102,21 @@ def getTimeSortedMidiFiles():
 def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     global midiSaved, currentMidi
 
+    # load saved midi
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
         subprocess.run(['midi2ly', chosenMidiFile, '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
 
-
         #fileList = [chosenMidiFile, inputFileStrs[1], inputFileStrs[2], inputFileStrs[3]]
         # TODO metronome and fingers for midi
 
+    # generate new midi
     else:
+        files = os.listdir(tempDir)
+        for item in files:
+            if item.endswith('.xml'):
+                os.remove(os.path.join(tempDir, item))
+
         midiProcessing.generateMidi(noteValues=noteValuesList,
                              notesPerBar=list(range(1, maxNotePerBar + 1)),
                              noOfBars=numberOfBars,
@@ -125,16 +128,11 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
 
         currentMidi = None
         midiSaved = False
-
         chosenMidiFile = inputFileStrs[0]
-        
-
-    # create musicXML and png
-        subprocess.run(['musicxml2ly', inputFileStrs[3], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
+        get_ly()
 
     subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
 
-    
     clearFrame()
     load_notesheet(outputPngStr)
 
@@ -228,6 +226,31 @@ def deleteOldFiles():
     for item in files:
         if item.endswith('.mid') or item.endswith('.xml'):
             os.remove(os.path.join(outputDir, item))
+
+# get lilypond .ly file from xml or midi
+def get_ly():
+    xmlGenerated = False
+    files = os.listdir(tempDir)
+    for item in files:
+        if item.endswith('.xml'):
+            xmlGenerated = True
+
+    # create png from music xml with fingernumbers
+    # or from midi without finger numbers, if to less notes are generated
+    if xmlGenerated:
+        subprocess.run(['musicxml2ly', inputFileStrs[3], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
+    else:
+        subprocess.run(['midi2ly', inputFileStrs[0], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
+
+# show notesheet with guidance tracks
+def showGuidanceNotesheet():
+    if (showGuidance.get()): # output_md anzeigen
+        subprocess.run(['midi2ly', inputFileStrs[2], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
+    else: # output xml oder midi
+        get_ly()
+
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    load_notesheet(outputPngStr)
 
 ##_______________________________OPTIONS______________________________________##
 def specifyTask():
@@ -348,6 +371,13 @@ def load_taskButtons():
     checkmetronome = Checkbutton(root, text='play metronome', variable=metronome, command=dexmoOutput.set_metronome)
     checkmetronome.place(x=10, y=550)
 
+    # add button to show notesheet with haptic guidance
+    global showGuidance
+    showGuidance = BooleanVar()
+    showGuidance.set(False)
+    checkShowGuidance = Checkbutton(root, text='show guidance in note sheet', variable=showGuidance, command=showGuidanceNotesheet)
+    checkShowGuidance.place(x=1050, y=900)
+
     ## next and previous tasks buttons
     if (nextSavedTask() == False):
         Button(root, text='Next Task >>', command=nextSavedTask, state=DISABLED).place(x=10, y=800, height=50, width=150)
@@ -455,8 +485,6 @@ def choose_ports():
 
     firstStart = False
 
-
-
 ##_____________________________START LOOP HERE________________________________##
 
 # create file output folder if it does not already exist
@@ -467,17 +495,12 @@ root.title("Piano with Dexmo")
 
 deleteOldFiles()
 
-# initialize MIDI processor
-#midProc = MidiProcessing(left=twoHandsTup[0], right=twoHandsTup[1], bpm=120,
-#                         outFiles=inputFileStrs)
-
 # initialize keyboard input thread
 threadHandler.initInputThread()
 
 load_Startmenu()
 # Set the resolution of window
 root.geometry("1500x1000")
-
 
 check_dexmo_connected(mainWindow=False)
 options = optionsWindowClass(root=root, bpm=bpm, numberOfBars=numberOfBars, maxNoteperBar=maxNotePerBar,
