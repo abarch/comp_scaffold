@@ -105,15 +105,8 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     # load saved midi
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
-        # fileList = [chosenMidiFile, inputFileStrs[1], inputFileStrs[2], inputFileStrs[3]]
         # TODO get needed input from user left_hand, right_hand, noOfBars, bpm
         midiProcessing.generate_metronom_and_fingers_for_midi(True, True, inputFileStrs, chosenMidiFile, 41, 120)
-        # TODO fix display correct files are generated but lilypond file from old Task is shown?
-        subprocess.run(['midi2ly', chosenMidiFile, '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
-
-        #fileList = [chosenMidiFile, inputFileStrs[1], inputFileStrs[2], inputFileStrs[3]]
-        print("in userSelectedTask", chosenMidiFile, " inputFileStrs ", inputFileStrs, " tempDir ", tempDir,
-              " outputLyStr ", outputLyStr)
 
     # generate new midi
     else:
@@ -134,7 +127,8 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
         currentMidi = None
         midiSaved = False
         chosenMidiFile = inputFileStrs[0]
-        get_ly()
+
+    get_ly()
 
     subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
 
