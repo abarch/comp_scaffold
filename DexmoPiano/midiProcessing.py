@@ -39,7 +39,7 @@ TRACKS = 5
 timeSig = (4, 4)
 
 
-# outFiles: [midi, midi+metronome, midi+metronome+dexmo, musicXML)
+# outFiles: [midi, midi+metronome, midi+metronome+dexmo, musicXML]
 
 def write_midi(out_file, mf):
     with open(out_file, 'wb') as outf:
@@ -156,6 +156,7 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
 
     count_notes_left = 0
     count_notes_right = 0
+    lastPitch = [None, None]
 
     # custom for-loop
     t = 0
@@ -179,20 +180,19 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
             timesteps[t] = timesteps[t] + 1
             continue
 
-        # TODO: multiply with timeSig[1] here (instead below) when not printing anymore
         duration = random.choice(possNoteValues)
-        # print(duration, "\n")
-
         pitch = random.choice(pitches)
 
         # choose right/left hand, split at C4 (MIDI: pitch 60)
         if left and ((not right) or (pitch < 60)):
             handTrack = L_TRACK
             count_notes_left += 1
+            lastPitch[0] = (handTrack, pitch)
         else:
-            count_notes_right += 1
             handTrack = R_TRACK
-
+            count_notes_right += 1
+            lastPitch[1] = (handTrack, pitch)
+            
         # print("original note pitches: " + str(pitch))
         mf.addNote(track=handTrack,
                    channel=CHANNEL_PIANO,
@@ -203,16 +203,18 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
 
         t += 1
 
-    # add 3 extra notes for proper fingering numbers
+    # add 3 extra notes per hand for proper fingering numbers
     for t in range(3):
         tempTime = ((bars - 1) * numerator) + t + 1
         # count_notes += 1
-        mf.addNote(track=handTrack,
-                   channel=CHANNEL_PIANO,
-                   pitch=pitch,
-                   time=tempTime,
-                   duration=1,
-                   volume=VOLUME)
+        for hSide in range(2):
+            if lastPitch[hSide]:
+                mf.addNote(track=lastPitch[hSide][0],
+                           channel=CHANNEL_PIANO,
+                           pitch=lastPitch[hSide][1],
+                           time=tempTime,
+                           duration=1,
+                           volume=VOLUME)
 
     # write 1st MIDI file (piano only)
     write_midi(outFiles[0], mf)
