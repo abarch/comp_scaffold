@@ -83,7 +83,7 @@ def set_tracks(mf, bpm):
     mf.addTempo(R_TRACK, TIME, bpm)  # in file format 1, track doesn't matter
 
 
-def generate_metronom_and_fingers_for_midi(left, right, outFiles, midi_file, noOfBars=40, bpm=120):
+def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, noOfBars=40, bpm=120):
     sf = generate_fingers_and_write_xml(midi_file, outFiles[3], noOfBars, right, left)
     # sf.show('text')
 
@@ -94,7 +94,7 @@ def generate_metronom_and_fingers_for_midi(left, right, outFiles, midi_file, noO
     ## set time signature
     set_time_signature(sf.parts[0].timeSignature.numerator, sf.parts[0].timeSignature.denominator, R_TRACK, mf)
 
-    # add_metronome(noOfBars + INTRO_BARS, numerator, outFiles[1], mf, m_track)
+    add_metronome(noOfBars + INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], mf)
     count, left_count = extract_number_of_notes(sf)
     c_to_g = False
     if (((left and not right) or (right and not left)) and count < 10) or (
@@ -428,5 +428,5 @@ if __name__ == "__main__":
     #              outFiles=outFiles)
     # pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72])
 
-    generate_metronom_and_fingers_for_midi(True, True, outFiles, 'test_input/TripletsAndQuarters.mid', 41, 120)
-    # generate_metronom_and_fingers_for_midi(True, True, outFiles, 'test_input/test.mid', 8, 120)
+    generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/TripletsAndQuarters.mid', 41, 120)
+    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/test.mid', 8, 120)
