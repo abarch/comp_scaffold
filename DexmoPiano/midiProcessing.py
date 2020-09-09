@@ -83,8 +83,8 @@ def set_tracks(mf, bpm):
     mf.addTempo(R_TRACK, TIME, bpm)  # in file format 1, track doesn't matter
 
 
-def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, noOfBars=40, bpm=120):
-    sf = generate_fingers_and_write_xml(midi_file, outFiles[3], noOfBars, right, left)
+def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, bpm=120):
+    sf, measures = generate_fingers_and_write_xml(midi_file, outFiles[3], right, left)
     # sf.show('text')
 
     mf = MIDIFile(numTracks=TRACKS)
@@ -94,7 +94,8 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, no
     ## set time signature
     set_time_signature(sf.parts[0].timeSignature.numerator, sf.parts[0].timeSignature.denominator, R_TRACK, mf)
 
-    add_metronome(noOfBars + INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], mf)
+    print("number of measures extracted from midi: ", measures)
+    add_metronome(measures + INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], mf)
     count, left_count = extract_number_of_notes(sf)
     c_to_g = False
     if (((left and not right) or (right and not left)) and count < 10) or (
@@ -227,24 +228,21 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
     if (((left and not right) and count_notes_left > 7) or
             ((right and not left) and count_notes_right > 7) or
             (left and right and count_notes_left > 7 and count_notes_right > 7)):
-        sf = generate_fingers_and_write_xml(outFiles[0], outFiles[3], noOfBars, right, left)
+        sf, measures = generate_fingers_and_write_xml(outFiles[0], outFiles[3], right, left)
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, False)
     elif right and not left and min(pitches) >= 60 and max(pitches) <= 68:
         # generate c - g mapping
-        # sf = generate_fingers_and_write_xml(outFiles[0], outFiles[3], noOfBars, right, left)
         sf = converter.parse(outFiles[0])
         print("Map Notes between C4 - G#4 for right hand")
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, True)
     elif left and not right and min(pitches) >= 48 and max(pitches) <= 55:
         # generate c-g mapping
-        # sf = generate_fingers_and_write_xml(outFiles[0], outFiles[3], noOfBars, right, left)
         sf = converter.parse(outFiles[0])
         print("Map Notes between C3 - G3 for left hand")
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, True)
     elif left and right and min(pitches) >= 48 and max(pitches) <= 68 and \
             not any(item in pitches for item in list(range(56, 59))):
         # generate c-g mapping
-        # sf = generate_fingers_and_write_xml(outFiles[0], outFiles[3], noOfBars, right, left)
         sf = converter.parse(outFiles[0])
         print("Map Notes between C3 - G3 for left hand and C4 - G#4 for right hand")
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, True)
@@ -287,16 +285,16 @@ def add_metronome(bars, numerator, outFile, mf):
     write_midi(outFile, mf)
 
 
-def generate_fingers_and_write_xml(midiFile, mxmlFile, noOfBars, right, left):
+def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left):
     pianoplayer = pianoplayer_interface.PianoplayerInterface(midiFile)
     lbeam = 1
     if left and not right:
         lbeam = 0
-    pianoplayer.generate_fingernumbers(left and not right, right and not left, 0, lbeam,
-                                       noOfBars)
+    pianoplayer.generate_fingernumbers(left and not right, right and not left, 0, lbeam, pianoplayer.get_measure_number())
+                                       #noOfBars)
     # pianoplayer.generate_fingernumbers(False, False, 0, 1, noOfBars)
     pianoplayer.write_output(mxmlFile)
-    return pianoplayer.get_score()
+    return pianoplayer.get_score(), pianoplayer.get_measure_number()
 
 
 def extract_number_of_notes(sf):
@@ -428,5 +426,5 @@ if __name__ == "__main__":
     #              outFiles=outFiles)
     # pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72])
 
-    generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/TripletsAndQuarters.mid', 41, 120)
-    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/test.mid', 8, 120)
+    generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/test.mid', 120)
+    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/TripletsAndQuarters.mid', 120)

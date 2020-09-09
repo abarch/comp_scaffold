@@ -8,6 +8,11 @@ class PianoplayerInterface:
 
     def __init__(self, filename):
         self.sf = converter.parse(filename)
+        tmp = self.sf.parts[0].makeMeasures()
+        #tmp.show('text')
+        self.measures = len(tmp.elements)
+        #print("final Barline: ", self.measures)
+        # print("tempo number: ", sf.tempo.number)
 
     # left_only whether fingering should be generated for left hand only
     # right_only whether fingering should be generated for right hand only
@@ -48,6 +53,9 @@ class PianoplayerInterface:
 
     def get_score(self):
         return self.sf
+
+    def get_measure_number(self):
+        return self.measures
 
     def write_output(self, outputfile):
         self.sf.write('xml', fp=outputfile)
