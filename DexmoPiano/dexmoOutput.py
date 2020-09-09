@@ -44,18 +44,34 @@ def get_midi_interfaces():
 
 # stop guidance outwards when new note starts or after track is finished
 def stop_guidance_out(outport):
-    if actualMsg != Message('clock'):
-        msg = Message('note_off', channel=actualMsg.channel, note=actualMsg.note -1, velocity=actualMsg.velocity)
+    global actualMsgRight, actualMsgLeft
+    if actualMsgRight is not None:
+        msg = Message('note_off', channel=actualMsgRight.channel, note=actualMsgRight.note -1, velocity=actualMsgRight.velocity)
         outport.send(msg)
         #print(msg)
+        actualMsgRight = None
+
+    if actualMsgLeft is not None:
+        msg = Message('note_off', channel=actualMsgLeft.channel, note=actualMsgLeft.note -1, velocity=actualMsgLeft.velocity)
+        outport.send(msg)
+        #print(msg)
+        actualMsgLeft = None
+
 
 # guidance outwards after note is finished
 def guidance_outwards(msg, outport):
-    global actualMsg
-    actualMsg = msg
-    msg = Message('note_on', channel=actualMsg.channel, note=actualMsg.note -1, velocity=actualMsg.velocity)
-    outport.send(msg)
-    #print(msg)
+    global actualMsgRight, actualMsgLeft
+    if msg.channel == 10:
+        actualMsgRight = msg
+        msg = Message('note_on', channel=actualMsgRight.channel, note=actualMsgRight.note -1, velocity=actualMsgRight.velocity)
+        outport.send(msg)
+        #print(msg)
+    else:
+        actualMsgLeft = msg
+        msg = Message('note_on', channel=actualMsgLeft.channel, note=actualMsgLeft.note -1, velocity=actualMsgLeft.velocity)
+        outport.send(msg)
+        #print(msg)
+
 
 # send midi message to dexmo for finger guidance
 def dexmo_action(msg, outport):
@@ -63,17 +79,21 @@ def dexmo_action(msg, outport):
     if (msg.type == 'note_on'):
         stop_guidance_out(outport) # stop last guidance out before next note
         outport.send(msg)
+        #if msg.channel == 11:
         #print(msg)
     elif (msg.type == 'note_off'):
         outport.send(msg)
+        #msg.channel == 11:
         #print(msg)
         guidance_outwards(msg, outport) # start guidance outward after note is finished
 
 
 # play demo: sound output of notes and haptic feedback guidance
 def play_demo(midiFile, guidanceMode):
-    global  actualMsg
-    actualMsg = Message('clock') # use message clock instead of None, cause its note comparable
+    global actualMsgRight, actualMsgLeft
+    #actualMsg = None
+    actualMsgRight = None
+    actualMsgLeft = None
     if (midi_interface != "None"):
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
@@ -100,8 +120,10 @@ def play_demo(midiFile, guidanceMode):
 
 # only haptic feedback guidance
 def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
-    global actualMsg
-    actualMsg = Message('clock') # use message clock instead of None, cause its note comparable
+    global actualMsgRight, actualMsgLeft
+    #actualMsg = None
+    actualMsgRight = None
+    actualMsgLeft = None
     if (midi_interface != "None"):
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
