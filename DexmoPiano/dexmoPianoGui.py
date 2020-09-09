@@ -15,26 +15,25 @@ import midiProcessing
 from optionsWindow import optionsWindowClass
 import threadHandler
 
-
 # directory/filename strings
 outputDir = './output/'
 tempDir = './output/temp/'
 inputFileStrs = [tempDir + 'output.mid', tempDir + 'output-m.mid', tempDir + 'output-md.mid', tempDir + 'output.xml']
 outputLyStr = tempDir + 'output.ly'
 outputPngStr = tempDir + 'output.png'
-#outputLyStr = tempDir + 'output-midi.ly'
-#outputPngStr = tempDir + 'output-midi.png'
+# outputLyStr = tempDir + 'output-midi.ly'
+# outputPngStr = tempDir + 'output-midi.png'
 
 GuidanceModeList = ["None", "At every note", "Individual"]
 guidanceMode = "At every note"
 maxNotePerBar = 2
 numberOfBars = 7
 bpm = 120
-noteValuesList = [1, 1/2, 1/4, 1/8]
-#pitchesList = [60, 62]
+noteValuesList = [1, 1 / 2, 1 / 4, 1 / 8]
+# pitchesList = [60, 62]
 pitchesList = list(range(48, 72))
 twoHandsTup = (False, True)
-#outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
+# outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
 
 errors = []
 changetask = []
@@ -43,6 +42,7 @@ midiSaved = False
 currentMidi = None
 
 firstStart = True
+
 
 # starts only metronome output and haptic impulse from dexmo for every note
 def startTask():
@@ -62,14 +62,16 @@ def startTask():
     ###TODO: remove (testing)
     fileIO.printXML(outputDir + currentMidi + ".xml", True)
 
-    #errorVal = threadHandler.get_errors()
+    # errorVal = threadHandler.get_errors()
     errors.append(abs(errorVal))
     add_error_plot()
+
 
 # starts Demo with sound output and haptic impulse from dexmo for every note
 def startDemo():
     # use MIDI file with metronome staff
     dexmoOutput.play_demo(inputFileStrs[2], guidanceMode)
+
 
 # save midi and XML file to output folder
 def saveMidiAndXML(targetNotes):
@@ -78,7 +80,7 @@ def saveMidiAndXML(targetNotes):
     timestr = getCurrentTimestamp()
 
     # MIDI
-    print("\nMIDI SAVED:", timestr)    ###TODO: Delete
+    print("\nMIDI SAVED:", timestr)  ###TODO: Delete
     currentMidi = timestr
     shutil.move(inputFileStrs[0], outputDir + timestr + '.mid')
 
@@ -86,16 +88,19 @@ def saveMidiAndXML(targetNotes):
     currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsTup]
     fileIO.createXML(outputDir, timestr, currOptions, targetNotes)
 
+
 def getCurrentTimestamp():
     return time.strftime("%Y%m%d-%H%M%S")
 
+
 def getTimeSortedMidiFiles():
-    ll=os.listdir(outputDir)
-    files=[x.split('.')[0] for x in ll if '.mid' in x]
+    ll = os.listdir(outputDir)
+    files = [x.split('.')[0] for x in ll if '.mid' in x]
     for i in files:
         i = time.strftime(i)
     files.sort()
     return files
+
 
 # generate new midiFile and note sheet and display it
 # dont generate new task if user opened a midi file
@@ -106,7 +111,7 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
         # TODO get needed input from user left_hand, right_hand, noOfBars, bpm
-        midiProcessing.generate_metronom_and_fingers_for_midi(True, True, inputFileStrs, chosenMidiFile, 41, 120)
+        midiProcessing.generate_metronome_and_fingers_for_midi(True, True, inputFileStrs, chosenMidiFile, 120)
 
     # generate new midi
     else:
@@ -116,13 +121,13 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
                 os.remove(os.path.join(tempDir, item))
 
         midiProcessing.generateMidi(noteValues=noteValuesList,
-                             notesPerBar=list(range(1, maxNotePerBar + 1)),
-                             noOfBars=numberOfBars,
-                             pitches=pitchesList,
-                             bpm=bpm,
-                             left=twoHandsTup[0],
-                             right=twoHandsTup[1],
-                             outFiles=inputFileStrs)
+                                    notesPerBar=list(range(1, maxNotePerBar + 1)),
+                                    noOfBars=numberOfBars,
+                                    pitches=pitchesList,
+                                    bpm=bpm,
+                                    left=twoHandsTup[0],
+                                    right=twoHandsTup[1],
+                                    outFiles=inputFileStrs)
 
         currentMidi = None
         midiSaved = False
@@ -144,6 +149,7 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
 
     add_error_plot()
 
+
 # load next midi task again
 def nextSavedTask(goToTask=False):
     global midiSaved, currentMidi, errors, changetask
@@ -152,22 +158,23 @@ def nextSavedTask(goToTask=False):
 
     files = getTimeSortedMidiFiles()
     # if actual is already the newest or there are no midis there is no next task
-    if len(files) < 1 or (files.index(currentMidi)+1)  == len(files):
+    if len(files) < 1 or (files.index(currentMidi) + 1) == len(files):
         return False
 
-    newMidi = files[files.index(currentMidi)+1]
+    newMidi = files[files.index(currentMidi) + 1]
 
     if (goToTask == True):
-        #TODO: delete? and add errors from xml in GUI
+        # TODO: delete? and add errors from xml in GUI
         errors = []
         changetask = []
 
         midiSaved = True
         currentMidi = newMidi
-        nextTask(userSelectedTask=True,userSelectedLocation= outputDir + newMidi + '.mid')
+        nextTask(userSelectedTask=True, userSelectedLocation=outputDir + newMidi + '.mid')
+
 
 # load previous midi task again
-def previousTask(goToTask= False):
+def previousTask(goToTask=False):
     global midiSaved, currentMidi, errors, changetask
 
     files = getTimeSortedMidiFiles()
@@ -176,48 +183,51 @@ def previousTask(goToTask= False):
         return False
 
     # if actual is already the oldest there is no previous task
-    if(currentMidi != None):
+    if (currentMidi != None):
         if files.index(currentMidi) == 0:
             return False
 
     # if actual task is already saved, use second newest to go back
     if midiSaved:
-        newMidi = files[files.index(currentMidi) -1]
+        newMidi = files[files.index(currentMidi) - 1]
     else:
-        newMidi = files[len(files) -1]
+        newMidi = files[len(files) - 1]
 
     if (goToTask == True):
-        #TODO: delete? and add errors from xml in GUI
+        # TODO: delete? and add errors from xml in GUI
         errors = []
         changetask = []
 
         midiSaved = True
         currentMidi = newMidi
-        nextTask(userSelectedTask=True,userSelectedLocation= outputDir + newMidi + '.mid')
+        nextTask(userSelectedTask=True, userSelectedLocation=outputDir + newMidi + '.mid')
+
 
 # check if dexmo is connected and change possible guidance modes
 def check_dexmo_connected(mainWindow):
-    #TODO: Why is dexmo_port not declared global here?
+    # TODO: Why is dexmo_port not declared global here?
     global GuidanceModeList, guidanceMode, dexmo_port
     if (dexmo_port.get() == "None"):
         GuidanceModeList = ["None"]
         guidanceMode = "None"
-        if(mainWindow):
+        if (mainWindow):
             add_Dexmo_Warning()
     else:
         GuidanceModeList = ["None", "At every note", "Individual"]
+
 
 # loads notesheet for actual task
 def load_notesheet(png):
     global background
     background = Image.open(png)
     background = background.convert("RGBA")
-    #width, height = background.size
+    # width, height = background.size
 
     img = ImageTk.PhotoImage(background)
     panel = Label(root, image=img)
     panel.image = img
     panel.place(x=170, y=0, width=835, height=1181)
+
 
 # delete saved midis and XMLs from last programm run
 def deleteOldFiles():
@@ -225,6 +235,7 @@ def deleteOldFiles():
     for item in files:
         if item.endswith('.mid') or item.endswith('.xml'):
             os.remove(os.path.join(outputDir, item))
+
 
 # get lilypond .ly file from xml or midi
 def get_ly():
@@ -241,15 +252,17 @@ def get_ly():
     else:
         subprocess.run(['midi2ly', inputFileStrs[0], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
 
+
 # show notesheet with guidance tracks
 def showGuidanceNotesheet():
-    if (showGuidance.get()): # output_md anzeigen
+    if (showGuidance.get()):  # output_md anzeigen
         subprocess.run(['midi2ly', inputFileStrs[2], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
-    else: # output xml oder midi
+    else:  # output xml oder midi
         get_ly()
 
     subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
     load_notesheet(outputPngStr)
+
 
 ##_______________________________OPTIONS______________________________________##
 def specifyTask():
@@ -265,8 +278,9 @@ def specifyTask():
         changetask = []
     bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsTup = newValues
 
+
 ##_____________________________ERROR-PLOT_____________________________________##
-#TODO: add error plot with saved xml errors, if previous or next task is choosen
+# TODO: add error plot with saved xml errors, if previous or next task is choosen
 def add_error_plot():
     Label(root, text=" Error visualization:").place(x=1200, y=10, width=150, height=20)
 
@@ -301,6 +315,7 @@ def add_error_plot():
     details.set(False)
     checkbox = Checkbutton(root, text='show error details', command=add_error_details, var=details)
     checkbox.place(x=1050, y=440)
+
 
 def add_error_details():
     fig = Figure(figsize=(9, 6), facecolor="white")
@@ -339,12 +354,15 @@ def add_error_details():
     details.set(True)
     checkbox = Checkbutton(root, text='show error details', command=add_error_plot, var=details)
     checkbox.place(x=1050, y=440)
+
+
 ##____________________________________________________________________________##
 
 # create warning if Dexmo is not plugged in
 def add_Dexmo_Warning():
     Label(root, text=" Warning: \n No Dexmo connected, \n no guidance possible.",
-              fg="red").place(x=10, y=300, width=150, height=70)
+          fg="red").place(x=10, y=300, width=150, height=70)
+
 
 # create button for demo, practicing, next task, back to start menu, guidance mode
 def load_taskButtons():
@@ -374,36 +392,44 @@ def load_taskButtons():
     global showGuidance
     showGuidance = BooleanVar()
     showGuidance.set(False)
-    checkShowGuidance = Checkbutton(root, text='show guidance in note sheet', variable=showGuidance, command=showGuidanceNotesheet)
+    checkShowGuidance = Checkbutton(root, text='show guidance in note sheet', variable=showGuidance,
+                                    command=showGuidanceNotesheet)
     checkShowGuidance.place(x=1050, y=900)
 
     ## next and previous tasks buttons
     if (nextSavedTask() == False):
-        Button(root, text='Next Task >>', command=nextSavedTask, state=DISABLED).place(x=10, y=800, height=50, width=150)
+        Button(root, text='Next Task >>', command=nextSavedTask, state=DISABLED).place(x=10, y=800, height=50,
+                                                                                       width=150)
     else:
         Button(root, text='Next Task >>', command=lambda: nextSavedTask(True)).place(x=10, y=800, height=50, width=150)
 
     files = getTimeSortedMidiFiles()
     if currentMidi != None:
-        currMidiIdx = files.index(currentMidi) +1
+        currMidiIdx = files.index(currentMidi) + 1
         l2 = Label(root, text=" Midi File " + str(currMidiIdx) + " of " + str(len(files)))
         l2.place(x=10, y=860, width=150, height=20)
 
     if (previousTask() == False):
-        Button(root, text='<< Previous Task', command=previousTask, state=DISABLED).place(x=10, y=880, height=50, width=150)
+        Button(root, text='<< Previous Task', command=previousTask, state=DISABLED).place(x=10, y=880, height=50,
+                                                                                          width=150)
     else:
-        Button(root, text='<< Previous Task', command=lambda: previousTask(True)).place(x=10, y=880, height=50, width=150)
+        Button(root, text='<< Previous Task', command=lambda: previousTask(True)).place(x=10, y=880, height=50,
+                                                                                        width=150)
     ## Back to Menu
     Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
+
 
 # set guidance for task
 def set_guidance(guidance):
     global guidanceMode
     guidanceMode = guidance
 
+
 # open midi file user can choose
 def openfile():
-    nextTask(userSelectedTask=True, userSelectedLocation=filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")]))
+    nextTask(userSelectedTask=True,
+             userSelectedLocation=filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")]))
+
 
 # load start menu with button for first task and exit button
 def load_Startmenu():
@@ -411,19 +437,23 @@ def load_Startmenu():
     Button(root, text='Quit', command=quit).place(x=675, y=500, height=50, width=150)
     choose_ports()
 
+
 # destroy all widgets from frame
 def clearFrame():
     for widget in root.winfo_children():
         widget.destroy()
+
 
 # go back to start menu
 def backToMenu():
     clearFrame()
     load_Startmenu()
 
+
 # quit "Piano with dexmo"
 def quit():
     root.destroy()
+
 
 #  create port buttons to choose sound, dexmo and inport ports in startmenu
 def choose_ports():
@@ -440,7 +470,7 @@ def choose_ports():
     def createPortButton(portText, findStr, yPos, portList, setFunc):
         global firstStart
         # place button label (text)
-        l = Label(root, text = portText + " port:")
+        l = Label(root, text=portText + " port:")
         l.place(x=X_POS, y=yPos, height=TEXT_HEIGHT, width=WIDTH)
 
         # match port
@@ -463,7 +493,7 @@ def choose_ports():
 
         # place drop-down menu
         options = OptionMenu(root, midiPort, *portList, command=setFunc)
-        options.place(x=X_POS-X_DIFF, y=yPos+Y_DIFF, height=FIELD_HEIGHT, width=WIDTH)
+        options.place(x=X_POS - X_DIFF, y=yPos + Y_DIFF, height=FIELD_HEIGHT, width=WIDTH)
 
         return midiPort
 
@@ -478,6 +508,7 @@ def choose_ports():
     input_port = createPortButton("Piano input", "vmpk", 760, inports, threadHandler.set_inport)
 
     firstStart = False
+
 
 ##_____________________________START LOOP HERE________________________________##
 
