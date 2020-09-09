@@ -83,8 +83,9 @@ def set_tracks(mf, bpm):
     mf.addTempo(R_TRACK, TIME, bpm)  # in file format 1, track doesn't matter
 
 
-def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, bpm=120):
-    sf, measures = generate_fingers_and_write_xml(midi_file, outFiles[3], right, left)
+def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file):
+    sf, measures, bpm = generate_fingers_and_write_xml(midi_file, outFiles[3], right, left)
+    print("bpm extracted from midi: ", bpm)
     # sf.show('text')
 
     mf = MIDIFile(numTracks=TRACKS)
@@ -95,7 +96,7 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, bp
     set_time_signature(sf.parts[0].timeSignature.numerator, sf.parts[0].timeSignature.denominator, R_TRACK, mf)
 
     print("number of measures extracted from midi: ", measures)
-    add_metronome(measures + INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], mf)
+    add_metronome(measures + INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], False, mf)
     count, left_count = extract_number_of_notes(sf)
     c_to_g = False
     if (((left and not right) or (right and not left)) and count < 10) or (
@@ -193,7 +194,7 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
             handTrack = R_TRACK
             count_notes_right += 1
             lastPitch[1] = (handTrack, pitch)
-            
+
         # print("original note pitches: " + str(pitch))
         mf.addNote(track=handTrack,
                    channel=CHANNEL_PIANO,
@@ -221,14 +222,14 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
     write_midi(outFiles[0], mf)
 
     ### METRONOME ###
-    add_metronome(bars, numerator, outFiles[1], mf)
+    add_metronome(bars, numerator, outFiles[1], True, mf)
 
     ### FINGERNUMBERS ###
     print("generated notes right: " + str(count_notes_right) + " generated notes left: " + str(count_notes_left))
     if (((left and not right) and count_notes_left > 7) or
             ((right and not left) and count_notes_right > 7) or
             (left and right and count_notes_left > 7 and count_notes_right > 7)):
-        sf, measures = generate_fingers_and_write_xml(outFiles[0], outFiles[3], right, left)
+        sf, measures, bpm = generate_fingers_and_write_xml(outFiles[0], outFiles[3], right, left)
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, False)
     elif right and not left and min(pitches) >= 60 and max(pitches) <= 68:
         # generate c - g mapping
@@ -261,7 +262,7 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
         generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, outFiles)
 
 
-def add_metronome(bars, numerator, outFile, mf):
+def add_metronome(bars, numerator, outFile, writeFile, mf):
     # add metronome notes
     mf.addProgramChange(M_TRACK, CHANNEL_METRO, TIME, INSTRUM_DRUMS)
 
@@ -281,8 +282,9 @@ def add_metronome(bars, numerator, outFile, mf):
                    duration=1,
                    volume=VOLUME)
 
-    # write 2nd MIDI file (with metronome)
-    write_midi(outFile, mf)
+    if writeFile:
+        # write 2nd MIDI file (with metronome)
+        write_midi(outFile, mf)
 
 
 def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left):
@@ -290,11 +292,12 @@ def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left):
     lbeam = 1
     if left and not right:
         lbeam = 0
-    pianoplayer.generate_fingernumbers(left and not right, right and not left, 0, lbeam, pianoplayer.get_measure_number())
-                                       #noOfBars)
+    pianoplayer.generate_fingernumbers(left and not right, right and not left, 0, lbeam,
+                                       pianoplayer.get_measure_number())
+    # noOfBars)
     # pianoplayer.generate_fingernumbers(False, False, 0, 1, noOfBars)
     pianoplayer.write_output(mxmlFile)
-    return pianoplayer.get_score(), pianoplayer.get_measure_number()
+    return pianoplayer.get_score(), pianoplayer.get_measure_number(), pianoplayer.get_bpm()
 
 
 def extract_number_of_notes(sf):
@@ -404,7 +407,7 @@ def map_note_to_c_till_g(note):
 
 if __name__ == "__main__":
 
-    noOfBars = 12
+    noOfBars = 24
 
     outFiles = ["./output/output.mid", "./output/output-m.mid",
                 "./output/output-md.mid", "./output/output.xml"]
@@ -417,14 +420,17 @@ if __name__ == "__main__":
     # midProc = MidiProcessing(left=True, right=True, bpm=120, outFiles=outFiles)
 
     # generateMidi(noteValues=[1, 1 / 2, 1 / 4, 1 / 8],
-    #              notesPerBar=[1, 2],  # range
-    #              noOfBars=noOfBars,
-    #              pitches=list(range(52, 68)),
-    #              bpm=120,
-    #              left=True,
-    #              right=True,
-    #              outFiles=outFiles)
+    #             notesPerBar=[1, 2],  # range
+    #             noOfBars=noOfBars,
+    #             pitches=list(range(52, 68)),
+    #             bpm=120,
+    #             left=True,
+    #             right=True,
+    #             outFiles=outFiles)
     # pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72])
 
-    generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/test.mid', 120)
+    generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm120measures16RightLeft.mid')
+    #generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm90measures21RightLeft.mid')
+    #generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm60measures25Left.mid')
+    #generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm100measures18Right.mid')
     # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/TripletsAndQuarters.mid', 120)
