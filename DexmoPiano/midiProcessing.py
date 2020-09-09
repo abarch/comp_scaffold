@@ -292,6 +292,8 @@ def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left):
     lbeam = 1
     if left and not right:
         lbeam = 0
+    if len(pianoplayer.get_score().parts) <= 1 and right and left:
+        raise Exception("both hands selected but only one beam in score!")
     pianoplayer.generate_fingernumbers(left and not right, right and not left, 0, lbeam,
                                        pianoplayer.get_measure_number())
     # noOfBars)
