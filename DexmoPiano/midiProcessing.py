@@ -99,8 +99,8 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file):
     add_metronome(measures + INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], False, mf)
     count, left_count = extract_number_of_notes(sf)
     c_to_g = False
-    if (((left and not right) or (right and not left)) and count < 10) or (
-            right and left and count < 10 and left_count < 10):
+    if ((len(sf.parts) <= 1) and count < 10) or (
+            (len(sf.parts) >= 2) and (count < 10 or left_count < 10)):
         c_to_g = True
     # print("c to g is ", c_to_g, " left is ", left, " right is ", right, " count is ", count, " left count is ", left_count)
     add_fingernumbers(outFiles[2], sf, True, right, left, mf, c_to_g)  # c_to_g false?
@@ -420,17 +420,13 @@ if __name__ == "__main__":
     # midProc = MidiProcessing(left=True, right=True, bpm=120, outFiles=outFiles)
 
     # generateMidi(noteValues=[1, 1 / 2, 1 / 4, 1 / 8],
-    #             notesPerBar=[1, 2],  # range
-    #             noOfBars=noOfBars,
-    #             pitches=list(range(52, 68)),
-    #             bpm=120,
-    #             left=True,
-    #             right=True,
-    #             outFiles=outFiles)
+    #              notesPerBar=[1, 2],  # range
+    #              noOfBars=noOfBars,
+    #              pitches=list(range(52, 68)),
+    #              bpm=120,
+    #              left=True,
+    #              right=True,
+    #              outFiles=outFiles)
     # pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72])
 
-    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm120measures16RightLeft.mid')
-    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm90measures21RightLeft.mid')
-    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm60measures25Left.mid')
-    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm100measures18Right.mid')
     generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/TripletsAndQuarters.mid')

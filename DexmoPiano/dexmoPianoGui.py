@@ -110,8 +110,7 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     # load saved midi
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
-        # TODO get needed input from user left_hand, right_hand,
-        # TODO test if noOfBars, bpm correct
+        # TODO get needed input from user left_hand, right_hand
         midiProcessing.generate_metronome_and_fingers_for_midi(True, True, inputFileStrs, chosenMidiFile)
 
     # generate new midi
