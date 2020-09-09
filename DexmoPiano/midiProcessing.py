@@ -429,8 +429,8 @@ if __name__ == "__main__":
     #             outFiles=outFiles)
     # pitches=[48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72])
 
-    generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm120measures16RightLeft.mid')
-    #generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm90measures21RightLeft.mid')
-    #generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm60measures25Left.mid')
-    #generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm100measures18Right.mid')
-    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/TripletsAndQuarters.mid', 120)
+    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm120measures16RightLeft.mid')
+    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm90measures21RightLeft.mid')
+    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm60measures25Left.mid')
+    # generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/bpm100measures18Right.mid')
+    generate_metronome_and_fingers_for_midi(True, True, outFiles, 'test_input/TripletsAndQuarters.mid')
