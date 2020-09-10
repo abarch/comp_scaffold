@@ -6,7 +6,6 @@ import datetime
 
 import noteHandler as nh
 
-# FIXME: this needs to be adapted
 global midi_interface, midi_interface_sound, CHAN, actualNote, metronome
 #midi_interface = 'DEXMO_R:DEXMO_R MIDI 1 24:0'
 #midi_interface_sound = 'Synth input port (Qsynth1:0)'
@@ -19,7 +18,7 @@ MHP_ACT_IND = 48
 # various action modes
 NOTE_E = 4
 NOTE_F = 5
-NOTE_A = 9
+NOTE_A = 9 # note_off outwards impulse
 
 metronome = True
 
@@ -42,58 +41,60 @@ def set_metronome():
 def get_midi_interfaces():
     return mido.get_output_names(), mido.get_input_names()
 
-# stop guidance outwards when new note starts or after track is finished
-def stop_guidance_out(outport):
-    global actualMsgRight, actualMsgLeft
-    if actualMsgRight is not None:
-        msg = Message('note_off', channel=actualMsgRight.channel, note=actualMsgRight.note -1, velocity=actualMsgRight.velocity)
-        outport.send(msg)
-        #print(msg)
-        actualMsgRight = None
+## TODO: OLD, Delete?
+#stop guidance outwards when new note starts or after track is finished
+#def stop_guidance_out(outport):
+#    global actualMsgRight, actualMsgLeft
+#    if actualMsgRight is not None:
+#        msg = Message('note_off', channel=actualMsgRight.channel, note=actualMsgRight.note -1, velocity=actualMsgRight.velocity)
+#        outport.send(msg)
+#        actualMsgRight = None
+#    if actualMsgLeft is not None:
+#        msg = Message('note_off', channel=actualMsgLeft.channel, note=actualMsgLeft.note -1, velocity=actualMsgLeft.velocity)
+#        outport.send(msg)
+#        actualMsgLeft = None
 
-    if actualMsgLeft is not None:
-        msg = Message('note_off', channel=actualMsgLeft.channel, note=actualMsgLeft.note -1, velocity=actualMsgLeft.velocity)
-        outport.send(msg)
-        #print(msg)
-        actualMsgLeft = None
+# stop forces on all fingers on dexmo motors
+def stop_all_forces(outport):
+    x = range(10, 12)
+    fingerlist = [28, 40, 52, 64, 76]
+    for n in x:
+        for finger in fingerlist:
+            msg = Message('note_off', channel=n, note=finger, velocity=100)
+            outport.send(msg)
 
 
-# guidance outwards after note is finished
-def guidance_outwards(msg, outport):
-    global actualMsgRight, actualMsgLeft
-    if msg.channel == 10:
-        actualMsgRight = msg
-        msg = Message('note_on', channel=actualMsgRight.channel, note=actualMsgRight.note -1, velocity=actualMsgRight.velocity)
-        outport.send(msg)
-        #print(msg)
-    else:
-        actualMsgLeft = msg
-        msg = Message('note_on', channel=actualMsgLeft.channel, note=actualMsgLeft.note -1, velocity=actualMsgLeft.velocity)
-        outport.send(msg)
-        #print(msg)
+# impulse outwards after note is finished
+def impulse_outwards(msg, outport):
+    #global actualMsgRight, actualMsgLeft
+    impulsemsg = Message('note_off', channel=msg.channel, note=msg.note +4, velocity=20)
+    outport.send(impulsemsg)
+    #print(impulsemsg)
+    #if msg.channel == 10:
+    #    actualMsgRight = msg
+    #    msg = Message('note_on', channel=actualMsgRight.channel, note=actualMsgRight.note -1, velocity=actualMsgRight.velocity)
+    #    outport.send(msg)
+    #else:
+    #    actualMsgLeft = msg
+    #    msg = Message('note_on', channel=actualMsgLeft.channel, note=actualMsgLeft.note -1, velocity=actualMsgLeft.velocity)
+    #    outport.send(msg)
 
 
 # send midi message to dexmo for finger guidance
 def dexmo_action(msg, outport):
-    #outport.send(msg)
     if (msg.type == 'note_on'):
-        stop_guidance_out(outport) # stop last guidance out before next note
+        #stop_guidance_out(outport) # stop last guidance out before next note
         outport.send(msg)
-        #if msg.channel == 11:
-        #print(msg)
     elif (msg.type == 'note_off'):
         outport.send(msg)
-        #msg.channel == 11:
-        #print(msg)
-        guidance_outwards(msg, outport) # start guidance outward after note is finished
+        impulse_outwards(msg, outport)
 
 
 # play demo: sound output of notes and haptic feedback guidance
 def play_demo(midiFile, guidanceMode):
-    global actualMsgRight, actualMsgLeft
-    #actualMsg = None
-    actualMsgRight = None
-    actualMsgLeft = None
+    #global actualMsgRight, actualMsgLeft
+    #actualMsgRight = None
+    #actualMsgLeft = None
     if (midi_interface != "None"):
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
@@ -113,8 +114,8 @@ def play_demo(midiFile, guidanceMode):
                     elif msg.type == 'note_off':
                         dexmo_action(msg=msg, outport=dexmoPort)
 
-    if (midi_interface != "None"): # stop outwards guidance
-        stop_guidance_out(dexmoPort)
+    if (midi_interface != "None"): # stop all forces on dexmo
+        stop_all_forces(dexmoPort)
         dexmoPort.close()
 
 
@@ -159,7 +160,7 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
                             dexmo_action(msg=msg, outport=dexmoPort)
 
     if (midi_interface != "None"):
-        stop_guidance_out(dexmoPort)
+        stop_all_forces(dexmoPort)
         dexmoPort.close()
 
 
