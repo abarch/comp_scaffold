@@ -11,17 +11,24 @@ A hand-exoskeleton and a keyboard (connected via MIDI) are used to record the us
 
 ## Required software/packages
 * Python 3.6
-* MIDIUtil v1.2.1 (via PIP3)
-* mido v1.2.9 (via PIP3)
 * python-rtmidi v1.4.1 (via PIP3, needs Debian/Ubuntu package *libjack-dev*)
-* pianoplayer v2.1.0 (via PIP3)
-* music21 v6.1.0 (via PIP3)
 * LilyPond [v2.18.2](http://lilypond.org/download/binaries/) (available in ubuntu bionic packages)
 * python3-tk v3.6.9-1\~18.04 (available in ubuntu bionic packages)
 * Qsynth v0.5.0-2 (available in ubuntu bionic packages) - e.g. if the keyboard does not have its own audio output
 * vmpk v0.4.0-3 (available in ubuntu bionic packages) - virtual midi keyboard, if no physical one is available
 * Debian/Ubuntu package *libasound-dev* might be required (if error "Cannot find alsa/asoundlib.h" occurs)
 
+### requirements.txt
+includes required python packages:
+* pianoplayer v2.1.0
+* MIDIUtil v1.2.1
+* mido v1.2.9
+* music21 v6.1.0
+
+in order to install the packages run: 
+```
+$ pip3 install -r requirements.txt
+```
 
 ## Prerequisites
 * Properly connect Dexmo (Lego) and the keyboard/piano (the ports can be checked with the `aconnect` command)
