@@ -83,10 +83,12 @@ def set_tracks(mf, bpm):
     mf.addTempo(R_TRACK, TIME, bpm)  # in file format 1, track doesn't matter
 
 
-def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file):
+def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, custom_bpm=0):
     sf, measures, bpm = generate_fingers_and_write_xml(midi_file, outFiles[3], right, left)
     print("bpm extracted from midi: ", bpm)
     # sf.show('text')
+    if custom_bpm > 0:
+        bpm = custom_bpm
 
     mf = MIDIFile(numTracks=TRACKS)
 
