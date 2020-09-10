@@ -57,7 +57,7 @@ def get_midi_interfaces():
 # stop forces on all fingers on dexmo motors
 def stop_all_forces(outport):
     x = range(10, 12)
-    fingerlist = [28, 40, 53, 64, 76]
+    fingerlist = [28, 40, 52, 64, 76]
     for n in x:
         for finger in fingerlist:
             msg = Message('note_off', channel=n, note=finger, velocity=100)
@@ -69,6 +69,7 @@ def impulse_outwards(msg, outport):
     #global actualMsgRight, actualMsgLeft
     impulsemsg = Message('note_off', channel=msg.channel, note=msg.note +4, velocity=20)
     outport.send(impulsemsg)
+    #print(impulsemsg)
     #if msg.channel == 10:
     #    actualMsgRight = msg
     #    msg = Message('note_on', channel=actualMsgRight.channel, note=actualMsgRight.note -1, velocity=actualMsgRight.velocity)
