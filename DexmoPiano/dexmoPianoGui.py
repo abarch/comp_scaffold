@@ -33,6 +33,7 @@ noteValuesList = [1, 1 / 2, 1 / 4, 1 / 8]
 # pitchesList = [60, 62]
 pitchesList = list(range(48, 72))
 twoHandsTup = (False, True)
+loadMidiBPM = 0
 # outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
 
 errors = []
@@ -111,7 +112,7 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
         # TODO get needed input from user left_hand, right_hand
-        midiProcessing.generate_metronome_and_fingers_for_midi(True, True, inputFileStrs, chosenMidiFile)
+        midiProcessing.generate_metronome_and_fingers_for_midi(True, True, inputFileStrs, chosenMidiFile, custom_bpm=int(loadMidiBPM))
 
     # generate new midi
     else:
@@ -367,26 +368,38 @@ def add_Dexmo_Warning():
 # create button for demo, practicing, next task, back to start menu, guidance mode
 def load_taskButtons():
     global currentMidi, metronome
-    Button(root, text='Start Task', command=startTask).place(x=10, y=100, height=50, width=150)
-    Button(root, text='Start Demo', command=startDemo).place(x=10, y=160, height=50, width=150)
-
-    ##  GUIDANCE Mode
-    l = Label(root, text=" Guidance mode:")
-    l.place(x=10, y=210, width=150, height=70)
-    guidance = StringVar(root)
-    guidance.set(guidanceMode)
-    guideopt = OptionMenu(root, guidance, *GuidanceModeList, command=set_guidance)
-    guideopt.place(x=10, y=260, width=150, height=30)
-
-    Button(root, text='Generate new Task', command=nextTask).place(x=10, y=400, height=50, width=150)
-    Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=460, height=25, width=150)
-    Button(root, text='Open Midi file', command=openfile).place(x=10, y=520, height=25, width=150)
+    Button(root, text='Start Task', command=startTask).place(x=10, y=90, height=50, width=150)
+    Button(root, text='Start Demo', command=startDemo).place(x=10, y=150, height=50, width=150)
 
     # add button to disable metronome sound
     metronome = BooleanVar()
     metronome.set(dexmoOutput.metronome)
     checkmetronome = Checkbutton(root, text='play metronome', variable=metronome, command=dexmoOutput.set_metronome)
-    checkmetronome.place(x=10, y=550)
+    checkmetronome.place(x=10, y=200)
+
+    ##  GUIDANCE Mode
+    l = Label(root, text=" Guidance mode:")
+    l.place(x=10, y=220, width=150, height=70)
+    guidance = StringVar(root)
+    guidance.set(guidanceMode)
+    guideopt = OptionMenu(root, guidance, *GuidanceModeList, command=set_guidance)
+    guideopt.place(x=10, y=270, width=150, height=30)
+
+    Button(root, text='Generate new Task', command=nextTask).place(x=10, y=400, height=50, width=150)
+    Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=460, height=25, width=150)
+    Button(root, text='Open Midi file', command=openfile).place(x=10, y=520, height=25, width=150)
+
+    # Scalebar to change BPM in loaded MIDI File
+    global loadMidiBPM, midiBPM
+    l = Label(root, text=" BPM for loaded MIDI File:")
+    l.place(x=10, y=550)
+
+    midiBPM = Scale(root, from_=0, to=250,length=150, orient=HORIZONTAL, command = setBPM)
+    midiBPM.place(x=10, y=570)
+    midiBPM.set(loadMidiBPM)
+
+    l2 = Label(root, text="0 will load BPM from MIDI")
+    l2.place(x=10, y=610)
 
     # add button to show notesheet with haptic guidance
     global showGuidance
@@ -418,6 +431,9 @@ def load_taskButtons():
     ## Back to Menu
     Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
 
+def setBPM(bpm):
+    global loadMidiBPM
+    loadMidiBPM = bpm
 
 # set guidance for task
 def set_guidance(guidance):
