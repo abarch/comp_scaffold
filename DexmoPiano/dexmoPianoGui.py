@@ -33,7 +33,6 @@ noteValuesList = [1, 1 / 2, 1 / 4, 1 / 8]
 # pitchesList = [60, 62]
 pitchesList = list(range(48, 72))
 twoHandsTup = (False, True)
-loadMidiBPM = 0
 # outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
 
 errors = []
@@ -107,12 +106,16 @@ def getTimeSortedMidiFiles():
 # dont generate new task if user opened a midi file
 def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     global midiSaved, currentMidi
+    delete_warning()
 
     # load saved midi
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
-        # TODO get needed input from user left_hand, right_hand
-        midiProcessing.generate_metronome_and_fingers_for_midi(True, True, inputFileStrs, chosenMidiFile, custom_bpm=int(loadMidiBPM))
+        try:
+            midiProcessing.generate_metronome_and_fingers_for_midi(leftHand.get(), rightHand.get(), inputFileStrs, chosenMidiFile, custom_bpm=midiBPM.get())
+        except:
+            add_both_hands_warning()
+            return
 
     # generate new midi
     else:
@@ -138,11 +141,12 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
 
     subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
 
-    clearFrame()
+    #clearFrame()
     load_notesheet(outputPngStr)
 
     check_dexmo_connected(mainWindow=True)
-    load_taskButtons()
+    next_previous_button()
+    #load_taskButtons()
 
     # if task is changed remember trial to show in visualisation
     if errors:
@@ -356,8 +360,19 @@ def add_error_details():
     checkbox = Checkbutton(root, text='show error details', command=add_error_plot, var=details)
     checkbox.place(x=1050, y=440)
 
-
 ##____________________________________________________________________________##
+
+# create warning if loaded task has only one beam but both hands are selected
+def add_both_hands_warning():
+    global handWarning
+    handWarning = Label(root, text=" Warning: \n Both hands selected but \n only one beam in score.",
+      fg="red")
+    handWarning.place(x=10, y=650, width=150, height=70)
+
+def delete_warning():
+    global handWarning
+    handWarning = Label(root, text="")
+    handWarning.place(x=10, y=650, width=150, height=70)
 
 # create warning if Dexmo is not plugged in
 def add_Dexmo_Warning():
@@ -394,12 +409,24 @@ def load_taskButtons():
     l = Label(root, text=" BPM for loaded MIDI File:")
     l.place(x=10, y=550)
 
-    midiBPM = Scale(root, from_=0, to=250,length=150, orient=HORIZONTAL, command = setBPM)
+    midiBPM = Scale(root, from_=0, to=250,length=150, orient=HORIZONTAL)
     midiBPM.place(x=10, y=570)
-    midiBPM.set(loadMidiBPM)
+    midiBPM.set(0)
 
     l2 = Label(root, text="0 will load BPM from MIDI")
     l2.place(x=10, y=610)
+
+    # hand checkboxes
+    global rightHand, leftHand
+    rightHand = BooleanVar()
+    rightHand.set(True)
+    chk = Checkbutton(root, text='left hand', var=rightHand)
+    chk.place(x=0, y=635)
+
+    leftHand = BooleanVar()
+    leftHand.set(True)
+    chk = Checkbutton(root, text='right hand', var=leftHand)
+    chk.place(x=75, y=635)
 
     # add button to show notesheet with haptic guidance
     global showGuidance
@@ -409,6 +436,10 @@ def load_taskButtons():
                                     command=showGuidanceNotesheet)
     checkShowGuidance.place(x=1050, y=900)
 
+    ## Back to Menu
+    Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
+
+def next_previous_button():
     ## next and previous tasks buttons
     if (nextSavedTask() == False):
         Button(root, text='Next Task >>', command=nextSavedTask, state=DISABLED).place(x=10, y=800, height=50,
@@ -426,14 +457,8 @@ def load_taskButtons():
         Button(root, text='<< Previous Task', command=previousTask, state=DISABLED).place(x=10, y=880, height=50,
                                                                                           width=150)
     else:
-        Button(root, text='<< Previous Task', command=lambda: previousTask(True)).place(x=10, y=880, height=50,
-                                                                                        width=150)
-    ## Back to Menu
-    Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
+        Button(root, text='<< Previous Task', command=lambda: previousTask(True)).place(x=10, y=880, height=50, width=150)
 
-def setBPM(bpm):
-    global loadMidiBPM
-    loadMidiBPM = bpm
 
 # set guidance for task
 def set_guidance(guidance):
@@ -447,9 +472,15 @@ def openfile():
              userSelectedLocation=filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")]))
 
 
+# start first task, load buttons and GUI
+def firstTask():
+    load_taskButtons()
+    nextTask()
+
+
 # load start menu with button for first task and exit button
 def load_Startmenu():
-    Button(root, text='Start first task', command=nextTask).place(x=675, y=440, height=50, width=150)
+    Button(root, text='Start first task', command=firstTask).place(x=675, y=440, height=50, width=150)
     Button(root, text='Quit', command=quit).place(x=675, y=500, height=50, width=150)
     choose_ports()
 
