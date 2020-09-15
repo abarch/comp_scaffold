@@ -365,7 +365,7 @@ def add_error_details():
 # create warning if loaded task has only one beam but both hands are selected
 def add_both_hands_warning():
     global handWarning
-    handWarning = Label(root, text=" Warning: \n Both hands selected but \n only one beam in score.",
+    handWarning = Label(root, text=" Warning: \n Hand selection error \n or too few notes in file.",
       fg="red")
     handWarning.place(x=10, y=660, width=150, height=70)
 
