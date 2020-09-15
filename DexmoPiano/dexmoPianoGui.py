@@ -367,12 +367,12 @@ def add_both_hands_warning():
     global handWarning
     handWarning = Label(root, text=" Warning: \n Both hands selected but \n only one beam in score.",
       fg="red")
-    handWarning.place(x=10, y=650, width=150, height=70)
+    handWarning.place(x=10, y=660, width=150, height=70)
 
 def delete_warning():
     global handWarning
     handWarning = Label(root, text="")
-    handWarning.place(x=10, y=650, width=150, height=70)
+    handWarning.place(x=10, y=660, width=150, height=70)
 
 # create warning if Dexmo is not plugged in
 def add_Dexmo_Warning():
@@ -418,15 +418,16 @@ def load_taskButtons():
 
     # hand checkboxes
     global rightHand, leftHand
-    rightHand = BooleanVar()
-    rightHand.set(True)
-    chk = Checkbutton(root, text='left hand', var=rightHand)
-    chk.place(x=0, y=635)
-
     leftHand = BooleanVar()
     leftHand.set(True)
-    chk = Checkbutton(root, text='right hand', var=leftHand)
+    chk = Checkbutton(root, text='left hand', var=leftHand)
+    chk.place(x=0, y=635)
+
+    rightHand = BooleanVar()
+    rightHand.set(True)
+    chk = Checkbutton(root, text='right hand', var=rightHand)
     chk.place(x=75, y=635)
+
 
     # add button to show notesheet with haptic guidance
     global showGuidance
