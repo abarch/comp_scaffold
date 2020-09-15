@@ -292,7 +292,7 @@ def add_metronome(bars, numerator, outFile, writeFile, mf):
 def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left):
     pianoplayer = pianoplayer_interface.PianoplayerInterface(midiFile)
     lbeam = 1
-    if left and not right:
+    if left and not right and len(pianoplayer.get_score().parts) <= 1:
         lbeam = 0
     if len(pianoplayer.get_score().parts) <= 1 and right and left:
         raise Exception("both hands selected but only one beam in score!")
