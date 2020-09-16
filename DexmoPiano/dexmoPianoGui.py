@@ -145,7 +145,7 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     load_notesheet(outputPngStr)
 
     check_dexmo_connected(mainWindow=True)
-    next_previous_button()
+    refresh_buttons()
     #load_taskButtons()
 
     # if task is changed remember trial to show in visualisation
@@ -428,19 +428,11 @@ def load_taskButtons():
     chk = Checkbutton(root, text='right hand', var=rightHand)
     chk.place(x=75, y=635)
 
-
-    # add button to show notesheet with haptic guidance
-    global showGuidance
-    showGuidance = BooleanVar()
-    showGuidance.set(False)
-    checkShowGuidance = Checkbutton(root, text='show guidance in note sheet', variable=showGuidance,
-                                    command=showGuidanceNotesheet)
-    checkShowGuidance.place(x=1050, y=900)
-
     ## Back to Menu
     Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
 
-def next_previous_button():
+# refresh buttons, checkboxes that change with new task (next, previous and guidance in notesheet)
+def refresh_buttons():
     ## next and previous tasks buttons
     if (nextSavedTask() == False):
         Button(root, text='Next Task >>', command=nextSavedTask, state=DISABLED).place(x=10, y=800, height=50,
@@ -459,6 +451,14 @@ def next_previous_button():
                                                                                           width=150)
     else:
         Button(root, text='<< Previous Task', command=lambda: previousTask(True)).place(x=10, y=880, height=50, width=150)
+
+    # add button to show notesheet with haptic guidance
+    global showGuidance
+    showGuidance = BooleanVar()
+    showGuidance.set(False)
+    checkShowGuidance = Checkbutton(root, text='show guidance in note sheet', variable=showGuidance,
+                                    command=showGuidanceNotesheet)
+    checkShowGuidance.place(x=1050, y=900)
 
 
 # set guidance for task
