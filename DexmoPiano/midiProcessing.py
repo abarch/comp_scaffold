@@ -323,11 +323,11 @@ def add_fingernumbers(outFile, sf, with_note, right, left, mf, c_to_g):
             if with_note:
                 add_note_to_midi(note, R_TRACK, CHANNEL_PIANO, mf)
             add_dexmo_note_to_midi(note, RD_TRACK, CHANNEL_RH, mf, c_to_g)
-        else:
+        elif len(sf.parts) < 2:
             if with_note:
                 add_note_to_midi(note, L_TRACK, CHANNEL_PIANO, mf)
             add_dexmo_note_to_midi(note, LD_TRACK, CHANNEL_LH, mf, c_to_g)
-    if left and right and len(sf.parts) >= 2:
+    if left and len(sf.parts) >= 2:
         for note in sf.parts[1].notesAndRests:
             if with_note:
                 add_note_to_midi(note, L_TRACK, CHANNEL_PIANO, mf)
