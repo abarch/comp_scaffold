@@ -79,7 +79,7 @@ class optionsWindowClass():
         l4 = Label(self.specifyWindow, text=" Beats per minute:")
         l4.grid(row=7,columnspan=4, sticky=W, pady=(20,0))
 
-        bpmscale = Scale(self.specifyWindow, from_=60, to=200, orient=HORIZONTAL)
+        bpmscale = Scale(self.specifyWindow, from_=10, to=200, orient=HORIZONTAL)
         bpmscale.grid(row=8, columnspan=4,sticky=W,)
         bpmscale.set(self.bpm)
 
