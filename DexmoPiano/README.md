@@ -50,7 +50,7 @@ The arguments are:
 | ---: | :---: | :--- |
 | noteValues | [float] | "Lengths" of the notes (e.g. 1, 1/2 etc.) |
 | notesPerBar | [int] | Amounts of notes that a bar can contain |
-| noOfBars | int | Number of bars (plus inital empty bar for metronome) |
+| noOfBars | int | Number of bars (plus initial empty bar for metronome) |
 | pitches | [int] | MIDI pitch numbers (0-127), see [here](https://newt.phys.unsw.edu.au/jw/notes.html) |
 | bpm | int | Beats per minute |
 | left | bool | *True*: generate notes for left hand |

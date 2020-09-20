@@ -4,11 +4,19 @@ import noteHandler as nh
 
 
 class MidiInputThread():
+    """
+    Class for handling input from a connected MIDI device, e.g. a keyboard.
+    """
 
     ###TODO: remove
     testPort = ""
 
     def __init__(self, tempSize):
+        """
+        Initializes necessary variables and note lists/arrays.
+
+        @param tempSize: Number of possible MIDI notes (usually 128).
+        """
         #threading.Thread.__init__(self)
         self.inport = None
         self.tempSize = tempSize
@@ -22,8 +30,14 @@ class MidiInputThread():
         self.noteCounter = 1
 
 
-    # close old and open new MIDI input port
     def setPort(self, portName):
+        """
+        Updates the MIDI input port by closing the old one (if it exists)
+        and opening the new one.
+
+        @param portName: New MIDI port.
+        @return: None
+        """
         ###TODO: remove
         global testPort
 
@@ -48,6 +62,14 @@ class MidiInputThread():
 
     # handle MIDI input message (callback function of input port)
     def handleMidiInput(self, msg):
+        """
+        Handle MIDI input message.
+        This function was installed as a callback of the input port to avoid polling
+        and starvation.
+
+        @param msg: Input MIDI message.
+        @return: None
+        """
         global testPort
 
         #print("current input port:", testPort)
@@ -68,15 +90,28 @@ class MidiInputThread():
 
     ###TODO: needed?
     def resetArrays(self):
+        """
+        Resets the target note arrays.
+
+        @return: None
+        """
         self.noteInfoList = []
         self.noteInfoTemp = [[-1, -1, -1]] * self.tempSize
 
-    # activate input handler
     def inputOn(self):
+        """
+        Activates the input handler.
+
+        @return: None
+        """
         self.handleInput = True
 
-    # deactivate input handler
     def inputOff(self):
+        """
+        Deactivates the input handler.
+
+        @return: None
+        """
         self.handleInput = False
 
 

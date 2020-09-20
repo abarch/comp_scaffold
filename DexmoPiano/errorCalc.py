@@ -1,8 +1,13 @@
-# naive example for error computation
-
-# add up all milliseconds where notes where pressed in either case
-# pitch, velocity etc. are not taken into account
 def computeError(targetNoteInfoList, actualNoteInfoList):
+	"""
+	Naive example for error computation.
+	Adds up all milliseconds where notes where pressed in either case.
+	Pitch, velocity etc. are not taken into account.
+
+	@param targetNoteInfoList: List of notes that the user is supposed to play.
+	@param actualNoteInfoList: List of notes that the user actually played.
+	@return: timeSums (time sums of target and actual notes), error difference
+	"""
 	timeSums = []
 
 	for noteInfoList in [targetNoteInfoList, actualNoteInfoList]:

@@ -3,23 +3,36 @@ from pianoplayer.hand import Hand
 from pianoplayer.scorereader import reader, PIG2Stream
 
 
-# based on pianoplayer https://github.com/marcomusy/pianoplayer/blob/master/bin/pianoplayer
 class PianoplayerInterface:
+    """
+    Interface for the PianoPlayer library, used to generate/compute fingering numbers.
+    See https://github.com/marcomusy/pianoplayer/blob/master/bin/pianoplayer.
+    """
 
     def __init__(self, filename):
+        """
+        Initializes necessary variables.
+
+        @param filename: MIDI file to be opened.
+        """
         self.sf = converter.parse(filename)
         self.bpm = self.sf.parts[0].metronomeMarkBoundaries()[0][2].getQuarterBPM()
         tmp = self.sf.parts[0].makeMeasures()
         self.measures = len(tmp.elements)
 
-    # left_only whether fingering should be generated for left hand only
-    # right_only whether fingering should be generated for right hand only
-    # rbeam right hand beam number
-    # lbeam left hand beam number
-    # n_measures number of score measures to scan
-    # optional depth of combinatorial search, [4-9] (default autodepth)
-    # optional hand size (default M)
     def generate_fingernumbers(self, left_only, right_only, rbeam, lbeam, n_measures, depth=0, hand_size='M'):
+        """
+        Automatically generates fingering numbers using the PianoPlayer library.
+
+        @param left_only: True if fingering should be generated for the left hand only.
+        @param right_only: True if fingering should be generated for the right hand only.
+        @param rbeam: Right hand track number (called 'beam' in PianoPlayer library).
+        @param lbeam: Left hand track number (called 'beam' in PianoPlayer library).
+        @param n_measures: Number of score measures (bars) to scan.
+        @param depth: Depth of combinatorial search, [4-9] (default: autodepth) - optional.
+        @param hand_size: Hand size (default: M) - optional.
+        @return: None
+        """
 
         if not left_only:
             rh = Hand("right", hand_size)
@@ -50,13 +63,34 @@ class PianoplayerInterface:
             lh.generate(1, n_measures)
 
     def get_score(self):
+        """
+        Returns the PianoPlayer score file.
+
+        @return: PianoPlayer score file.
+        """
         return self.sf
 
     def get_bpm(self):
+        """
+        Returns the tempo.
+
+        @return: Tempo (beats per minute).
+        """
         return self.bpm
 
     def get_measure_number(self):
+        """
+        Returns PianoPlayer's measure (bar) number.
+
+        @return: PianoPlayer's measure (bar) number.
+        """
         return self.measures
 
     def write_output(self, outputfile):
+        """
+        Write the PianoPlayer score file to a MusicXML file.
+
+        @param outputfile: MusicXML file.
+        @return: None
+        """
         self.sf.write('xml', fp=outputfile)
