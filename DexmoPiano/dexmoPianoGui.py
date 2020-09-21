@@ -318,8 +318,10 @@ def get_ly():
     # create png from music xml with fingernumbers
     # or from midi without finger numbers, if to less notes are generated
     if xmlGenerated:
+        delete_no_fingernumbers_warning()
         subprocess.run(['musicxml2ly', inputFileStrs[3], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
     else:
+        add_no_fingernumbers_warning()
         subprocess.run(['midi2ly', inputFileStrs[0], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
 
 
@@ -445,6 +447,28 @@ def add_error_details():
     checkbox.place(x=1050, y=440)
 
 ##____________________________________________________________________________##
+
+def add_no_fingernumbers_warning():
+    """
+    Creates a warning in case that a created or selected MIDI has only to less notes to
+    show fingernumbers.
+
+    @return: None
+    """
+    global numNotesWarning
+    numNotesWarning = Label(root, text=" Info: \n Too less notes generated to show\n fingernumbers on music sheet.",
+      fg="red")
+    numNotesWarning.place(x=1030, y=770, width=250, height=100)
+
+def delete_no_fingernumbers_warning():
+    """
+    Removes the warning created by add_no_fingernumbers_warning().
+
+    @return: None
+    """
+    global numNotesWarning
+    numNotesWarning = Label(root, text="")
+    numNotesWarning.place(x=1030, y=770, width=250, height=100)
 
 def add_both_hands_warning():
     """
