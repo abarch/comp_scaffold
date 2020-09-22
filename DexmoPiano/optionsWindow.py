@@ -2,8 +2,22 @@ from tkinter import *
 
 
 class optionsWindowClass():
+    """
+    Class for the GUI's options window, accessible from the main window.
+    """
 
     def __init__(self, root, bpm, maxNoteperBar, numberOfBars, noteValuesList, pitchesList, twoHandsTup):
+        """
+        Initializes necessary variables.
+
+        @param root: GUI root.
+        @param bpm: Tempo (beats per minute).
+        @param maxNoteperBar: Maximum number of notes that a bar can contain.
+        @param numberOfBars: Total number of bars.
+        @param noteValuesList: Possible durations of the notes (e.g. 1, 1/2 etc.).
+        @param pitchesList: Possible MIDI pitch numbers (0-127).
+        @param twoHandsTup: Tuple of booleans, True if left/right hand is active.
+        """
         self.root = root
         self.bpm = bpm
         self.maxNoteperBar = maxNoteperBar
@@ -17,17 +31,22 @@ class optionsWindowClass():
 
     # create Window to specify next task, root waiting until this window is closed
     def changeParameter(self):
+        """
+        Creates a window with options to specify the next task.
+        The GUI's root waits until this windows is closed by the user.
 
-        self.specifyWindow = Toplevel(master = self.root)
+        @return: None
+        """
+        self.specifyWindow = Toplevel(master=self.root)
 
         self.specifyWindow.transient(self.root)
         self.specifyWindow.grab_set()
         self.specifyWindow.geometry("325x600")
         self.specifyWindow.title("Options for next task")
 
-    ## NOTEVALUE checkboxes
+    # NOTEVALUE checkboxes
         l1 = Label(self.specifyWindow, text=" Notevalues:")
-        l1.grid (row=1,columnspan=4,sticky=W, pady=(20,0))
+        l1.grid(row=1, columnspan=4, sticky=W, pady=(20, 0))
 
         global fullNote, halfNote, quarterNote, eighthNote, sixteenthNote
 
@@ -56,7 +75,7 @@ class optionsWindowClass():
         chk1_16 = Checkbutton(self.specifyWindow, text='1/16', var=sixteenthNote)
         chk1_16.grid(column=5, row=2)
 
-    ## Max NOTES per bar
+    # Max NOTES per bar
         l2 = Label(self.specifyWindow, text=" Maximal note number per bar:")
         l2.grid(row=3,columnspan=4, sticky=W, pady=(20,0))
 
@@ -67,7 +86,7 @@ class optionsWindowClass():
         opt = OptionMenu(self.specifyWindow, maxNoteNumber, *OptionList)
         opt.grid(row=4,columnspan=4,sticky=W,)
 
-    ## Number of BARS
+    # Number of BARS
         l3 = Label(self.specifyWindow, text=" Number of bars:")
         l3.grid(row=5,columnspan=4, sticky=W, pady=(20,0))
 
@@ -75,15 +94,15 @@ class optionsWindowClass():
         numberBars.grid(row=6, columnspan=4,sticky=W,)
         numberBars.set(self.numberOfBars)
 
-    ## BEATS per minute
+    # BEATS per minute
         l4 = Label(self.specifyWindow, text=" Beats per minute:")
         l4.grid(row=7,columnspan=4, sticky=W, pady=(20,0))
 
-        bpmscale = Scale(self.specifyWindow, from_=60, to=200, orient=HORIZONTAL)
+        bpmscale = Scale(self.specifyWindow, from_=10, to=200, orient=HORIZONTAL)
         bpmscale.grid(row=8, columnspan=4,sticky=W,)
         bpmscale.set(self.bpm)
 
-    ## NOTEPITCHES checkboxes
+    # NOTEPITCHES checkboxes
         l5 = Label(self.specifyWindow, text=" Notepitches:")
         l5.grid (row=9,columnspan=4,sticky=W, pady=(20,0))
 
@@ -93,7 +112,7 @@ class optionsWindowClass():
         guideopt = OptionMenu(self.specifyWindow, chosenpitches, *self.pitchesOptions)
         guideopt.grid(row=10, columnspan=6, sticky=W, )
 
-    ##  BOTH HANDS
+    #  BOTH HANDS
         l6 = Label(self.specifyWindow, text=" One or both hands:")
         l6.grid (row=12,columnspan=4,sticky=W, pady=(20,0))
 
@@ -108,7 +127,7 @@ class optionsWindowClass():
         chk = Checkbutton(self.specifyWindow, text='Use left hand', var=leftHand)
         chk.grid(column=3, columnspan=3, row=13)
 
-    ## SAVE and QUIT button
+    # SAVE and QUIT button
         l8 = Label(self.specifyWindow, text=" \n \n ")
         l8.grid(row=16, columnspan=4, sticky=W)
 
@@ -123,8 +142,12 @@ class optionsWindowClass():
 
         self.root.wait_window(self.specifyWindow)
 
-    # get list of choosen notevalues
     def get_noteValues(self):
+        """
+        Creates the list of user-selected note values.
+
+        @return: List of user-selected note values.
+        """
         noteValuesList = []
         if (fullNote.get() == True):
             noteValuesList.append(1)
@@ -139,7 +162,13 @@ class optionsWindowClass():
 
         return noteValuesList
 
+    #TODO: Combine check_pitches and get_pitches (dictionary?)
     def check_pitches(self):
+        """
+        Matches a description to the user-selected note pitches.
+
+        @return: Note pitches description.
+        """
         if(self.pitchesList == [60]):
             return "One note (C)"
         elif (self.pitchesList == [60, 62]):
@@ -151,8 +180,12 @@ class optionsWindowClass():
         elif (self.pitchesList == list(range(48, 72))):
             return "Two octaves (two hands)"
 
-    # get list of choosen pitches
     def get_pitches(self):
+        """
+        Matches the user-selected note pitch description to the respective list.
+
+        @return: Note pitches list.
+        """
         pitchesList = []
 
         if (chosenpitches.get() == "One note (C)"):
@@ -160,7 +193,7 @@ class optionsWindowClass():
         elif (chosenpitches.get() == "Two notes (C,D)"):
             pitchesList = [60, 62]
         elif (chosenpitches.get() == "Notes C-G (for 5 fingers)"):
-            pitchesList = [60, 62, 64, 65,67]
+            pitchesList = [60, 62, 64, 65, 67]
         elif (chosenpitches.get() == "One octave"):
             pitchesList = list(range(60, 72))
         elif (chosenpitches.get() == "Two octaves (two hands)"):
@@ -168,14 +201,30 @@ class optionsWindowClass():
 
         return pitchesList
 
-    # show error if no pitch or no note value is choosen
     def show_empty_list_error(self):
-        l7 = Label(self.specifyWindow, text=" Error: \n At least one notevalue and \n one hand must be selected.",
+        """
+        Shows an error if no pitch or no note value has been selected.
+
+        @return: None
+        """
+        l7 = Label(self.specifyWindow, text=" Error: \n At least one note value and \n one hand must be selected.",
              fg = "red")
         l7.grid(row=16,column = 2, columnspan=4, sticky=W)
 
     # save settings to generate a new task with it
     def save_settings(self, saveBPM, saveBarNumber, saveNotesPerBar, saveRightHand, saveLeftHand):
+        """
+        Saves the settings selected in the options window.
+        Invoked when clicking the 'save' button. The options will be applied to
+        the next generated task.
+
+        @param saveBPM: Tempo (beats per minute).
+        @param saveBarNumber: Total number of bars.
+        @param saveNotesPerBar: Maximum number of notes that a bar can contain.
+        @param saveRightHand: True for generating notes for the right hand.
+        @param saveLeftHand: True for generating notes for the left hand.
+        @return: None
+        """
         if (saveRightHand == False and saveLeftHand == False) or not self.get_noteValues() or not self.get_pitches():
             self.show_empty_list_error()
         else:
@@ -187,10 +236,19 @@ class optionsWindowClass():
             self.twoHandsTup = (saveLeftHand, saveRightHand)
             self.specifyWindow.destroy()
 
-    # quit options window without saving settings
     def quit_options(self):
+        """
+        Closes the options window without saving changes.
+
+        @return: None
+        """
         self.specifyWindow.destroy()
 
     # return all choosen options to main
     def get_data(self):
+        """
+        Returns all current option values.
+
+        @return: All current option values.
+        """
         return self.bpm, self.numberOfBars, self.maxNoteperBar, self.noteValuesList, self.pitchesList, self.twoHandsTup

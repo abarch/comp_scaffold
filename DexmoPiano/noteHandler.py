@@ -6,8 +6,12 @@ ROUND_DIGITS = 3
 startTime = 0.0
 
 
-# set start time (used as offset)
 def initTime():
+    """
+    Sets start time globally (at task initialization).
+
+    @return: None
+    """
     global startTime
 
     startTime = time.time()
@@ -16,13 +20,31 @@ def initTime():
     print("Start time:", startTime)
 
 
-# get current time in milliseconds
 def getTime():
+    """
+    Returns current time in milliseconds.
+
+    @return: Current time [ms].
+    """
     return round(time.time() - startTime, ROUND_DIGITS)
 
 
-# TODO: documentation
 def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
+    """
+    Handles a given MIDI note, played by the user.
+    Every note is defined by two events: note_on (pressed) and note_off (released).
+    The handler stores the times for every individual note. The matching is quite
+    easy as both events can only occur alternately per note (at least with regular
+    MIDI devices).
+    Multiple (different) notes played simultaneously can also be handled.
+
+    @param noteType: Type of the MIDI note (note_on or note_off).
+    @param pitch: Pitch of the MIDI note.
+    @param velocity: Velocity of the MIDI note.
+    @param noteInfoTemp: Temporary list containing each possible note's current state.
+    @param noteInfoList: List of all notes played by the user.
+    @return: -1 for error, 0 for note_on success, noteInfo for note_off success
+    """
 
     # store note_on time
     if noteType == 'note_on':
@@ -33,7 +55,6 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
 
         noteInfoTemp[pitch] = [getTime(), -1, velocity]
         return 0
-
 
     # store note_off time and return difference
     elif noteType == 'note_off':

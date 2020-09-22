@@ -23,22 +23,42 @@ NOTE_A = 9 # note_off outwards impulse
 metronome = True
 
 
-# set dexmo port
 def set_dexmo(port):
+    """
+    Sets the MIDI port for Dexmo globally.
+
+    @param port: MIDI port for Dexmo.
+    @return: None
+    """
     global midi_interface
     midi_interface = port
 
-# set sound port
 def set_sound_outport(port):
+    """
+    Sets the MIDI port for sound output globally.
+
+    @param port: MIDI port for sound output.
+    @return: None
+    """
     global midi_interface_sound
     midi_interface_sound = port
 
-# should metronome sound be played
+#TODO: rename to "toggle_metronome"
 def set_metronome():
+    """
+    Toggles the global metronome boolean (True if metronome is active).
+
+    @return: None
+    """
     global metronome
     metronome = not metronome
 
 def get_midi_interfaces():
+    """
+    Gets all currently existing MIDI ports (input and output).
+
+    @return: Currently existing MIDI ports (input and output).
+    """
     return mido.get_output_names(), mido.get_input_names()
 
 ## TODO: OLD, Delete?
@@ -56,6 +76,12 @@ def get_midi_interfaces():
 
 # stop forces on all fingers on dexmo motors
 def stop_all_forces(outport):
+    """
+    Sends messages to Dexmo for stopping all forces on all fingers' motors.
+
+    @param outport: Dexmo MIDI output port.
+    @return: None
+    """
     x = range(10, 12)
     fingerlist = [28, 40, 52, 64, 76]
     for n in x:
@@ -64,10 +90,17 @@ def stop_all_forces(outport):
             outport.send(msg)
 
 
-# impulse outwards after note is finished
 def impulse_outwards(msg, outport):
+    """
+    Sends an outwards impulse message to Dexmo after a note is finished.
+
+    @param msg: MIDI message.
+    @param outport: Dexmo MIDI output port.
+    @return: None
+    """
+    #TODO: Clean up!
     #global actualMsgRight, actualMsgLeft
-    impulsemsg = Message('note_off', channel=msg.channel, note=msg.note +4, velocity=20)
+    impulsemsg = Message('note_off', channel=msg.channel, note=msg.note + 4, velocity=20)
     outport.send(impulsemsg)
     #print(impulsemsg)
     #if msg.channel == 10:
@@ -80,8 +113,14 @@ def impulse_outwards(msg, outport):
     #    outport.send(msg)
 
 
-# send midi message to dexmo for finger guidance
 def dexmo_action(msg, outport):
+    """
+    Sends a finger guidance message to Dexmo.
+
+    @param msg: MIDI message.
+    @param outport: Dexmo MIDI output port.
+    @return:
+    """
     if (msg.type == 'note_on'):
         #stop_guidance_out(outport) # stop last guidance out before next note
         outport.send(msg)
@@ -90,8 +129,15 @@ def dexmo_action(msg, outport):
         impulse_outwards(msg, outport)
 
 
-# play demo: sound output of notes and haptic feedback guidance
 def play_demo(midiFile, guidanceMode):
+    """
+    Demonstrates a taks by playing back its MIDI file (notes and metronome)
+    and giving the according haptic feedback with Dexmo (depending on guidance mode).
+
+    @param midiFile: MIDI file of the task.
+    @param guidanceMode: Current guidance Mode (Dexmo).
+    @return: None
+    """
     #global actualMsgRight, actualMsgLeft
     #actualMsgRight = None
     #actualMsgLeft = None
@@ -121,6 +167,16 @@ def play_demo(midiFile, guidanceMode):
 
 # only haptic feedback guidance
 def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
+    """
+    Starts the practice task by playing only the metronome (if chosen)
+    and giving the according haptic feedback with Dexmo (depending on guidance mode).
+
+    @param midiFile: MIDI file of the task.
+    @param noteInfoTemp: Temporary list containing each possible note's current state.
+    @param noteInfoList: List of all notes played by the user.
+    @param guidanceMode: Current guidance Mode (Dexmo).
+    @return: None
+    """
     global actualMsgRight, actualMsgLeft
     #actualMsg = None
     actualMsgRight = None

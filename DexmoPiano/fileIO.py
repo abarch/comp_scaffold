@@ -5,6 +5,12 @@ from xml.dom import minidom
 def createXML(path, midiPrefix, options, targetNotes):
     """
     Creates a new XML tree containing the necessary nodes.
+
+    @param path: Directory of the XML file.
+    @param midiPrefix: Prefix of the XML file (i.e. timestamp).
+    @param options: Current task's options set by the user.
+    @param targetNotes: List of notes that the user is supposed to play.
+    @return: None
     """
 
     root = ET.Element("MIDI", midiNo=midiPrefix)
@@ -22,8 +28,15 @@ def createXML(path, midiPrefix, options, targetNotes):
 def createTrialEntry(path, midiPrefix, timestamp, guidanceMode, actualNotes, error):
     """
     Creates a new trial entry in an existing XML file.
-    The trial number will be the file's current max trial
-    number plus one.
+    The trial number will be the file's current max trial number plus one.
+
+    @param path: Directory of the XML file.
+    @param midiPrefix: Prefix of the XML file (i.e. timestamp).
+    @param timestamp: Timestamp of the trial.
+    @param guidanceMode: Guidance Mode (Dexmo) used for the task.
+    @param actualNotes: List of notes that the user actually played in the trial.
+    @param error: Computed error value.
+    @return: None
     """
 
     # parse XML file
@@ -50,7 +63,10 @@ def createTrialEntry(path, midiPrefix, timestamp, guidanceMode, actualNotes, err
 ###TODO: remove?
 def prettifyXML(elem):
     """
-    Return a pretty-printed XML string for the Element.
+    Returns a pretty-printed XML string for the Element.
+
+    @param elem: Element of the XML tree.
+    @return: Pretty-printed XML string for the Element.
     """
     rough_string = ET.tostring(elem, 'utf-8')
     reparsed = minidom.parseString(rough_string)
@@ -59,6 +75,13 @@ def prettifyXML(elem):
 
 ###TODO: remove?
 def printXML(filepath, pretty):
+    """
+    Prints a given XML file, either directly or prettified (formatted).
+
+    @param filepath: Path of the XML file.
+    @param pretty: True for having the output prettified.
+    @return: None
+    """
 
     tree = ET.parse(filepath)
     root = tree.getroot()
