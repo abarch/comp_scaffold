@@ -623,6 +623,10 @@ def firstTask():
     @return: None
     """
     load_taskButtons()
+    if not os.path.exists("/tmp/DexmoPiano"):
+        os.mkdir("/tmp/DexmoPiano")
+    #try:
+    #    os.mkdir("/tmp/DexmoPiano")
     nextTask()
 
 

@@ -3,6 +3,7 @@ from mido import Message
 from mido import MidiFile
 import time
 import datetime
+import logging
 
 import noteHandler as nh
 
@@ -61,18 +62,6 @@ def get_midi_interfaces():
     """
     return mido.get_output_names(), mido.get_input_names()
 
-## TODO: OLD, Delete?
-#stop guidance outwards when new note starts or after track is finished
-#def stop_guidance_out(outport):
-#    global actualMsgRight, actualMsgLeft
-#    if actualMsgRight is not None:
-#        msg = Message('note_off', channel=actualMsgRight.channel, note=actualMsgRight.note -1, velocity=actualMsgRight.velocity)
-#        outport.send(msg)
-#        actualMsgRight = None
-#    if actualMsgLeft is not None:
-#        msg = Message('note_off', channel=actualMsgLeft.channel, note=actualMsgLeft.note -1, velocity=actualMsgLeft.velocity)
-#        outport.send(msg)
-#        actualMsgLeft = None
 
 # stop forces on all fingers on dexmo motors
 def stop_all_forces(outport):
@@ -82,12 +71,15 @@ def stop_all_forces(outport):
     @param outport: Dexmo MIDI output port.
     @return: None
     """
+
+    logging.info(" SEND NOTE_OFF EVENTS TO ALL FINGERS TO STOP ALL FORCES AT END OFF TASK:")
     x = range(10, 12)
     fingerlist = [28, 40, 52, 64, 76]
     for n in x:
         for finger in fingerlist:
             msg = Message('note_off', channel=n, note=finger, velocity=100)
             outport.send(msg)
+            logging.info(msg)
 
 
 def impulse_outwards(msg, outport):
@@ -98,19 +90,9 @@ def impulse_outwards(msg, outport):
     @param outport: Dexmo MIDI output port.
     @return: None
     """
-    #TODO: Clean up!
-    #global actualMsgRight, actualMsgLeft
     impulsemsg = Message('note_off', channel=msg.channel, note=msg.note + 4, velocity=20)
     outport.send(impulsemsg)
-    #print(impulsemsg)
-    #if msg.channel == 10:
-    #    actualMsgRight = msg
-    #    msg = Message('note_on', channel=actualMsgRight.channel, note=actualMsgRight.note -1, velocity=actualMsgRight.velocity)
-    #    outport.send(msg)
-    #else:
-    #    actualMsgLeft = msg
-    #    msg = Message('note_on', channel=actualMsgLeft.channel, note=actualMsgLeft.note -1, velocity=actualMsgLeft.velocity)
-    #    outport.send(msg)
+    logging.info(impulsemsg)
 
 
 def dexmo_action(msg, outport):
@@ -121,6 +103,8 @@ def dexmo_action(msg, outport):
     @param outport: Dexmo MIDI output port.
     @return:
     """
+
+    logging.info(msg)
     if (msg.type == 'note_on'):
         #stop_guidance_out(outport) # stop last guidance out before next note
         outport.send(msg)
@@ -138,9 +122,15 @@ def play_demo(midiFile, guidanceMode):
     @param guidanceMode: Current guidance Mode (Dexmo).
     @return: None
     """
-    #global actualMsgRight, actualMsgLeft
-    #actualMsgRight = None
-    #actualMsgLeft = None
+    if (guidanceMode != "None"):
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        log = "/tmp/DexmoPiano/" + timestr + ".log"
+        logging.basicConfig(filename=log,level=logging.DEBUG,format='%(asctime)s %(message)s', datefmt='%d/%m/%Y %H:%M:%S')
+
+        logging.info("")
+        logging.info("DEMO from " + timestr)
+
+
     if (midi_interface != "None"):
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
@@ -177,10 +167,15 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
     @param guidanceMode: Current guidance Mode (Dexmo).
     @return: None
     """
-    global actualMsgRight, actualMsgLeft
-    #actualMsg = None
-    actualMsgRight = None
-    actualMsgLeft = None
+    if (guidanceMode != "None"):
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        log = "/tmp/DexmoPiano/" + timestr + ".log"
+        logging.basicConfig(filename=log,level=logging.DEBUG,format='%(asctime)s %(message)s', datefmt='%d/%m/%Y %H:%M:%S')
+
+
+        logging.info("")
+        logging.info("TASK from " + timestr)
+
     if (midi_interface != "None"):
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
@@ -218,7 +213,6 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
     if (midi_interface != "None"):
         stop_all_forces(dexmoPort)
         dexmoPort.close()
-
 
 
 if __name__ == '__main__':
