@@ -7,6 +7,7 @@ import mido
 import makesongsly
 import fileIO
 import time
+from threading import Thread
 
 import threadHandler
 
@@ -42,15 +43,26 @@ def getCurrentTimestamp():
 # generate new midiFile and note sheet and display it
 # dont generate new task if user opened a midi file
 def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
-    global midiFileLocation, midiSaved
-    
+    global midiFileLocation, midiSaved, alien1
+
+    #alien1 = canvas.create_oval(20 + 90, 260 - 130, 40 + 90, 300 - 130, outline='white', fill='blue')
+    canvas.itemconfigure(alien1, fill='blue')
+    canvas.coords(alien1,20+90 , 260-130 , 40+90 , 300 -130)
+  #  curserThread = Thread(target = movement)
+    curserThread = Thread(target=animation_test)
+
     guidance = 0
     timestr = getCurrentTimestamp()
     currentMidi = "midi_test"
     guidanceMode = "None"
 
-    targetNotes, actualNotes, errorVal = threadHandler.startThreads(midiFileLocation,guidance)
-
+ #   root.after(0, animation_test)
+    curserThread.start()
+    #targetNotes, actualNotes, errorVal = threadHandler.startThreads(midiFileLocation,guidance)
+    recThread = Thread(target=threadHandler.startThreads, args=(midiFileLocation, guidance))
+ #   recThread = Thread(target=threadHandler.startRecordThread, args=(midiFileLocation, guidance))
+   # targetNotes, actualNotes, errorVal = threadHandler.startRecordThread(midiFileLocation, guidance)
+    recThread.start()
     if not midiSaved:
         #saveMidiAndXML(targetNotes)
         midiSaved = True
@@ -68,13 +80,68 @@ def load_songs():
     for k in range(10):
         Button(root,  text='Song ' + str(k+1), command=lambda k=k: playSong(k+1)).place(x=30, y=k*60+30, height=50, width=200)
 
+def movement():
+    global alien1
+    # This is where the move() method is called
+    # This moves the rectangle to x, y coordinates
+
+    print("move.")
+ #   canvas.move(alien1, 5, 0)
+  #  canvas.pack()
+    #canvas.draw() not working
+    canvas.after(1, movement)
+
+def animation_test():
+    global alien1, bpmSelected
+
+    bpm = int(bpmSelected.get())
+    bars = 8
+    song_length_pixels = 123*5
+    correction = 50
+    track = 0
+    while track==0:
+        dx = 1
+        y = 0
+        if track == 0:
+            for i in range(0, 123*5):
+               # print("i ",i)
+              #  time.sleep(1)
+                canvas.move(alien1, dx, y)
+               # canvas.update()
+               # canvas.update_idletasks()
+                # canvas.draw() not working
+                #time.sleep(32.0/(125*5))
+               # print(60.0*4*bars*dx/(song_length_pixels*bpm))
+                time.sleep(60.0*4*bars*dx/((song_length_pixels+correction)*bpm))
+            track = 1
+            print("check")
+
+        else:
+            for i in range(0, 51):
+                time.sleep(1)
+                canvas.move(alien1, -x, y)
+                canvas.update()
+            track = 0
+        print(track)
+
 # load start menu with button for first task and exit button
 def load_Startmenu():
     global bpmSelected, playButton, connectButton
-    
+    global alien1
     playButton = Button(root, text='Play Music', command=nextTask)
     playButton.place(x=675, y=440, height=50, width=150)
     playButton["state"]= "disabled"
+
+    # playButton = Button(root, text='Test', command=nextTask)
+    # playButton.place(x=675, y=540, height=50, width=150)
+    # playButton["state"] = "active"
+
+
+    alien1 = canvas.create_oval(20+90, 260-130, 40+90, 300-130, outline='white', fill='white')
+    canvas.pack()
+#    movement()
+ #   root.after(0, animation_test)
+
     Button(root, text='Quit', command=quit).place(x=1200, y=20, height=50, width=150)
     
     connectButton = Button(root, text='Connect', command=connectToMidi)
@@ -91,7 +158,7 @@ def load_Startmenu():
     bpmSelected = StringVar(root)
     bpmSelected.set('60')
     
-    bpmPopup = OptionMenu(root, bpmSelected, *bpms).place(x=1000, y=120, height=50, width=150)
+    bpmPopup = OptionMenu(root, bpmSelected, *bpms).place(x=1000, y=120+100, height=50, width=150)
 
     refreshMidi()
     
@@ -174,7 +241,7 @@ subprocess.run(['mkdir', '-p', tempDir], stderr=subprocess.DEVNULL)
 # Create a window and title
 root = Tk()
 root.title("Piano capture")
-
+canvas = Canvas(root, width=750, height = 200, bg='white')
 deleteOldFiles()
 
 # initialize keyboard input and output threads
