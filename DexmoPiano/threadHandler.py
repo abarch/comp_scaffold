@@ -6,7 +6,7 @@ from threading import Thread
 from midiOutput import MidiOutputThread
 from midiInput import MidiInputThread
 import errorCalc
-
+import time
 
 # GLOBAL CONSTANTS
 MAX_NOTE = 128
@@ -66,7 +66,7 @@ def set_outport(portName):
         print("ERROR: outputThread was not defined yet")
 
 def startThreads(midiFileLocation, guidance):
-    global targetTemp, targetTimes, inputThread
+    global targetTemp, targetTimes, inputThread, outputThread
     
     ###TODO: change?
     resetArrays()
@@ -84,7 +84,9 @@ def startThreads(midiFileLocation, guidance):
     
     # activate input handling
     inputThread.inputOn()
-    
+
+
+
     # ... MIDI playing ...
     # wait for MIDI player thread to terminate
     playerThread.join()
@@ -115,3 +117,54 @@ def startThreads(midiFileLocation, guidance):
 ###TODO: remove?
 def get_errors():
 	return errorDiff
+
+# Only record the user without playing the expected midi file.
+
+def startRecordThread(midiFileLocation, guidance):
+    global targetTemp, targetTimes, inputThread, outputThread
+
+    ###TODO: change?
+    resetArrays()
+    inputThread.resetArrays()
+    outputThread.resetArrays()
+    # MIDI PLAYER THREAD
+    # initialize MIDI file player thread
+ #   playerThread = Thread(target=outputThread.playMidi,
+ #                         args=(midiFileLocation, guidance))
+
+ #   playerThread.start()
+
+    # KEYBOARD MIDI INPUT THREAD
+    # (has been started before)
+
+    # activate input handling
+    print("starting input on.")
+    inputThread.inputOn()
+
+    # ... MIDI playing ...
+    # wait for MIDI player thread to terminate
+    #playerThread.join()
+    time.sleep(5)
+    # deactivate input handling
+    print("starting input off.")
+    inputThread.inputOff()
+
+    # get array with actual notes
+    actualTimes = inputThread.noteInfoList
+
+    ###TODO: remove/change
+    # print results
+    print("\n\n--- NOTES ---")
+    print("\nTarget notes:", targetTimes)
+    print("\nActual notes:", actualTimes)
+
+    # COMPUTE ERROR (naive example)
+    global errorDiff
+
+    timeSums, errorDiff = errorCalc.computeError(targetTimes, actualTimes)
+    print("\n\n--- ERRORS ---")
+    print("\nTARGET TIME:", timeSums[0])
+    print("\nACTUAl TIME:", timeSums[1])
+    print("\nDIFFERENCE: ", errorDiff)
+
+    return targetTimes, actualTimes, errorDiff
