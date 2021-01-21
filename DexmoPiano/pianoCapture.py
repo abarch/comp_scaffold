@@ -7,6 +7,7 @@ import mido
 import makesongsly
 import fileIO
 import time
+#import visualNotes
 from threading import Thread
 
 import threadHandler
@@ -139,6 +140,12 @@ def load_Startmenu():
 
     alien1 = canvas.create_oval(20+90, 260-130, 40+90, 300-130, outline='white', fill='white')
     canvas.pack()
+
+#    canvas2 = Canvas(root, width=300, height=300)
+#    canvas2.pack()
+    piano_img = ImageTk.PhotoImage(Image.open("piano_notes.png"))
+    canvas.create_image(0 , 0, anchor=NW, image=piano_img)
+    canvas.pack()
 #    movement()
  #   root.after(0, animation_test)
 
@@ -241,7 +248,13 @@ subprocess.run(['mkdir', '-p', tempDir], stderr=subprocess.DEVNULL)
 # Create a window and title
 root = Tk()
 root.title("Piano capture")
-canvas = Canvas(root, width=750, height = 200, bg='white')
+canvas = Canvas(root, width=750, height = 800, bg='white')
+#canvas2 = Canvas(root, width = 300, height = 300)
+#canvas2.pack()
+img = ImageTk.PhotoImage(Image.open("piano_notes.png"))
+canvas.create_image(110, 500, anchor=NW, image=img)
+#Notes.create_visual_notes(canvas)
+
 deleteOldFiles()
 
 # initialize keyboard input and output threads
