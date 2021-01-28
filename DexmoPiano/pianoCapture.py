@@ -9,8 +9,9 @@ import fileIO
 import time
 #import visualNotes
 from threading import Thread
-
+import datetime
 import threadHandler
+import queue
 
 # directory/filename strings
 outputDir = './output/'
@@ -46,33 +47,73 @@ def getCurrentTimestamp():
 def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     global midiFileLocation, midiSaved, alien1
 
+    que = queue.Queue()
+    str_date = datetime.datetime.today().strftime('_%Y_%m_%d_%H_%M_%S_')
+
     #alien1 = canvas.create_oval(20 + 90, 260 - 130, 40 + 90, 300 - 130, outline='white', fill='blue')
     canvas.itemconfigure(alien1, fill='blue')
     canvas.coords(alien1,20+90 , 260-130 , 40+90 , 300 -130)
-  #  curserThread = Thread(target = movement)
-    curserThread = Thread(target=animation_test)
 
     guidance = 0
     timestr = getCurrentTimestamp()
     currentMidi = "midi_test"
     guidanceMode = "None"
 
- #   root.after(0, animation_test)
-    curserThread.start()
-    #targetNotes, actualNotes, errorVal = threadHandler.startThreads(midiFileLocation,guidance)
-    recThread = Thread(target=threadHandler.startThreads, args=(midiFileLocation, guidance))
- #   recThread = Thread(target=threadHandler.startRecordThread, args=(midiFileLocation, guidance))
-   # targetNotes, actualNotes, errorVal = threadHandler.startRecordThread(midiFileLocation, guidance)
-    recThread.start()
-    if not midiSaved:
-        #saveMidiAndXML(targetNotes)
-        midiSaved = True
-        options = [1, True, "bla"]
-        fileIO.createXML(outputDir, currentMidi, options, targetNotes)
-        midiSaved = True
+# run the animation. for some reason it is delayed when using join() later.. TBD:FIX
+    #curserThread = Thread(target=animation_test)
+    #curserThread.start()
+
+ #   targetNotes, actualNotes, errorVal = threadHandler.startThreads(midiFileLocation,guidance)
+    #recThread = Thread(target=threadHandler.startThreads, args=(midiFileLocation, guidance))
+    #recThread = Thread(target=threadHandler.startRecordThread, args=(midiFileLocation, guidance))
+  #  targetNotes, actualNotes, errorVal = threadHandler.startRecordThread(midiFileLocation, guidance)
+
+# record and play demo option
+
+    # original code
+    #targetNotes, actualNotes, errorVal = threadHandler.startThreads(midiFileLocation, guidance)
+
+    # run in a thread
+    # recPlayThread = Thread(target=threadHandler.startThreads, args=(midiFileLocation, guidance))
+
+    # run in a tread with queue in order to get returned values
+    recPlayThread = Thread(target=lambda q, arg1, arg2: q.put(threadHandler.startThreads(arg1,arg2)), args=(que, midiFileLocation, guidance))
+
+    # run the thread
+    recPlayThread.start()
+
+# only record option
+
+    # run in a thread
+    # recThread = Thread(target=threadHandler.startRecordThread, args=(midiFileLocation, guidance))
+
+    # run in a tread with queue in order to get returned values
+    # recThread = Thread(target=lambda q, arg1, arg2: q.put(threadHandler.startRecordThread(arg1,arg2)), args=(que, midiFileLocation, guidance))
+
+    # run the thread
+    # recThread.start()
+
+    #curserThread.join()
+    recPlayThread.join()
+    #recThread.join()
+    result = que.get()
+    targetNotes = result[0]
+    actualNotes = result[1]
+    errorVal = result[2]
+    print("result:", result)
+
+    # if not midiSaved:
+    #     #saveMidiAndXML(targetNotes)
+    #     midiSaved = True
+    #     options = [1, True, "bla"]
+    #     fileIO.createXML(outputDir, currentMidi+str_date, options, targetNotes)
+    #     midiSaved = True
+
+    options = [1, True, "bla"]
+    fileIO.createXML(outputDir, currentMidi + str_date, options, targetNotes)
 
     # create entry containing actual notes in XML
-    fileIO.createTrialEntry(outputDir, currentMidi, timestr, guidanceMode, actualNotes, errorVal)
+    fileIO.createTrialEntry(outputDir, currentMidi+str_date, timestr, guidanceMode, actualNotes, errorVal)
     ###TODO: remove (testing)
     #fileIO.printXML(outputDir + currentMidi + ".xml", True)
     print("Created XML")
@@ -141,13 +182,6 @@ def load_Startmenu():
     alien1 = canvas.create_oval(20+90, 260-130, 40+90, 300-130, outline='white', fill='white')
     canvas.pack()
 
-#    canvas2 = Canvas(root, width=300, height=300)
-#    canvas2.pack()
-    piano_img = ImageTk.PhotoImage(Image.open("piano_notes.png"))
-    canvas.create_image(0 , 0, anchor=NW, image=piano_img)
-    canvas.pack()
-#    movement()
- #   root.after(0, animation_test)
 
     Button(root, text='Quit', command=quit).place(x=1200, y=20, height=50, width=150)
     
@@ -251,11 +285,12 @@ root.title("Piano capture")
 canvas = Canvas(root, width=750, height = 800, bg='white')
 #canvas2 = Canvas(root, width = 300, height = 300)
 #canvas2.pack()
-img = ImageTk.PhotoImage(Image.open("piano_notes.png"))
-canvas.create_image(110, 500, anchor=NW, image=img)
+piano_img = ImageTk.PhotoImage(Image.open("piano_notes_crop.png"))
+canvas.create_image(110, 500, anchor=NW, image=piano_img)
 #Notes.create_visual_notes(canvas)
-
-deleteOldFiles()
+hand_img = ImageTk.PhotoImage(Image.open("finger-positioning-on-piano-crop.png"))
+canvas.create_image(380, 500, anchor=NW, image=hand_img)
+#deleteOldFiles()
 
 # initialize keyboard input and output threads
 threadHandler.initInputThread()
