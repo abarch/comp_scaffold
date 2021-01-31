@@ -57,7 +57,7 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
         return 0
 
     # store note_off time and return difference
-    elif noteType == 'note_off' or (noteType == 'note_on' and velocity == 0 ):
+    elif noteType == 'note_off' or (noteType == 'note_on' and velocity == 0):
         # check if note_off was not set already
         if (noteInfoTemp[pitch][0] == -1) or (noteInfoTemp[pitch][1] != -1):
             print("note_off was set twice! Pitch:", pitch)
@@ -67,11 +67,12 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
         ### TODO: needed? see TODO below
         noteInfoTemp[pitch][1] = [noteOffTime]
         noteOnTime = noteInfoTemp[pitch][0]
+        velocityOn = noteInfoTemp[pitch][2] # velocity when the key was pressed
+        velocityOff = velocity
 
         # reset entry
         noteInfoTemp[pitch] = [-1, -1, -1]
-
-        noteInfo = [pitch, velocity, noteOnTime, noteOffTime]
+        noteInfo = [pitch, velocityOn, noteOnTime, noteOffTime, velocityOff]
 
         ### TODO: remove?
         # print("NoteInfo:", noteInfo)

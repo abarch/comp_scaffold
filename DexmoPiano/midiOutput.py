@@ -1,13 +1,16 @@
 import mido
 
+import threadHandler
 import noteHandler as nh
+import config
 
-class MidiOutputThread():
+
+class MidiOutputThread:
 
     ###TODO: remove
     testPort = ""
 
-    def __init__(self, tempSize):
+    def __init__(self, tempSize, root):
         #threading.Thread.__init__(self)
         self.outport = None
         self.tempSize = tempSize
@@ -19,7 +22,7 @@ class MidiOutputThread():
         self.handleOutput = False
 
         self.noteCounter = 1
-
+        self.root =  root
 
     # close old and open new MIDI output port
     def setPort(self, portName):
@@ -65,10 +68,16 @@ class MidiOutputThread():
                         print("ACTUAL:", self.noteCounter, "\t", noteInfo)
                         self.noteCounter += 1
 
-    def playMidi(self,filename,guidance):
+    def playMidi(self, filename, guidance, stopAfterSong):
         mid = mido.MidiFile(filename)
         for msg in mid.play():
             self.outport.send(msg)
+
+        if stopAfterSong:
+            # this will allow the function to return, and in 2 seconds will call recordingFinished
+            self.root.after(2, threadHandler.recordingFinished)
+        else:
+            config.stopButton["state"] = "active"
 
     ###TODO: needed?
     def resetArrays(self):

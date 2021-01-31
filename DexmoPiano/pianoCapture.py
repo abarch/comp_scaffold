@@ -2,37 +2,32 @@ from tkinter import *
 from  PIL import Image, ImageTk
 import subprocess
 import os
-from midiInput import MidiInputThread
 import mido
 import makesongsly
-import fileIO
 import time
 #import visualNotes
 from threading import Thread
 import datetime
 import threadHandler
 import queue
-
-# directory/filename strings
-outputDir = './output/'
-tempDir = './output/temp/'
-inputFileStrs = [tempDir + 'output.mid', tempDir + 'output-m.mid', tempDir + 'output-md.mid', tempDir + 'output.xml']
+import config
 
 midiInputPort = ''
 midiOutputPort = ''
 midiPopupMenu = 0
+midiConnected = 0
 
-songNum = 0
+songNum: int = 0 # which song to play
+generatedBpm: int = 0 # bpm to play the song back at
 
 midiSaved = False # Indicates if the output file was already created
 
-
 # delete saved midis and XMLs from last programm run
 def deleteOldFiles():
-    files = os.listdir(outputDir)
+    files = os.listdir(config.outputDir)
     for item in files:
         if item.endswith('.mid') or item.endswith('.xml'):
-            os.remove(os.path.join(outputDir, item))
+            os.remove(os.path.join(config.outputDir, item))
 
 def getCurrentTimestamp():
     """
@@ -41,86 +36,79 @@ def getCurrentTimestamp():
     """
     return time.strftime("%Y%m%d-%H%M%S")
 
-
 # generate new midiFile and note sheet and display it
 # dont generate new task if user opened a midi file
-def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
-    global midiFileLocation, midiSaved, alien1
+def nextTask(finishAfterSong,userSelectedTask=False, userSelectedLocation=config.inputFileStrs[0]):
+    global midiFileLocation, midiSaved, alien1, generatedBpm, bpmSelected
+
+    bpm = int(bpmSelected.get())
+
+    # If the bpm has changed since the midi file was generated, regenerate
+    if bpm != generatedBpm:
+        makesongsly.make_song(songNum, bpm)
 
     que = queue.Queue()
-    str_date = datetime.datetime.today().strftime('_%Y_%m_%d_%H_%M_%S_')
+    config.str_date = datetime.datetime.today().strftime('_%Y_%m_%d_%H_%M_%S_')
 
     #alien1 = canvas.create_oval(20 + 90, 260 - 130, 40 + 90, 300 - 130, outline='white', fill='blue')
     canvas.itemconfigure(alien1, fill='blue')
     canvas.coords(alien1,20+90 , 260-130 , 40+90 , 300 -130)
 
     guidance = 0
-    timestr = getCurrentTimestamp()
-    currentMidi = "midi_test"
-    guidanceMode = "None"
+    config.timestr = getCurrentTimestamp()
+    config.guidanceMode = "None"
 
 # run the animation. for some reason it is delayed when using join() later.. TBD:FIX
     #curserThread = Thread(target=animation_test)
     #curserThread.start()
 
- #   targetNotes, actualNotes, errorVal = threadHandler.startThreads(midiFileLocation,guidance)
-    #recThread = Thread(target=threadHandler.startThreads, args=(midiFileLocation, guidance))
-    #recThread = Thread(target=threadHandler.startRecordThread, args=(midiFileLocation, guidance))
-  #  targetNotes, actualNotes, errorVal = threadHandler.startRecordThread(midiFileLocation, guidance)
-
-# record and play demo option
-
-    # original code
-    #targetNotes, actualNotes, errorVal = threadHandler.startThreads(midiFileLocation, guidance)
-
-    # run in a thread
-    # recPlayThread = Thread(target=threadHandler.startThreads, args=(midiFileLocation, guidance))
-
-    # run in a tread with queue in order to get returned values
-    recPlayThread = Thread(target=lambda q, arg1, arg2: q.put(threadHandler.startThreads(arg1,arg2)), args=(que, midiFileLocation, guidance))
+    # run in a thread with queue in order to get returned values
+    recPlayThread = Thread(target=lambda q, arg1, arg2, arg3: q.put(threadHandler.startThreads(arg1, arg2, arg3)),
+                           args=(que, midiFileLocation, guidance, finishAfterSong))
 
     # run the thread
     recPlayThread.start()
 
-# only record option
+# don't play the song - wait until the stop button is pressed
+def nextTaskAlone(userSelectedTask=False, userSelectedLocation=config.inputFileStrs[0]):
+    global midiFileLocation, midiSaved, alien1, generatedBpm
 
-    # run in a thread
-    # recThread = Thread(target=threadHandler.startRecordThread, args=(midiFileLocation, guidance))
+    # Turn on the stop button
+    config.stopButton["state"] = "active"
 
-    # run in a tread with queue in order to get returned values
-    # recThread = Thread(target=lambda q, arg1, arg2: q.put(threadHandler.startRecordThread(arg1,arg2)), args=(que, midiFileLocation, guidance))
+    # force a redraw
+    root.update()
 
-    # run the thread
-    # recThread.start()
+    bpm = int(bpmSelected.get())
 
-    #curserThread.join()
-    recPlayThread.join()
-    #recThread.join()
-    result = que.get()
-    targetNotes = result[0]
-    actualNotes = result[1]
-    errorVal = result[2]
-    print("result:", result)
+    # If the bpm has changed since the midi file was generated, regenerate
+    if bpm != generatedBpm:
+        makesongsly.make_song(songNum, bpm)
 
-    # if not midiSaved:
-    #     #saveMidiAndXML(targetNotes)
-    #     midiSaved = True
-    #     options = [1, True, "bla"]
-    #     fileIO.createXML(outputDir, currentMidi+str_date, options, targetNotes)
-    #     midiSaved = True
+    que = queue.Queue()
+    config.str_date = datetime.datetime.today().strftime('_%Y_%m_%d_%H_%M_%S_')
 
-    options = [1, True, "bla"]
-    fileIO.createXML(outputDir, currentMidi + str_date, options, targetNotes)
+    #alien1 = canvas.create_oval(20 + 90, 260 - 130, 40 + 90, 300 - 130, outline='white', fill='blue')
+    canvas.itemconfigure(alien1, fill='blue')
+    canvas.coords(alien1, 20+90, 260-130, 40+90, 300-130)
 
-    # create entry containing actual notes in XML
-    fileIO.createTrialEntry(outputDir, currentMidi+str_date, timestr, guidanceMode, actualNotes, errorVal)
-    ###TODO: remove (testing)
-    #fileIO.printXML(outputDir + currentMidi + ".xml", True)
-    print("Created XML")
+    guidance = 0
+    config.timestr = getCurrentTimestamp()
+
+    config.guidanceMode = "None"
+    duration = 0  # i.e. wait for stop button
+    # run in a thread with queue in order to get returned values
+    recThread = Thread(target=lambda q, arg1, arg2, arg3, arg4: q.put(threadHandler.startRecordThread(arg1, arg2, arg3, arg4)), args=(que, midiFileLocation, guidance, duration, root))
+    recThread.start()
+
+def stopRecording():
+    #config.waitThread.event.set()
+    threadHandler.recordingFinished()
+    config.stopButton["state"] = "disabled"
 
 def load_songs():
     for k in range(10):
-        Button(root,  text='Song ' + str(k+1), command=lambda k=k: playSong(k+1)).place(x=30, y=k*60+30, height=50, width=200)
+        Button(root,  text='Song ' + str(k+1), command=lambda k=k: loadSong(k+1)).place(x=30, y=k*60+30, height=50, width=200)
 
 def movement():
     global alien1
@@ -141,7 +129,7 @@ def animation_test():
     song_length_pixels = 123*5
     correction = 50
     track = 0
-    while track==0:
+    while track == 0:
         dx = 1
         y = 0
         if track == 0:
@@ -168,77 +156,90 @@ def animation_test():
 
 # load start menu with button for first task and exit button
 def load_Startmenu():
-    global bpmSelected, playButton, connectButton
+    global bpmSelected, playButton, playAfterButton, playAloneButton, connectButton
+    global midiInputPort, midiOutputPort
     global alien1
-    playButton = Button(root, text='Play Music', command=nextTask)
+    playButton = Button(root, text='Play Together', command=lambda: nextTask(1))
     playButton.place(x=675, y=440, height=50, width=150)
-    playButton["state"]= "disabled"
+    playButton["state"] = "disabled"
 
-    # playButton = Button(root, text='Test', command=nextTask)
-    # playButton.place(x=675, y=540, height=50, width=150)
-    # playButton["state"] = "active"
+    playAfterButton = Button(root, text='Play After', command=lambda: nextTask(0))
+    playAfterButton.place(x=850, y=440, height=50, width=150)
+    playAfterButton["state"] = "disabled"
 
+    playAloneButton = Button(root, text='Play Alone', command=nextTaskAlone)
+    playAloneButton.place(x=1025, y=440, height=50, width=150)
+    playAloneButton["state"] = "disabled"
+
+    config.stopButton = Button(root, text='Stop recording', command=stopRecording)
+    config.stopButton.place(x=1200, y=440, height=50, width=150)
+    config.stopButton["state"] = "disabled"
 
     alien1 = canvas.create_oval(20+90, 260-130, 40+90, 300-130, outline='white', fill='white')
     canvas.pack()
 
-
     Button(root, text='Quit', command=quit).place(x=1200, y=20, height=50, width=150)
-    
+
     connectButton = Button(root, text='Connect', command=connectToMidi)
     connectButton.place(x=230, y = 640, height=50, width=200)
     connectButton["state"] = "disabled"
-    
+
     Button(root, text='Refresh MIDI', command=refreshMidi).place(x=30, y = 640, height=50, width=200)
 
     bpms = [0] * (131-50)
-    
-    for bpm in range(50,131):
+
+    for bpm in range(50, 131):
         bpms[bpm-50] = str(bpm)
-        
+
     bpmSelected = StringVar(root)
     bpmSelected.set('60')
-    
+
     bpmPopup = OptionMenu(root, bpmSelected, *bpms).place(x=1000, y=120+100, height=50, width=150)
 
     refreshMidi()
-    
+
     midiInputPort, inputs_midi = getMidiInputs()
     midiOutputPort, outputs_midi = getMidiOutputs()
-    
+
     if len(inputs_midi)>0 and len(outputs_midi)>0:
         print("setting state to normal")
         connectButton["state"] = "normal"
 
 def connectToMidi():
-    global playButton
+    global songNum, midiConnected, playButton, playAfterButton, playAloneButton
     print("Connect to midi input: " + midiInputPort.get())
     result_input = threadHandler.set_inport(midiInputPort.get())
-    
+
     print("Connect to midi output: " + midiOutputPort.get())
     result_output = threadHandler.set_outport(midiOutputPort.get())
-    
+
     if result_input and result_output:
+        midiConnected = 1
+
+    if songNum and midiConnected:
         playButton["state"] = "normal"
+        playAfterButton["state"] = "normal"
+        playAloneButton["state"] = "normal"
+
 
 def refreshMidi():
     global midiInputPort, midiInputPopupMenu, midiOutputPort, midiOutputPopupMenu
     midiInputPort, inputs_midi = getMidiInputs()
     MidiInputPopupMenu = OptionMenu(root, midiInputPort, *inputs_midi).place(x=30, y=680, height=50, width=200)
-    
+
     midiOutputPort, outputs_midi = getMidiOutputs()
     MidiOutputPopupMenu = OptionMenu(root, midiOutputPort, *outputs_midi).place(x=230, y=680, height=50, width=200)
 
 def getMidiInputs():
     outputs_midi, inputs_midi  = get_midi_interfaces()
     midiInputPort = StringVar(root)
-    if len(inputs_midi)==0:
+    if len(inputs_midi) == 0:
         midiInputPort.set('')
         inputs_midi = {''}
     else:
         midiInputPort.set(inputs_midi[0])
     return midiInputPort, inputs_midi
-    
+
 def getMidiOutputs():
     outputs_midi, inputs_midi  = get_midi_interfaces()
     midiOutputPort = StringVar(root)
@@ -248,17 +249,24 @@ def getMidiOutputs():
     else:
         midiOutputPort.set(outputs_midi[0])
     return midiOutputPort, outputs_midi
-    
-def playSong(songNumSelected):
-    global midiFileLocation, songNum
+
+# Load a song (generate the midi file and the sheet music)
+def loadSong(songNumSelected):
+    global midiFileLocation, songNum, generatedBpm, playButton, playAfterButton, playAloneButton
     bpm = int(bpmSelected.get())
     print("Song "  + str(songNumSelected) + " pressed, bpm = " + str(bpm))
     # Create a midi file at the appropriate bpm
     makesongsly.make_song(songNumSelected, bpm)
+    generatedBpm = bpm
     # use lilypad to make the sheet music  + midi
     load_notesheet('songs/song' + str(songNumSelected) + '.png')
     midiFileLocation = 'songs/song' + str(songNumSelected) + '.midi'
     songNum = songNumSelected
+
+    if songNum and midiConnected:
+        playButton["state"] = "normal"
+        playAfterButton["state"] = "normal"
+        playAloneButton["state"] = "normal"
 
 # loads notesheet for actual task
 def load_notesheet(png):
@@ -271,14 +279,14 @@ def load_notesheet(png):
     panel = Label(root, image=img)
     panel.image = img
     panel.place(x=300, y=20, width=width, height=height)
-    
+
 def get_midi_interfaces():
     return mido.get_output_names(), mido.get_input_names()
 
 # program starts here
 
 # create file output folder if it does not already exist
-subprocess.run(['mkdir', '-p', tempDir], stderr=subprocess.DEVNULL)
+subprocess.run(['mkdir', '-p', config.tempDir], stderr=subprocess.DEVNULL)
 # Create a window and title
 root = Tk()
 root.title("Piano capture")
@@ -294,7 +302,7 @@ canvas.create_image(380, 500, anchor=NW, image=hand_img)
 
 # initialize keyboard input and output threads
 threadHandler.initInputThread()
-threadHandler.initOutputThread()
+threadHandler.initOutputThread(root)
 
 load_Startmenu()
 load_songs()

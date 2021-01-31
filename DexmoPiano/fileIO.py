@@ -50,7 +50,10 @@ def createTrialEntry(path, midiPrefix, timestamp, guidanceMode, actualNotes, err
     root = tree.getroot()
     trials = root.find("trials")
 
-    trialNo = len(trials.getchildren()) + 1
+    try:
+        trialNo = len(trials) + 1
+    except:
+        trialNo = 1
 
     trial = ET.SubElement(trials, "trial", trial_no=str(trialNo), timestamp=str(timestamp))
     ET.SubElement(trial, "notes", name="Played Notes").text = str(actualNotes)
@@ -90,7 +93,6 @@ def printXML(filepath, pretty):
         print(prettifyXML(root))
     else:
         print(ET.tostring(root))
-
 
 
 if __name__ == "__main__":
