@@ -1,6 +1,7 @@
 # Main file for Piano with Dexmo project (2020)
 
-from tkinter import *
+# from tkinter import *
+import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 from matplotlib.figure import Figure
@@ -284,7 +285,7 @@ def load_notesheet(png):
     # width, height = background.size
 
     img = ImageTk.PhotoImage(background)
-    panel = Label(root, image=img)
+    panel = tk.Label(root, image=img)
     panel.image = img
     panel.place(x=170, y=0, width=835, height=1181)
 
@@ -368,7 +369,7 @@ def add_error_plot():
 
     @return: None
     """
-    Label(root, text=" Error visualization:").place(x=1200, y=10, width=150, height=20)
+    tk.Label(root, text=" Error visualization:").place(x=1200, y=10, width=150, height=20)
 
     fig = Figure(figsize=(9, 6), facecolor="white")
     axis = fig.add_subplot(111)
@@ -397,9 +398,9 @@ def add_error_plot():
     canvas._tkcanvas.place(x=1050, y=30, width=400, height=400)
 
     global checkbox, details
-    details = BooleanVar()
+    details = tk.BooleanVar()
     details.set(False)
-    checkbox = Checkbutton(root, text='show error details', command=add_error_details, var=details)
+    checkbox = tk.Checkbutton(root, text='show error details', command=add_error_details, var=details)
     checkbox.place(x=1050, y=440)
 
 
@@ -441,9 +442,9 @@ def add_error_details():
     canvas._tkcanvas.place(x=1050, y=30, width=400, height=400)
 
     global checkbox, details
-    details = BooleanVar()
+    details = tk.BooleanVar()
     details.set(True)
-    checkbox = Checkbutton(root, text='show error details', command=add_error_plot, var=details)
+    checkbox = tk.Checkbutton(root, text='show error details', command=add_error_plot, var=details)
     checkbox.place(x=1050, y=440)
 
 ##____________________________________________________________________________##
@@ -456,7 +457,7 @@ def add_no_fingernumbers_warning():
     @return: None
     """
     global numNotesWarning
-    numNotesWarning = Label(root, text=" Info: \n Too less notes generated to show\n fingernumbers on music sheet.",
+    numNotesWarning = tk.Label(root, text=" Info: \n Too less notes generated to show\n fingernumbers on music sheet.",
       fg="red")
     numNotesWarning.place(x=1030, y=770, width=250, height=100)
 
@@ -467,7 +468,7 @@ def delete_no_fingernumbers_warning():
     @return: None
     """
     global numNotesWarning
-    numNotesWarning = Label(root, text="")
+    numNotesWarning = tk.Label(root, text="")
     numNotesWarning.place(x=1030, y=770, width=250, height=100)
 
 def add_both_hands_warning():
@@ -478,7 +479,7 @@ def add_both_hands_warning():
     @return: None
     """
     global handWarning
-    handWarning = Label(root, text=" Warning: \n Hand selection error \n or too few notes in file.",
+    handWarning = tk.Label(root, text=" Warning: \n Hand selection error \n or too few notes in file.",
       fg="red")
     handWarning.place(x=10, y=660, width=150, height=70)
 
@@ -489,7 +490,7 @@ def delete_warning():
     @return: None
     """
     global handWarning
-    handWarning = Label(root, text="")
+    handWarning = tk.Label(root, text="")
     handWarning.place(x=10, y=660, width=150, height=70)
 
 def add_Dexmo_Warning():
@@ -498,7 +499,7 @@ def add_Dexmo_Warning():
 
     @return: None
     """
-    Label(root, text=" Warning: \n No Dexmo connected, \n no guidance possible.",
+    tk.Label(root, text=" Warning: \n No Dexmo connected, \n no guidance possible.",
           fg="red").place(x=10, y=300, width=150, height=70)
 
 
@@ -510,53 +511,53 @@ def load_taskButtons():
     @return: None
     """
     global currentMidi, metronome
-    Button(root, text='Start Task', command=startTask).place(x=10, y=90, height=50, width=150)
-    Button(root, text='Start Demo', command=startDemo).place(x=10, y=150, height=50, width=150)
+    tk.Button(root, text='Start Task', command=startTask).place(x=10, y=90, height=50, width=150)
+    tk.Button(root, text='Start Demo', command=startDemo).place(x=10, y=150, height=50, width=150)
 
     # add button to disable metronome sound
-    metronome = BooleanVar()
+    metronome = tk.BooleanVar()
     metronome.set(dexmoOutput.metronome)
-    checkmetronome = Checkbutton(root, text='play metronome', variable=metronome, command=dexmoOutput.set_metronome)
+    checkmetronome = tk.Checkbutton(root, text='play metronome', variable=metronome, command=dexmoOutput.set_metronome)
     checkmetronome.place(x=10, y=200)
 
     ##  GUIDANCE Mode
-    l = Label(root, text=" Guidance mode:")
+    l = tk.Label(root, text=" Guidance mode:")
     l.place(x=10, y=220, width=150, height=70)
-    guidance = StringVar(root)
+    guidance = tk.StringVar(root)
     guidance.set(guidanceMode)
-    guideopt = OptionMenu(root, guidance, *GuidanceModeList, command=set_guidance)
+    guideopt = tk.OptionMenu(root, guidance, *GuidanceModeList, command=set_guidance)
     guideopt.place(x=10, y=270, width=150, height=30)
 
-    Button(root, text='Generate new Task', command=nextTask).place(x=10, y=400, height=50, width=150)
-    Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=460, height=25, width=150)
-    Button(root, text='Open Midi file', command=openfile).place(x=10, y=520, height=25, width=150)
+    tk.Button(root, text='Generate new Task', command=nextTask).place(x=10, y=400, height=50, width=150)
+    tk.Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=460, height=25, width=150)
+    tk.Button(root, text='Open Midi file', command=openfile).place(x=10, y=520, height=25, width=150)
 
     # Scalebar to change BPM in loaded MIDI File
     global loadMidiBPM, midiBPM
-    l = Label(root, text=" BPM for loaded MIDI File:")
+    l = tk.Label(root, text=" BPM for loaded MIDI File:")
     l.place(x=10, y=550)
 
-    midiBPM = Scale(root, from_=0, to=250,length=150, orient=HORIZONTAL)
+    midiBPM = tk.Scale(root, from_=0, to=250,length=150, orient=tk.HORIZONTAL)
     midiBPM.place(x=10, y=570)
     midiBPM.set(0)
 
-    l2 = Label(root, text="0 will load BPM from MIDI")
+    l2 = tk.Label(root, text="0 will load BPM from MIDI")
     l2.place(x=10, y=610)
 
     # hand checkboxes
     global rightHand, leftHand
-    leftHand = BooleanVar()
+    leftHand = tk.BooleanVar()
     leftHand.set(True)
-    chk = Checkbutton(root, text='left hand', var=leftHand)
+    chk = tk.Checkbutton(root, text='left hand', var=leftHand)
     chk.place(x=0, y=635)
 
-    rightHand = BooleanVar()
+    rightHand = tk.BooleanVar()
     rightHand.set(True)
-    chk = Checkbutton(root, text='right hand', var=rightHand)
+    chk = tk.Checkbutton(root, text='right hand', var=rightHand)
     chk.place(x=75, y=635)
 
     ## Back to Menu
-    Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
+    tk.Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
 
 def refresh_buttons():
     """
@@ -567,28 +568,28 @@ def refresh_buttons():
     """
     # next and previous tasks buttons
     if (nextSavedTask() == False):
-        Button(root, text='Next Task >>', command=nextSavedTask, state=DISABLED).place(x=10, y=800, height=50,
+        tk.Button(root, text='Next Task >>', command=nextSavedTask, state=tk.DISABLED).place(x=10, y=800, height=50,
                                                                                        width=150)
     else:
-        Button(root, text='Next Task >>', command=lambda: nextSavedTask(True)).place(x=10, y=800, height=50, width=150)
+        tk.Button(root, text='Next Task >>', command=lambda: nextSavedTask(True)).place(x=10, y=800, height=50, width=150)
 
     files = getTimeSortedMidiFiles()
     if currentMidi != None:
         currMidiIdx = files.index(currentMidi) + 1
-        l2 = Label(root, text=" Midi File " + str(currMidiIdx) + " of " + str(len(files)))
+        l2 = tk.Label(root, text=" Midi File " + str(currMidiIdx) + " of " + str(len(files)))
         l2.place(x=10, y=860, width=150, height=20)
 
     if (previousTask() == False):
-        Button(root, text='<< Previous Task', command=previousTask, state=DISABLED).place(x=10, y=880, height=50,
+        tk.Button(root, text='<< Previous Task', command=previousTask, state=tk.DISABLED).place(x=10, y=880, height=50,
                                                                                           width=150)
     else:
-        Button(root, text='<< Previous Task', command=lambda: previousTask(True)).place(x=10, y=880, height=50, width=150)
+        tk.Button(root, text='<< Previous Task', command=lambda: previousTask(True)).place(x=10, y=880, height=50, width=150)
 
     # add button to show note sheet with haptic guidance
     global showGuidance
-    showGuidance = BooleanVar()
+    showGuidance = tk.BooleanVar()
     showGuidance.set(False)
-    checkShowGuidance = Checkbutton(root, text='show guidance in note sheet', variable=showGuidance,
+    checkShowGuidance = tk.Checkbutton(root, text='show guidance in note sheet', variable=showGuidance,
                                     command=showGuidanceNotesheet)
     checkShowGuidance.place(x=1050, y=900)
 
@@ -637,8 +638,8 @@ def load_Startmenu():
 
     @return: None
     """
-    Button(root, text='Start first task', command=firstTask).place(x=675, y=440, height=50, width=150)
-    Button(root, text='Quit', command=quit).place(x=675, y=500, height=50, width=150)
+    tk.Button(root, text='Start first task', command=firstTask).place(x=675, y=440, height=50, width=150)
+    tk.Button(root, text='Quit', command=quit).place(x=675, y=500, height=50, width=150)
     choose_ports()
 
 
@@ -703,11 +704,11 @@ def choose_ports():
         """
         global firstStart
         # place button label (text)
-        l = Label(root, text=portText + " port:")
+        l = tk.Label(root, text=portText + " port:")
         l.place(x=X_POS, y=yPos, height=TEXT_HEIGHT, width=WIDTH)
 
         # match port
-        midiPort = StringVar(root)
+        midiPort = tk.StringVar(root)
         if firstStart == True:
             matching = [s for s in portList if findStr in s.lower()]
             if matching:
@@ -725,7 +726,7 @@ def choose_ports():
                 midiPort.set(threadHandler.portname)
 
         # place drop-down menu
-        options = OptionMenu(root, midiPort, *portList, command=setFunc)
+        options = tk.OptionMenu(root, midiPort, *portList, command=setFunc)
         options.place(x=X_POS - X_DIFF, y=yPos + Y_DIFF, height=FIELD_HEIGHT, width=WIDTH)
 
         return midiPort
@@ -748,7 +749,7 @@ def choose_ports():
 # create file output folder if it does not already exist
 subprocess.run(['mkdir', '-p', tempDir], stderr=subprocess.DEVNULL)
 # Create a window and title
-root = Tk()
+root = tk.Tk()
 root.title("Piano with Dexmo")
 
 deleteOldFiles()
