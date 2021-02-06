@@ -6,19 +6,22 @@ import noteHandler as nh
 class MidiInputThread():
     """
     Class for handling input from a connected MIDI device, e.g. a keyboard.
+    (Not actually a subclass of threading.Thead, or a thread at all)
     """
 
     ###TODO: remove
     testPort = ""
 
-    def __init__(self, tempSize):
+    def __init__(self, tempSize=128, input_port=None):
         """
         Initializes necessary variables and note lists/arrays.
 
         @param tempSize: Number of possible MIDI notes (usually 128).
         """
         #threading.Thread.__init__(self)
-        self.inport = None
+        # self.inport = None
+        
+        
         self.tempSize = tempSize
         # initialize note array and list
         self.noteInfoList = []
@@ -28,6 +31,11 @@ class MidiInputThread():
         self.handleInput = False
 
         self.noteCounter = 1
+        
+        input_port = input_port or [p for p in mido.get_input_names() if "Q25" in p][0]
+        
+        self.setPort(input_port)
+    
 
 
     def setPort(self, portName):
@@ -116,11 +124,21 @@ class MidiInputThread():
 
 
 if __name__ == "__main__":
-    ###TODO: remove? (just needed for testing)
+    # ###TODO: remove? (just needed for testing)
 
-    # port = 'Q25 MIDI 1'
-    port = 'VMPK Output:out 130:0'
-    testMode = True
+    # # port = 'Q25 MIDI 1'
+    # port = 'VMPK Output:out 130:0'
+    # testMode = True
 
-    # print available MIDI input ports
+    # # print available MIDI input ports
     print(mido.get_input_names())
+    
+    # input_port = [p for p in mido.get_input_names() if "Q25" in p][0]
+    
+    mit = MidiInputThread()
+    # mit.setPort(input_port)
+    mit.inputOn()
+    
+    import time 
+    time.sleep(30)
+    mit.inputOff()

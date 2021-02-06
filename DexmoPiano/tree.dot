@@ -1,0 +1,8 @@
+digraph Tree {
+node [shape=box] ;
+0 [label="pose_Rx <= 0.266\ngini = 0.5\nsamples = 203\nvalue = [101, 102]\nclass = KEYBOARD"] ;
+1 [label="gini = 0.0\nsamples = 101\nvalue = [101, 0]\nclass = SCREEN"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label="gini = 0.0\nsamples = 102\nvalue = [0, 102]\nclass = KEYBOARD"] ;
+0 -> 2 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+}
