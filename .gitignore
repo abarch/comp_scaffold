@@ -3,6 +3,8 @@ __pycache__/
 *$py.class
 
 *.so
+*/tree.png
+*/_setup_data.py
 
 */output/
 
