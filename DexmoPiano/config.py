@@ -10,5 +10,7 @@ currentMidi = "midi_test"
 str_date = ""
 guidanceMode = ""
 timestr = ""
+participant_id = ""
+freetext = ""
 
 stopButton = ""

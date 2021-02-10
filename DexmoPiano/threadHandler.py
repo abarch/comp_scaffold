@@ -137,10 +137,10 @@ def recordingFinished():
     print("\nDIFFERENCE: ", errorDiff)
 
     options = [1, True, "bla"]
-    fileIO.createXML(config.outputDir, config.currentMidi + config.str_date, options, targetTimes)
+    fileIO.createXML(config.outputDir, config.currentMidi + config.str_date + config.participant_id + "_" + config.freetext, options, targetTimes)
 
     # create entry containing actual notes in XML
-    fileIO.createTrialEntry(config.outputDir, config.currentMidi + config.str_date, config.timestr, config.guidanceMode,
+    fileIO.createTrialEntry(config.outputDir, config.currentMidi + config.str_date + config.participant_id + "_" + config.freetext, config.timestr, config.guidanceMode,
                             actualTimes, errorDiff)
     ###TODO: remove (testing)
     #fileIO.printXML(config.outputDir + config.currentMidi + ".xml", True)

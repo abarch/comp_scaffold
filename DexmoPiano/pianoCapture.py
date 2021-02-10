@@ -49,7 +49,8 @@ def nextTask(finishAfterSong,userSelectedTask=False, userSelectedLocation=config
 
     que = queue.Queue()
     config.str_date = datetime.datetime.today().strftime('_%Y_%m_%d_%H_%M_%S_')
-
+    config.participant_id = id_textbox.get("1.0",'end-1c')
+    config.freetext = freetext.get("1.0",'end-1c')
     #alien1 = canvas.create_oval(20 + 90, 260 - 130, 40 + 90, 300 - 130, outline='white', fill='blue')
     canvas.itemconfigure(alien1, fill='blue')
     canvas.coords(alien1,20+90 , 260-130 , 40+90 , 300 -130)
@@ -87,6 +88,8 @@ def nextTaskAlone(userSelectedTask=False, userSelectedLocation=config.inputFileS
 
     que = queue.Queue()
     config.str_date = datetime.datetime.today().strftime('_%Y_%m_%d_%H_%M_%S_')
+    config.participant_id = id_textbox.get("1.0",'end-1c')
+    config.freetext = freetext.get("1.0",'end-1c')
 
     #alien1 = canvas.create_oval(20 + 90, 260 - 130, 40 + 90, 300 - 130, outline='white', fill='blue')
     canvas.itemconfigure(alien1, fill='blue')
@@ -157,6 +160,7 @@ def animation_test():
 # load start menu with button for first task and exit button
 def load_Startmenu():
     global bpmSelected, playButton, playAfterButton, playAloneButton, connectButton
+    global id_textbox, freetext
     global midiInputPort, midiOutputPort
     global alien1
     playButton = Button(root, text='Play Together', command=lambda: nextTask(1))
@@ -178,7 +182,15 @@ def load_Startmenu():
     alien1 = canvas.create_oval(20+90, 260-130, 40+90, 300-130, outline='white', fill='white')
     canvas.pack()
 
-    Button(root, text='Quit', command=quit).place(x=1200, y=20, height=50, width=150)
+    Button(root, text='Quit', command=quit).place(x=1200, y=20, height=30, width=150)
+
+    id_textbox = Text(root, bg="white", relief=GROOVE, bd=1)
+    id_textbox.place(x=1200, y=70, height=25, width=150)
+    id_textbox.insert(INSERT, "Enter ID")
+
+    freetext = Text(root, bg="white", relief=GROOVE, bd=1)
+    freetext.place(x=1200, y=110, height=60, width=150)
+    freetext.insert(INSERT, "Free text")
 
     connectButton = Button(root, text='Connect', command=connectToMidi)
     connectButton.place(x=230, y = 640, height=50, width=200)
