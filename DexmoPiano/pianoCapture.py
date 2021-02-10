@@ -206,7 +206,7 @@ def load_Startmenu():
     bpmSelected = StringVar(root)
     bpmSelected.set('60')
 
-    bpmPopup = OptionMenu(root, bpmSelected, *bpms).place(x=1000, y=120+100, height=50, width=150)
+    bpmPopup = OptionMenu(root, bpmSelected, *bpms).place(x=1200, y=120+100-45, height=50, width=150)
 
     refreshMidi()
 
