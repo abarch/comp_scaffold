@@ -60,8 +60,8 @@ def nextTask(finishAfterSong,userSelectedTask=False, userSelectedLocation=config
     config.guidanceMode = "None"
 
 # run the animation. for some reason it is delayed when using join() later.. TBD:FIX
-    #curserThread = Thread(target=animation_test)
-    #curserThread.start()
+    curserThread = Thread(target=animation_test)
+    curserThread.start()
 
     # run in a thread with queue in order to get returned values
     recPlayThread = Thread(target=lambda q, arg1, arg2, arg3: q.put(threadHandler.startThreads(arg1, arg2, arg3)),
@@ -164,19 +164,19 @@ def load_Startmenu():
     global midiInputPort, midiOutputPort
     global alien1
     playButton = Button(root, text='Play Together', command=lambda: nextTask(1))
-    playButton.place(x=675, y=440, height=50, width=150)
+    playButton.place(x=675, y=640, height=50, width=150)
     playButton["state"] = "disabled"
 
     playAfterButton = Button(root, text='Play After', command=lambda: nextTask(0))
-    playAfterButton.place(x=850, y=440, height=50, width=150)
+    playAfterButton.place(x=850, y=640, height=50, width=150)
     playAfterButton["state"] = "disabled"
 
     playAloneButton = Button(root, text='Play Alone', command=nextTaskAlone)
-    playAloneButton.place(x=1025, y=440, height=50, width=150)
+    playAloneButton.place(x=1025, y=640, height=50, width=150)
     playAloneButton["state"] = "disabled"
 
     config.stopButton = Button(root, text='Stop recording', command=stopRecording)
-    config.stopButton.place(x=1200, y=440, height=50, width=150)
+    config.stopButton.place(x=1200, y=640, height=50, width=150)
     config.stopButton["state"] = "disabled"
 
     alien1 = canvas.create_oval(20+90, 260-130, 40+90, 300-130, outline='white', fill='white')
@@ -303,13 +303,11 @@ subprocess.run(['mkdir', '-p', config.tempDir], stderr=subprocess.DEVNULL)
 root = Tk()
 root.title("Piano capture")
 canvas = Canvas(root, width=750, height = 800, bg='white')
-#canvas2 = Canvas(root, width = 300, height = 300)
-#canvas2.pack()
 piano_img = ImageTk.PhotoImage(Image.open("piano_notes_crop.png"))
-canvas.create_image(110, 500, anchor=NW, image=piano_img)
+canvas.create_image(110, 300, anchor=NW, image=piano_img)
 #Notes.create_visual_notes(canvas)
 hand_img = ImageTk.PhotoImage(Image.open("finger-positioning-on-piano-crop.png"))
-canvas.create_image(380, 500, anchor=NW, image=hand_img)
+canvas.create_image(380, 300, anchor=NW, image=hand_img)
 #deleteOldFiles()
 
 # initialize keyboard input and output threads
