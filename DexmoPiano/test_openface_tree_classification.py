@@ -9,25 +9,38 @@ beep = lambda: print("\a", end="")
 
 
 class ResultVisualizer:
-    def __init__(self, clf):
+    def __init__(self, clf, class_names, preprocess):
         self.clf = clf
+        self.class_names = class_names
+        self.preprocess = preprocess
         
         import tkinter as tk
         self.root = tk.Tk()
         self.root.geometry('400x300+100+100')
+        self.root["bg"] == "white"
+        
+        self.label = tk.Label(self.root, text='"INIT"', font=("", 64))
+        self.label.grid(column=0, row=0)
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
         
         self.start()
         
     def _analyze(self, df):
-        pose_cols = [c for c in df.columns if "pose" in c]
+        # pose_cols = [c for c in df.columns if "pose" in c]
         
-        latest_datapoint = df[pose_cols].iloc[-1,:]
+        # latest_datapoint = df[pose_cols].iloc[-1,:]
+        
+        df = self.preprocess(df)
+        
+        latest_datapoint = df.iloc[-1,:]
         
         predicted_class = self.clf.predict([latest_datapoint])[0]
         
-        new_color = ["white", "red"]
+        target_class = self.class_names[predicted_class]
         
-        self.root["bg"] = new_color[predicted_class]
+        # self.root["bg"] = new_color[predicted_class]
+        self.label.configure(text=f'"{target_class.upper()}"')
     
         
         
@@ -36,15 +49,20 @@ class ResultVisualizer:
         ofi.add_callback(self._analyze)
         ofi.start()
         
-        def kill_main():
-            sleep(20)
-            self.root.destroy()
+        # def kill_main():
+        #     sleep(60)
+        #     self.root.destroy()
         
-        threading.Thread(target=kill_main).start()
+        # threading.Thread(target=kill_main).start()
         
         self.root.mainloop()
         
-        ofi.stop()
+        sleep(1)
+        
+        
+        self.df = ofi.stop()
+        
+    
         
         
 
@@ -128,6 +146,10 @@ def live_prediction(train_data_key, train_data_screen):
     
 if __name__ == "__main__":
     # d_key, d_screen = get_data()
-    clf = live_prediction(keyboard_data[0], screen_data[0])
+    # clf = live_prediction(keyboard_data[0], screen_data[0])
     
-    live_classifier = ResultVisualizer(clf)
+    from openface_data_acquisition import train_classifier_on_saved
+    
+    clf, class_labels, preprocess = train_classifier_on_saved()
+    
+    live_classifier = ResultVisualizer(clf, class_labels, preprocess)

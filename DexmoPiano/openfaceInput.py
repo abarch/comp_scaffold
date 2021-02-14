@@ -13,11 +13,10 @@ import matplotlib.pyplot as plt
 
 from constants import temp_dir
 
-openface_output_dir = temp_dir/"open_face"
+openface_output_dir = temp_dir/"openface_data"
 
 feature_extractor_executable = Path("../../OpenFace/build/bin/FeatureExtraction").absolute()
 default_flags = ["-device", "0",                        #selects the webcam as input
-                 "-out_dir", str(openface_output_dir),  #selects output dir
                  "-of", "main",                         #sets output filenames
                  
                  # "-vis-align",
@@ -31,11 +30,14 @@ class OpenFaceInput:
     """Class that starts and keeps track of the output of an openface FeatureExtractor"""
     
     def __init__(self):
-        self.features = ["-pose", "-gaze"] # "-gaze"
+        self.features = ["-pose", "-gaze", "-aus", "-pdmparams", "-2Dfp", "-3Dfp"] # "-gaze"
         self.exctractor = None
-        self.output_csv_file = openface_output_dir/"main.csv"
         self.running = False
         self.offset = None
+        
+        self.output_dir = openface_output_dir / time.strftime("%Y_%m_%d-%H_%M_%S")
+        self.output_csv_file = self.output_dir/"main.csv"
+        self.features.extend(["-out_dir", str(self.output_dir)])
         
         self.ext_stdout = list()
         
@@ -165,9 +167,9 @@ class OpenFaceInput:
             
     
     def start(self):
-        if openface_output_dir.exists():
-            shutil.rmtree(openface_output_dir)
-        openface_output_dir.mkdir()
+        # if openface_output_dir.exists():
+        #     shutil.rmtree(openface_output_dir)
+        self.output_dir.mkdir(exist_ok=True)
         
         self.running = True
         self.offset = None
@@ -194,44 +196,25 @@ class OpenFaceInput:
             self.exctractor.terminate()
         
         self.exctractor = None
-        
         self.running = False
-        # with open(openface_output_dir/"main.csv", "r") as f:
-        #     reader = csv.DictReader(f)
-            
-        #     for row in reader:
-        #         print(row)
         
-        ### calc offset 3 ###
-        offset3 = next(time for time, strlist in self.ext_stdout if "Attempt" in "".join(strlist))
-        # offset3 = next(time for time, strlist in self.ext_stdout if "Device or file opened" in "".join(strlist))
+        return self.get_df()
         
-        offset2 = self.offset
-        
-        self.offset = offset3
-        
+    def get_df(self, plot=False):
         df = pd.read_csv(self.output_csv_file)
         df.timestamp = df.timestamp + self.offset #self.ext_start_time
         pose = [c for c in df.columns if "pose" in c]
-        df.plot("timestamp", pose[:3])
-        df.plot("timestamp", pose[3:])
-        plt.show()
-        # df.info()
         
-        print("1 OFFSET:", self.ext_start_time)
-        print("2 OFFSET:", self.offset)
-        print("3 OFFSET:", offset3)
-        
-        
-        
-        # print("FF:")
-        # pprint(self.ext_stdout)
+        if plot:
+            df.plot("timestamp", pose[:3])
+            df.plot("timestamp", pose[3:])
+            plt.show()
         
         return df
                 
                 
 if __name__ == "__main__":
-    CALLBACK_TEST = True
+    CALLBACK_TEST = False
     
     ofi = OpenFaceInput()
     if CALLBACK_TEST:
@@ -243,6 +226,6 @@ if __name__ == "__main__":
         ofi.add_callback(fun)
     
     ofi.start()
-    time.sleep(5)
+    time.sleep(15)
     ofi.stop()
     # pprint(ofi.ext_stdout)

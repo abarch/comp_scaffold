@@ -2,6 +2,7 @@ import mido
 
 import noteHandler as nh
 
+from _setup_data import midi_controller_name
 
 class MidiInputThread():
     """
@@ -32,7 +33,8 @@ class MidiInputThread():
 
         self.noteCounter = 1
         
-        input_port = input_port or [p for p in mido.get_input_names() if "Q25" in p][0]
+        input_port = input_port or [p for p in mido.get_input_names() 
+                                    if midi_controller_name in p][0]
         
         self.setPort(input_port)
     
