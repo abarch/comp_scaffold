@@ -17,6 +17,7 @@ from crypto import encrypt_file, decrypt_file
 
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import LinearSVC
 
 
 temp_storage_path = temp_dir / "openface_data"
@@ -27,7 +28,7 @@ for d in (temp_storage_path, perm_storage_path):
     d.mkdir(exist_ok=True)
 
 
-user_data_fields = "name camera_pos external_light glasses posture".split(" ")
+user_data_fields = "name camera_pos face_centered external_light glasses posture".split(" ")
 UserData = namedtuple("UserData", user_data_fields)
 sess_data_fields = "timestamp scenario".split(" ")
 SessData = namedtuple("SessData", sess_data_fields)
@@ -102,14 +103,16 @@ def query_user_data(dummy=False):
         all_names = list( {row["name"] for row in rows} )
         all_camera_positions = list( {row["camera_pos"] for row in rows} )
     
-    print("Press <tab> to cycle through options")
+    print("Press <tab> to cycle through options, only write in something yourself if no option fits.")
     name = _prompt_with_choices("Enter name: ", all_names)
     camera_pos = _prompt_with_choices("Select camera position: ", all_camera_positions)
-    external_light = _prompt_with_choices("Are there lights on in the room? ", ["yes", "no"])
-    glasses = _prompt_with_choices("Are you wearing glasses? ", ["yes", "no"])
+    face_centered = _prompt_with_choices("Are you going to center your face in the middle of the camera-image? (check instructions): ", ["true, false"])
+    external_light = _prompt_with_choices("Are there lights on in the room? ", ["true", "false"])
+    glasses = _prompt_with_choices("Are you wearing glasses? ", ["true", "false"])
     posture = _prompt_with_choices("Select current posture: ", ["sitting", "standing"])
     
-    return UserData(name=name, camera_pos=camera_pos, external_light=external_light,
+    return UserData(name=name, camera_pos=camera_pos, face_centered=face_centered,
+                    external_light=external_light,
                     glasses=glasses, posture=posture)
 
 
@@ -267,7 +270,11 @@ def main_acquire_data(dummy=False):
     # TODO give them new folder name? 
     perm_name = get_perm_name(user_data, sess_data)
     perm_location = perm_storage_path / perm_name
-    shutil.copytree(folder, perm_location)
+    
+    #shutil.copytree(folder, perm_location) # might be risky, what if there are unkown things in here?
+    for extension in ["csv", "txt", "enc", "enc.pwd"]:
+        for file in folder.glob(f"*.{extension}"):
+            shutil.copy(file, perm_location)
     
     
         # import tarfile
@@ -540,18 +547,20 @@ def eval_holdout_session():
             # y = [targets.index(v) for v in df["clf_target"]]
             y = df["clf_target"]
             return X, y
-        clf = DecisionTreeClassifier(max_depth=4)
+        # clf = DecisionTreeClassifier(max_depth=4)
         # clf = RandomForestClassifier()
+        clf = LinearSVC(max_iter=1000)
         
         X, y = df2Xy(train)
         # y = 
         
         sleep(2)
         
-        
+        pre_fit_time = time.time()
         clf.fit(X, y)
+        print("Fitting took {:.2f}s".format(time.time()-pre_fit_time))
         
-        try:
+        if hasattr(clf, "tree_"):
             export_graphviz(clf, out_file="tree.dot",
                             feature_names=clf_cols, 
                             class_names=target_classes,
@@ -565,15 +574,15 @@ def eval_holdout_session():
             
             import subprocess
             subprocess.run("dot -Tpng tree.dot -o tree.png".split(" "))
-        except:
-            pass
         
         train_score = clf.score(X, y)
         print("-"*16)
-        feature_importance = [(v, feat) for v, feat in zip(clf.feature_importances_, X.columns)]
-        feature_importance = sorted(feature_importance, reverse=True)
-        for v, feat in feature_importance[:16]:
-            print(f"{v:.4f}\t", feat)
+        if hasattr(clf, "feature_importances_"):
+            feature_importance = [(v, feat) for v, feat in zip(clf.feature_importances_, X.columns)]
+            feature_importance = sorted(feature_importance, reverse=True)
+            for v, feat in feature_importance[:16]:
+                print(f"{v:.4f}\t", feat)
+        
         
         print("holding out", holdout_info)
         print(f"TRAIN SCORE: {train_score:.3f}")
@@ -582,10 +591,24 @@ def eval_holdout_session():
         ### TEST ###
         
         X, y = df2Xy(test)
+        
         test_score = clf.score(X, y)
         print(f"TEST_SCORE:  {test_score:.3f}")
-        print("-"*16)
         
+        predicted_y = clf.predict(X)
+        # print(y.to_numpy().dtype)
+        # print(predicted_y.dtype)
+        from sklearn.metrics import classification_report, plot_confusion_matrix
+        import matplotlib.pyplot as plt
+        
+        print(classification_report(y.to_numpy(), predicted_y,
+                                    target_names=target_classes
+                                   ))
+        
+        plot_confusion_matrix(clf, X, y, display_labels=target_classes)
+        plt.show()
+        
+        print("-"*16)
         
         train_scores.append(train_score)
         test_scores.append( test_score)

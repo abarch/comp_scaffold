@@ -9,14 +9,15 @@ import subprocess
 import pandas as pd
 from pathlib import Path
 from pprint import pprint
+from _setup_data import openface_feature_exctraction_exe as feature_extractor_executable
+from _setup_data import webcam_device_id
 import matplotlib.pyplot as plt
 
 from constants import temp_dir
 
 openface_output_dir = temp_dir/"openface_data"
 
-feature_extractor_executable = Path("../../OpenFace/build/bin/FeatureExtraction").absolute()
-default_flags = ["-device", "0",                        #selects the webcam as input
+default_flags = ["-device", str(webcam_device_id),                        #selects the webcam as input
                  "-of", "main",                         #sets output filenames
                  
                  # "-vis-align",
@@ -165,6 +166,27 @@ class OpenFaceInput:
             
         # print("THREAD_STD_DIED_"*50)
             
+    def make_screenshot(self):
+        assert(self.running)
+        
+        xwininfo_output = subprocess.run(["import", "-window", "tracking result", "itest.png"])
+        
+        ## get window id
+        xwininfo_output = subprocess.run(["xwininfo", "-name", "tracking result"], 
+                                         capture_output=True).stdout
+        
+        # print(repr(xwininfo_output))
+        
+        start = xwininfo_output.find(b"id:")+3
+        end = xwininfo_output.find(b'"')
+        window_id = xwininfo_output[start:end].strip()
+        
+        print(repr(window_id))
+        
+        ## actually make the screenshot
+        subprocess.run(["convert", b"x:"+window_id, "test.png"])
+        print(b" ".join([b"convert", b"x:"+window_id, b"test.png"]))
+                                          
     
     def start(self):
         # if openface_output_dir.exists():
@@ -217,6 +239,7 @@ if __name__ == "__main__":
     CALLBACK_TEST = False
     
     ofi = OpenFaceInput()
+    
     if CALLBACK_TEST:
         def fun(df):
             latency = time.time() - df.timestamp.min()
@@ -226,6 +249,8 @@ if __name__ == "__main__":
         ofi.add_callback(fun)
     
     ofi.start()
-    time.sleep(15)
+    time.sleep(10)
+    ofi.make_screenshot()
+    time.sleep(10)
     ofi.stop()
     # pprint(ofi.ext_stdout)

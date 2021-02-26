@@ -15,22 +15,22 @@ If there are any questions/problems, contact Sören.
 This is a non-natural acqusition method, meaning you will not actually play piano, but rather only look at various things.
 There are some hyper-parameters to the data:
 1. Where the webcam is, split up in **above_screen** (meaning above the computer screen where webcams usually are) and **below_screen** (meaning put ontop whatever the monitor is standing on)
-2. Whether or not you made an effort to be in the middle of the webcam picture (when looking at the screen, both vertical and horizontally)
+2. Whether or not you made an effort to be in the middle (center) of the webcam picture (when looking at the screen, both vertical and horizontally)
 
 If you have the time to do multiple hyper-parameter variations, do them in the following priority:
 
 (below, centered) -> (below, non-centered) -> (above, centered) -> (above, non-centered)
 
 **Warning: you will be filmed!**
-There are three types of data being captured: 1. the position of markers etc. from openface as csv data, 2. Image cutouts of your face for each frame (to supplement the csv data) and 3. a still image from the webcam to get a sense of the camera position / your face in the image.
+There are three types of data being captured: 1. the position of markers etc. from openface as csv data, 2. Image cutouts of your face for each frame (to supplement the csv data) and ~~3. a still image from the webcam to get a sense of the camera position / your face in the image~~ (work in progress).
 
-**The image data is only for debugging purposes and you don't have to submit them if you don't want to! There is the option to only submit the csv data!** The image data is only to check why certain frames / data-sets might have poor classification results. **The image data will be encrypted.** The images will be encrypted using a symmetric key (freshly generated on your end) which will be encrypted using an public/private key method (RSA) and submitted with the data. They can only be decrypted by someone having the private key ( me :) ). If you have any questions/feedback regarding this, contact Sören and have a look at the crypto.py file.
+**The image data is only for debugging purposes and you don't have to submit them if you don't want to! There is the option to only submit the csv data!** The image data is only to check why certain frames / data-sets might have poor classification results. **The image data will be encrypted.** The images will be encrypted using a symmetric key (freshly generated on your end) which will be encrypted using an public/private key method (RSA) and submitted with the data. They can only be decrypted by someone having the private key (Sören). If you have any questions/feedback regarding this, contact Sören and have a look at the crypto.py file.
 
 If you understood all this you can go ahead and capture some data!
 
 #### Actual Acquisition
 1. Set yourself up according to the hyper-parameters you want to do in this run. Make sure the only face in the video is yours.
-2. run _python openface_data_acquisition.py_
+2. run _python data_acquisiton_v1.py_
 3. the program will ask some questions (name, the hyperparameters mentioned above, and some questions regarding lighting etc.)
 4. after answering all questions you are ready to go. The openface window should open; click back into the terminal so you can continue to interact with it
 5. The process is the following. You are asked to look at a target (SCREEN, KEYBOARD, AIR). You start looking at it, press enter, continue to look at it (swaying your head left and right/up and down, basically doing a fast forward through all poses in which you could naturally look at the target) and then press enter again (without looking at the screen beforehand!, so best leave your finger on the enter key). Then you repeat the the process for the other targets. 'AIR' is supposed to describe the state where you neither look at something on the screen, nor on the keyboard.
