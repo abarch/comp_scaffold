@@ -5,7 +5,7 @@ import argparse
 import pandas as pd
 import prompt_toolkit as ptk
 
-from tqdm import tqdm
+# from tqdm import tqdm
 from time import sleep
 from pathlib import Path
 from collections import namedtuple
@@ -14,11 +14,6 @@ from openfaceInput import OpenFaceInput
 from constants import temp_dir 
 
 from crypto import encrypt_file, decrypt_file
-
-from sklearn.tree import DecisionTreeClassifier, export_graphviz
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import LinearSVC
-
 
 temp_storage_path = temp_dir / "openface_data"
 perm_storage_path = Path("openface_data")
@@ -103,10 +98,15 @@ def query_user_data(dummy=False):
         all_names = list( {row["name"] for row in rows} )
         all_camera_positions = list( {row["camera_pos"] for row in rows} )
     
-    print("Press <tab> to cycle through options, only write in something yourself if no option fits.")
+    twidth = shutil.get_terminal_size().columns
+    
+    print()
+    print("Press <tab> to cycle through options".center(twidth, " "))
+    print("only write in something yourself if no option fits.".center(twidth, " "))
+    print()
     name = _prompt_with_choices("Enter name: ", all_names)
     camera_pos = _prompt_with_choices("Select camera position: ", all_camera_positions)
-    face_centered = _prompt_with_choices("Are you going to center your face in the middle of the camera-image? (check instructions): ", ["true, false"])
+    face_centered = _prompt_with_choices("Are you going to center your face in the middle of the camera-image? (check instructions): ", ["true", "false"])
     external_light = _prompt_with_choices("Are there lights on in the room? ", ["true", "false"])
     glasses = _prompt_with_choices("Are you wearing glasses? ", ["true", "false"])
     posture = _prompt_with_choices("Select current posture: ", ["sitting", "standing"])
@@ -125,8 +125,15 @@ def get_data(dummy=False):
     global markers, df
     markers = list()
     
+    twidth = shutil.get_terminal_size().columns
+    
     ofi = OpenFaceInput()
     ofi.start()
+    print()
+    print("Wait for the openface-window to open,".center(twidth))
+    print("adjust the camera or yourself to roughly center / uncenter yourself,".center(twidth))
+    print("and click back here for further interaction.".center(twidth))
+    print()
     sleep(2)
     classes = ["SCREEN", "KEYBOARD", "AIR"]
     
@@ -235,12 +242,12 @@ def main_acquire_data(dummy=False):
     print("The acquired data is located at", folder)
     while True:
         print("Do you want to")
-        print("\t[Y] save your data together with the encrypted images of your face")
+        print("\t[a] save your data together with the encrypted images of your face")
         print("\t[d] save only your data, without the images")
         print("\t[c] not save any of the data (maybe something went wrong during recording)")
         choice = input("> ")
         
-        if choice.lower() in ["", "y"]:
+        if choice.lower() in ["a"]:
             choice = "FULL"
             break
         if choice.lower() in ["d"]:
@@ -267,9 +274,9 @@ def main_acquire_data(dummy=False):
         enc_file = encrypt_file(archive)
         # decrypt_file(enc_file, delete=False)
         
-    # TODO give them new folder name? 
     perm_name = get_perm_name(user_data, sess_data)
     perm_location = perm_storage_path / perm_name
+    perm_location.mkdir(parents=True)
     
     #shutil.copytree(folder, perm_location) # might be risky, what if there are unkown things in here?
     for extension in ["csv", "txt", "enc", "enc.pwd"]:
@@ -420,6 +427,11 @@ def train_classifier_on_saved(camera_pos="above_screen"):
     train, test = train_test_split(df, test_size=0.25)
     
     
+    from sklearn.tree import DecisionTreeClassifier, export_graphviz
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.svm import LinearSVC
+
+    
     ####
     def df2Xy(df):
         X = df[clf_cols]
@@ -547,6 +559,12 @@ def eval_holdout_session():
             # y = [targets.index(v) for v in df["clf_target"]]
             y = df["clf_target"]
             return X, y
+        
+        from sklearn.tree import DecisionTreeClassifier, export_graphviz
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.svm import LinearSVC
+
+        
         # clf = DecisionTreeClassifier(max_depth=4)
         # clf = RandomForestClassifier()
         clf = LinearSVC(max_iter=1000)

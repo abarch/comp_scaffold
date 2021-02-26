@@ -186,7 +186,26 @@ class OpenFaceInput:
         ## actually make the screenshot
         subprocess.run(["convert", b"x:"+window_id, "test.png"])
         print(b" ".join([b"convert", b"x:"+window_id, b"test.png"]))
-                                          
+               
+    def print_errors(self, filter_common_ones=True):
+        
+        if self.exctractor is None:
+            print("print_errors called, but there's no exctractor..")
+            return
+        
+        stderr = self.exctractor.stderr.read()
+        lines = list()
+        for line in stderr.splitlines():
+            # print(repr(line))
+            if filter_common_ones:
+                if "canberra-gtk-module" in line:
+                    continue
+            
+            lines.append(line)
+        
+        if len(lines) > 0:
+            print("FeatureExctractor stderr output:")
+            print("\n".join(lines))
     
     def start(self):
         # if openface_output_dir.exists():
@@ -206,16 +225,22 @@ class OpenFaceInput:
         self.exctractor = subprocess.Popen(
             [str(feature_extractor_executable)] + default_flags + self.features,
             stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             bufsize=1, close_fds=True,
                    universal_newlines=True,
             
             )
+        
+        time.sleep(5)
+        # self.print_errors()
         
     
         
     def stop(self):
         if self.exctractor:
             self.exctractor.terminate()
+        
+        self.print_errors()
         
         self.exctractor = None
         self.running = False
