@@ -1,0 +1,2 @@
+.tar.gz.enc filter=lfs diff=lfs merge=lfs -text
+.tar.gz.enc.pwd filter=lfs diff=lfs merge=lfs -text
