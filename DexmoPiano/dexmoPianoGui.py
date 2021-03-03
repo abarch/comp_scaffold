@@ -34,7 +34,7 @@ numberOfBars = 7
 bpm = 120
 noteValuesList = [1, 1 / 2, 1 / 4, 1 / 8]
 # pitchesList = [60, 62]
-pitchesList = list(range(48, 72))
+pitchesList = [60, 62, 64, 65,67] #list(range(48, 72))
 twoHandsTup = (False, True)
 # outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
 

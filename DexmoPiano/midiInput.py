@@ -33,8 +33,11 @@ class MidiInputThread():
 
         self.noteCounter = 1
         
-        input_port = input_port or [p for p in mido.get_input_names() 
-                                    if midi_controller_name in p][0]
+        try:
+            input_port = input_port or [p for p in mido.get_input_names() 
+                                        if midi_controller_name in p][0]
+        except IndexError:
+            raise Exception("No Midi device connected!")
         
         self.setPort(input_port)
     
