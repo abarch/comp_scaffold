@@ -15,7 +15,7 @@ def computeError(targetNoteInfoList, actualNoteInfoList):
 		tempSum = 0
 
 		for noteInfo in noteInfoList:
-			tempSum += noteInfo[3] - noteInfo[2]
+			tempSum += noteInfo.note_off_time - noteInfo.note_on_time
 
 		timeSums.append(round(tempSum, 3))
 
