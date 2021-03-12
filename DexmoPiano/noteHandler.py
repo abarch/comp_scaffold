@@ -1,7 +1,5 @@
 import time
 
-from midiInput import adapt_noteinfo
-
 # number of digits up to which a float is rounded
 ROUND_DIGITS = 3
 
@@ -47,6 +45,8 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
     @param noteInfoList: List of all notes played by the user.
     @return: -1 for error, 0 for note_on success, noteInfo for note_off success
     """
+    
+    from midiInput import adapt_noteinfo
     
     # the NoteInfo object before any updates
     note_info = noteInfoTemp[pitch]
