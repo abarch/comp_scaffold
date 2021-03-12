@@ -1,12 +1,12 @@
 from threading import Thread
 
 import dexmoOutput
-from midiInput import MidiInputThread
+from midiInput import MidiInputThread, empty_noteinfo
 import errorCalc
 
+from collections import defaultdict
 
 # GLOBAL CONSTANTS
-MAX_NOTE = 128
 global portname
 
 
@@ -26,7 +26,7 @@ def resetArrays():
 	# initialize list of tuples for note on/off times
 	# index = note: [t_on, t_off, velocity]
 	###TODO: documentation (temporary etc.)
-	targetTemp = [[-1, -1, -1]] * MAX_NOTE
+	targetTemp = defaultdict(empty_noteinfo)
 
 
 def initInputThread():
@@ -38,7 +38,7 @@ def initInputThread():
 	global inputThread
 
 	# create inputThread instance (port is set to None in constructor)
-	inputThread = MidiInputThread(MAX_NOTE)	
+	inputThread = MidiInputThread()	
 
 def set_inport(portName):
 	"""
