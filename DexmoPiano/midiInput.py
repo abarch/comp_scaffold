@@ -2,6 +2,23 @@ import mido
 
 import noteHandler as nh
 
+from collections import namedtuple, defaultdict
+
+
+NoteInfo = namedtuple("NoteInfo", ["pitch", "velocity", "note_on_time", "note_off_time"])
+empty_noteinfo = lambda: NoteInfo(-1,-1,-1,-1)
+
+def adapt_noteinfo(source, pitch=None, note_on_time=None, note_off_time=None,
+                   velocity=None):
+    d = source._asdict()
+    for var, name in [(pitch, "pitch"), (note_on_time, "note_on_time"), 
+                       (note_off_time, "note_off_time"), (velocity, "velocity")]:
+        if var is not None:
+            d[name] = var
+    
+    return NoteInfo(**d)
+                     
+                       
 
 class MidiInputThread():
     """
@@ -11,7 +28,7 @@ class MidiInputThread():
     ###TODO: remove
     testPort = ""
 
-    def __init__(self, tempSize):
+    def __init__(self):
         """
         Initializes necessary variables and note lists/arrays.
 
@@ -19,10 +36,9 @@ class MidiInputThread():
         """
         #threading.Thread.__init__(self)
         self.inport = None
-        self.tempSize = tempSize
         # initialize note array and list
         self.noteInfoList = []
-        self.noteInfoTemp = [[-1, -1, -1]] * self.tempSize
+        self.noteInfoTemp = defaultdict(empty_noteinfo)
 
         # only handle input if true
         self.handleInput = False
@@ -96,7 +112,7 @@ class MidiInputThread():
         @return: None
         """
         self.noteInfoList = []
-        self.noteInfoTemp = [[-1, -1, -1]] * self.tempSize
+        self.noteInfoTemp.clear()
 
     def inputOn(self):
         """

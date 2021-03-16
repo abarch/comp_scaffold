@@ -45,43 +45,47 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
     @param noteInfoList: List of all notes played by the user.
     @return: -1 for error, 0 for note_on success, noteInfo for note_off success
     """
+    
+    from midiInput import adapt_noteinfo
+    
+    # the NoteInfo object before any updates
+    note_info = noteInfoTemp[pitch]
 
     # store note_on time
     if noteType == 'note_on':
         # check if note_on was not set already
-        if noteInfoTemp[pitch][0] != -1:
+        if note_info.note_on_time != -1:
             print("note_on was set twice! Pitch:", pitch)
             return -1
 
-        noteInfoTemp[pitch] = [getTime(), -1, velocity]
+        noteInfoTemp[pitch] = adapt_noteinfo(note_info, pitch=pitch,
+                                             note_on_time=getTime(), 
+                                             velocity=velocity)
         return 0
 
     # store note_off time and return difference
     elif noteType == 'note_off':
         # check if note_off was not set already
-        if (noteInfoTemp[pitch][0] == -1) or (noteInfoTemp[pitch][1] != -1):
+        if (note_info.note_on_time == -1) or (note_info.note_off_time != -1):
             print("note_off was set twice! Pitch:", pitch)
             return -1
 
-        noteOffTime = getTime()
-        ### TODO: needed? see TODO below
-        noteInfoTemp[pitch][1] = [noteOffTime]
-        noteOnTime = noteInfoTemp[pitch][0]
-
+        
+        final_note_info = adapt_noteinfo(note_info,
+                                         note_off_time=getTime())
+        
         # reset entry
-        noteInfoTemp[pitch] = [-1, -1, -1]
+        try:
+            noteInfoTemp.pop(pitch)
+            # same as 
+            # del noteInfoTemp[pitch]
+        except KeyError:
+            print("Error removing from noteInfoTemp")
 
-        noteInfo = [pitch, velocity, noteOnTime, noteOffTime]
 
-        ### TODO: remove?
-        # print("NoteInfo:", noteInfo)
-        # timeDiff = noteOffTime - noteOnTime
-
-        # store noteInfo to list
-        noteInfoList.append(noteInfo)
-        # print(noteInfoList)
-
-        return noteInfo
+        noteInfoList.append(final_note_info)
+        
+        return final_note_info
 
     else:
         print("noteType error:", noteType)
