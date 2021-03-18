@@ -11,16 +11,21 @@ import datetime
 import threadHandler
 import queue
 import config
+from visualNotes import VisualNotes
 
 midiInputPort = ''
 midiOutputPort = ''
 midiPopupMenu = 0
+midiInputPopupMenu = 0
+midiOutputPopupMenu = 0
 midiConnected = 0
 
 songNum: int = 0 # which song to play
 generatedBpm: int = 0 # bpm to play the song back at
 
 midiSaved = False # Indicates if the output file was already created
+
+
 
 # delete saved midis and XMLs from last programm run
 def deleteOldFiles():
@@ -43,6 +48,8 @@ def nextTask(finishAfterSong,userSelectedTask=False, userSelectedLocation=config
 
     bpm = int(bpmSelected.get())
 
+    config.playMode = "tempo"
+
     # If the bpm has changed since the midi file was generated, regenerate
     if bpm != generatedBpm:
         makesongsly.make_song(songNum, bpm)
@@ -52,15 +59,18 @@ def nextTask(finishAfterSong,userSelectedTask=False, userSelectedLocation=config
     config.participant_id = id_textbox.get("1.0",'end-1c')
     config.freetext = freetext.get("1.0",'end-1c')
     #alien1 = canvas.create_oval(20 + 90, 260 - 130, 40 + 90, 300 - 130, outline='white', fill='blue')
-    canvas.itemconfigure(alien1, fill='blue')
-    canvas.coords(alien1,20+90 , 260-130 , 40+90 , 300 -130)
+    #canvas.itemconfigure(alien1, fill='blue')
+    #canvas.coords(alien1,20+90 , 260-130 , 40+90 , 300 -130)
 
     guidance = 0
     config.timestr = getCurrentTimestamp()
+    config.playing_start_time = time.time()
     config.guidanceMode = "None"
 
+    config.vnotes.set_mode("cont") # set visual notes mode to continuous drawing
+    config.vnotes.clear_notes()
 # run the animation. for some reason it is delayed when using join() later.. TBD:FIX
-    curserThread = Thread(target=animation_test)
+    curserThread = Thread(target=animate_keyboard )
     curserThread.start()
 
     # run in a thread with queue in order to get returned values
@@ -71,7 +81,7 @@ def nextTask(finishAfterSong,userSelectedTask=False, userSelectedLocation=config
     recPlayThread.start()
 
 # don't play the song - wait until the stop button is pressed
-def nextTaskAlone(userSelectedTask=False, userSelectedLocation=config.inputFileStrs[0]):
+def nextTaskAlone(mode, userSelectedTask=False, userSelectedLocation=config.inputFileStrs[0]):
     global midiFileLocation, midiSaved, alien1, generatedBpm
 
     # Turn on the stop button
@@ -92,8 +102,8 @@ def nextTaskAlone(userSelectedTask=False, userSelectedLocation=config.inputFileS
     config.freetext = freetext.get("1.0",'end-1c')
 
     #alien1 = canvas.create_oval(20 + 90, 260 - 130, 40 + 90, 300 - 130, outline='white', fill='blue')
-    canvas.itemconfigure(alien1, fill='blue')
-    canvas.coords(alien1, 20+90, 260-130, 40+90, 300-130)
+    #canvas.itemconfigure(alien1, fill='blue')
+    #canvas.coords(alien1, 20+90, 260-130, 40+90, 300-130)
 
     guidance = 0
     config.timestr = getCurrentTimestamp()
@@ -101,6 +111,16 @@ def nextTaskAlone(userSelectedTask=False, userSelectedLocation=config.inputFileS
     config.guidanceMode = "None"
     duration = 0  # i.e. wait for stop button
     # run in a thread with queue in order to get returned values
+
+    config.playing_start_time = time.time()
+    config.vnotes.set_mode(mode)
+    config.vnotes.clear_notes()
+    if mode == "cont":
+        curserThread = Thread(target=animate_keyboard)
+        curserThread.start()
+    elif mode == "wait":
+        config.vnotes.init_wait_for_note()
+
     recThread = Thread(target=lambda q, arg1, arg2, arg3, arg4: q.put(threadHandler.startRecordThread(arg1, arg2, arg3, arg4)), args=(que, midiFileLocation, guidance, duration, root))
     recThread.start()
 
@@ -124,45 +144,62 @@ def movement():
     #canvas.draw() not working
     canvas.after(1, movement)
 
-def animation_test():
-    global alien1, bpmSelected
+def animate_keyboard():
+    global bpmSelected
 
     bpm = int(bpmSelected.get())
     bars = 8
     song_length_pixels = 123*5
     correction = 50
     track = 0
+    dx=1
     while track == 0:
-        dx = 1
-        y = 0
-        if track == 0:
-            for i in range(0, 123*5):
-               # print("i ",i)
-              #  time.sleep(1)
-                canvas.move(alien1, dx, y)
-               # canvas.update()
-               # canvas.update_idletasks()
-                # canvas.draw() not working
-                #time.sleep(32.0/(125*5))
-               # print(60.0*4*bars*dx/(song_length_pixels*bpm))
-                time.sleep(60.0*4*bars*dx/((song_length_pixels+correction)*bpm))
-            track = 1
-            print("check")
+        for i in range(0, 123*5):
+            #if config.noteStatus:
+            config.vnotes.update_actual_notes(time.time()-config.playing_start_time)
+            print(i)
+            #print(config.vnotes.is_wait_for_note_done())
+            #else:
+             #   config.vnotes.update_key_released(60,3)
+            #print( )
+            time.sleep(60.0*4*bars*dx/((song_length_pixels+correction)*bpm))
+        track = 1
+    print("check")
+    print(track)
 
-        else:
-            for i in range(0, 51):
-                time.sleep(1)
-                canvas.move(alien1, -x, y)
-                canvas.update()
-            track = 0
-        print(track)
+def animation_test():
+    global bpmSelected
+
+    bpm = int(bpmSelected.get())
+    bars = 8
+    song_length_pixels = 123*5
+    correction = 50
+    track = 0
+    dx=1
+    while track == 0:
+        for i in range(0, 123*5):
+            #if config.noteStatus:
+            #config.vnotes.update_actual_notes(time.time()-config.playing_start_time)
+            print(config.vnotes.is_wait_for_note_done())
+            #else:
+             #   config.vnotes.update_key_released(60,3)
+            #print(config.pitchPressed)
+            time.sleep(60.0*4*bars*dx/((song_length_pixels+correction)*bpm))
+        track = 1
+    print("check")
+    print(track)
 
 # load start menu with button for first task and exit button
 def load_Startmenu():
-    global bpmSelected, playButton, playAfterButton, playAloneButton, connectButton
+    global bpmSelected, waitButton, playButton, playAfterButton, playAloneButton, connectButton
     global id_textbox, freetext
     global midiInputPort, midiOutputPort
     global alien1
+
+    waitButton = Button(root, text='Wait for Note', command=lambda: nextTaskAlone('wait'))
+    waitButton.place(x=500, y=640, height=50, width=150)
+    waitButton["state"] = "disabled"
+
     playButton = Button(root, text='Play Together', command=lambda: nextTask(1))
     playButton.place(x=675, y=640, height=50, width=150)
     playButton["state"] = "disabled"
@@ -171,7 +208,7 @@ def load_Startmenu():
     playAfterButton.place(x=850, y=640, height=50, width=150)
     playAfterButton["state"] = "disabled"
 
-    playAloneButton = Button(root, text='Play Alone', command=nextTaskAlone)
+    playAloneButton = Button(root, text='Play Alone', command=lambda: nextTaskAlone('cont'))
     playAloneButton.place(x=1025, y=640, height=50, width=150)
     playAloneButton["state"] = "disabled"
 
@@ -179,16 +216,16 @@ def load_Startmenu():
     config.stopButton.place(x=1200, y=640, height=50, width=150)
     config.stopButton["state"] = "disabled"
 
-    alien1 = canvas.create_oval(20+90, 260-130, 40+90, 300-130, outline='white', fill='white')
+    #alien1 = canvas.create_oval(20+90, 260-130, 40+90, 300-130, outline='white', fill='white')
     canvas.pack()
 
     Button(root, text='Quit', command=quit).place(x=1200, y=20, height=30, width=150)
 
-    id_textbox = Text(root, bg="white", relief=GROOVE, bd=1)
+    id_textbox = Text(root, bg="white", fg="black", relief=GROOVE, bd=1, state=NORMAL)
     id_textbox.place(x=1200, y=70, height=25, width=150)
     id_textbox.insert(INSERT, "Enter ID")
 
-    freetext = Text(root, bg="white", relief=GROOVE, bd=1)
+    freetext = Text(root, bg="white",fg="black", relief=GROOVE, bd=1)
     freetext.place(x=1200, y=110, height=60, width=150)
     freetext.insert(INSERT, "Free text")
 
@@ -208,17 +245,17 @@ def load_Startmenu():
 
     bpmPopup = OptionMenu(root, bpmSelected, *bpms).place(x=1200, y=120+100-45, height=50, width=150)
 
-    refreshMidi()
-
     midiInputPort, inputs_midi = getMidiInputs()
     midiOutputPort, outputs_midi = getMidiOutputs()
+
+    refreshMidi()
 
     if len(inputs_midi)>0 and len(outputs_midi)>0:
         print("setting state to normal")
         connectButton["state"] = "normal"
 
 def connectToMidi():
-    global songNum, midiConnected, playButton, playAfterButton, playAloneButton
+    global songNum, midiConnected, waitButton, playButton, playAfterButton, playAloneButton
     print("Connect to midi input: " + midiInputPort.get())
     result_input = threadHandler.set_inport(midiInputPort.get())
 
@@ -229,6 +266,7 @@ def connectToMidi():
         midiConnected = 1
 
     if songNum and midiConnected:
+        waitButton["state"] = "normal"
         playButton["state"] = "normal"
         playAfterButton["state"] = "normal"
         playAloneButton["state"] = "normal"
@@ -243,28 +281,30 @@ def refreshMidi():
     MidiOutputPopupMenu = OptionMenu(root, midiOutputPort, *outputs_midi).place(x=230, y=680, height=50, width=200)
 
 def getMidiInputs():
+    global midiInputPopupMenu
     outputs_midi, inputs_midi  = get_midi_interfaces()
     midiInputPort = StringVar(root)
     if len(inputs_midi) == 0:
         midiInputPort.set('')
         inputs_midi = {''}
     else:
-        midiInputPort.set(inputs_midi[0])
+        midiInputPort.set(inputs_midi[midiInputPopupMenu])
     return midiInputPort, inputs_midi
 
 def getMidiOutputs():
+    global midiOutputPopupMenu
     outputs_midi, inputs_midi  = get_midi_interfaces()
     midiOutputPort = StringVar(root)
     if len(outputs_midi)==0:
         midiOutputPort.set('')
         outputs_midi = {''}
     else:
-        midiOutputPort.set(outputs_midi[0])
+        midiOutputPort.set(outputs_midi[midiOutputPopupMenu])
     return midiOutputPort, outputs_midi
 
 # Load a song (generate the midi file and the sheet music)
 def loadSong(songNumSelected):
-    global midiFileLocation, songNum, generatedBpm, playButton, playAfterButton, playAloneButton
+    global midiFileLocation, songNum, generatedBpm, waitButton, playButton, playAfterButton, playAloneButton
     bpm = int(bpmSelected.get())
     print("Song "  + str(songNumSelected) + " pressed, bpm = " + str(bpm))
     # Create a midi file at the appropriate bpm
@@ -276,6 +316,7 @@ def loadSong(songNumSelected):
     songNum = songNumSelected
 
     if songNum and midiConnected:
+        waitButton["state"] = "normal"
         playButton["state"] = "normal"
         playAfterButton["state"] = "normal"
         playAloneButton["state"] = "normal"
@@ -304,12 +345,23 @@ root = Tk()
 root.title("Piano capture")
 canvas = Canvas(root, width=750, height = 800, bg='white')
 piano_img = ImageTk.PhotoImage(Image.open("piano_notes_crop.png"))
-canvas.create_image(110, 300, anchor=NW, image=piano_img)
-#Notes.create_visual_notes(canvas)
-hand_img = ImageTk.PhotoImage(Image.open("finger-positioning-on-piano-crop.png"))
-canvas.create_image(380, 300, anchor=NW, image=hand_img)
-#deleteOldFiles()
+canvas.create_image(200, 300, anchor=NW, image=piano_img)
 
+hand_img = ImageTk.PhotoImage(Image.open("finger-positioning-on-piano-crop.png"))
+canvas.create_image(470, 300, anchor=NW, image=hand_img)
+
+#deleteOldFiles()
+config.vnotes = VisualNotes(canvas=canvas, start_pos_x=50,start_pos_y=200, quarter_len=12)
+config.vnotes.set_mode("cont")
+config.vnotes.draw_keyboard(False)
+config.vnotes.init_v_curser()
+config.vnotes.init_h_curser(20+90, 260-130,20)
+config.vnotes.set_tempo(60)
+pitch_list, duration_list = config.vnotes.create_pitch_duration_lists("c2 c e e c c e e g g e e c c c1")
+config.vnotes.set_notes(pitch_list, duration_list)
+config.vnotes.draw_notes()
+#config.vnotes.update_key_pressed(60,0)
+#config.vnotes.init_wait_for_note()
 # initialize keyboard input and output threads
 threadHandler.initInputThread()
 threadHandler.initOutputThread(root)
