@@ -1,3 +1,5 @@
+from errorCalcLevenshtein import computeError as computeErrorLV
+
 def computeError(targetNoteInfoList, actualNoteInfoList):
 	"""
 	Naive example for error computation.
