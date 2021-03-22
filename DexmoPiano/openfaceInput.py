@@ -232,7 +232,7 @@ class OpenFaceInput:
             )
         
         time.sleep(5)
-        # self.print_errors()
+        # self.print_errors() # blocks if there are no errors!!
         
     
         
@@ -248,11 +248,15 @@ class OpenFaceInput:
         return self.get_df()
         
     def get_df(self, plot=False):
+        if not self.output_csv_file.exists():
+            return None
+        
         df = pd.read_csv(self.output_csv_file)
+        df.drop(index=df.index[-1], inplace=True)
         df.timestamp = df.timestamp + self.offset #self.ext_start_time
-        pose = [c for c in df.columns if "pose" in c]
         
         if plot:
+            pose = [c for c in df.columns if "pose" in c]
             df.plot("timestamp", pose[:3])
             df.plot("timestamp", pose[3:])
             plt.show()
@@ -275,7 +279,8 @@ if __name__ == "__main__":
     
     ofi.start()
     time.sleep(10)
-    ofi.make_screenshot()
-    time.sleep(10)
-    ofi.stop()
+    # ofi.make_screenshot()
+    # time.sleep(10)
+    df = ofi.stop()
+    print(df)
     # pprint(ofi.ext_stdout)

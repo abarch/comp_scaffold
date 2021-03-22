@@ -457,7 +457,7 @@ def add_no_fingernumbers_warning():
     @return: None
     """
     global numNotesWarning
-    numNotesWarning = tk.Label(root, text=" Info: \n Too less notes generated to show\n fingernumbers on music sheet.",
+    numNotesWarning = tk.Label(root, text=" Info: \n Too few notes generated to show\n fingernumbers on music sheet.",
       fg="red")
     numNotesWarning.place(x=1030, y=770, width=250, height=100)
 

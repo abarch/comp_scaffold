@@ -438,18 +438,22 @@ def train_classifier_on_saved(camera_pos="above_screen"):
         # y = [targets.index(v) for v in df["clf_target"]]
         y = df["clf_target"]
         return X, y
-    clf = DecisionTreeClassifier(max_depth=5)
-    # clf = RandomForestClassifier()
     
+    # clf = DecisionTreeClassifier(max_depth=5)
+    # clf = RandomForestClassifier()
+    clf = LinearSVC(max_iter=1000)
     X, y = df2Xy(train)
     # y = 
     
+    pre_fit = time.time()
     clf.fit(X, y)
+    print("FITTING TOOK {:.2f}s".format(time.time()-pre_fit))
     
-    feature_importance = [(v, feat) for v, feat in zip(clf.feature_importances_, X.columns)]
-    feature_importance = sorted(feature_importance, reverse=True)
-    for v, feat in feature_importance[:16]:
-        print(f"{v:.4f}\t", feat)
+    if hasattr(clf, "feature_importances_"):
+        feature_importance = [(v, feat) for v, feat in zip(clf.feature_importances_, X.columns)]
+        feature_importance = sorted(feature_importance, reverse=True)
+        for v, feat in feature_importance[:16]:
+            print(f"{v:.4f}\t", feat)
     
     try:
         export_graphviz(clf, out_file="tree.dot",
@@ -485,6 +489,15 @@ def train_classifier_on_saved(camera_pos="above_screen"):
     ###
         
     return clf, target_classes, preprocess
+
+
+# def save_clfs():
+#     clf, target_classes, preprocess = train_classifier_on_saved()
+#     import joblib
+#     joblib.dump(clf, "clf.joblib.pkl")
+#     joblib.dump(target_classes, "target_classes.joblib.pkl")
+#     joblib.dump(preprocess, "preprocess.joblib.pkl")
+    
 
 def eval_holdout_session():
     global df
@@ -651,5 +664,5 @@ if __name__ == "__main__":
     # main_acquire_data(dummy=False)
     
     # df = train_classifier_on_saved()
-    
-    eval_holdout_session()
+    save_clfs()
+    # eval_holdout_session()

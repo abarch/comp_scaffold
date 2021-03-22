@@ -58,7 +58,7 @@ def set_inport(portName):
         print("ERROR: inputThread was not defined yet")
 
 
-def startThreads(midiFileLocation, guidance):
+def startThreads(midiFileLocation, guidance, openface=True):
     """
     Starts the MIDI playback thread and activates the MIDI input handler.
     After the player thread terminates, the input handler is deactivated again.
@@ -73,6 +73,13 @@ def startThreads(midiFileLocation, guidance):
     ###TODO: change?
     resetArrays()
     inputThread.resetArrays()
+
+    #start openface
+    if openface:
+        from openfaceInput import OpenFaceInput
+        ofi = OpenFaceInput()
+        ofi.start()
+
 
     # MIDI PLAYER THREAD
     # initialize MIDI file player thread
@@ -93,6 +100,22 @@ def startThreads(midiFileLocation, guidance):
     # deactivate input handling
     inputThread.inputOff()
 
+    if openface:
+        import time
+        time.sleep(2)
+        openface_data = ofi.stop()
+        
+        if openface_data is not None:
+            import noteHandler as nh
+            midi_offset = nh.startTime
+            
+            # note time = real_time - midi_offset
+            # of   time = real_time
+            openface_data.timestamp = openface_data.timestamp - midi_offset
+        
+    else:
+        openface_data = None
+        
 
     # get array with actual notes
     actualTimes = inputThread.noteInfoList
@@ -116,11 +139,16 @@ def startThreads(midiFileLocation, guidance):
     imp.reload(errorCalcLV)
 
     try:
-        output_note_list, errorVec = errorCalcLV.computeError(targetTimes, actualTimes)
+        output_note_list, errorVec = errorCalcLV.computeError(targetTimes, actualTimes, 
+                                                    openface_data=openface_data)
         print("\n\n--- ERRORS ---")
         print("\nNOTE_ERRORS:")
-        from pprint import pprint
-        pprint([n.err_string() for n in output_note_list])
+        import shutil
+        cwidth = shutil.get_terminal_size().columns
+        
+        # print("NOTES".center(cwidth, "+"))
+        for n in output_note_list:
+            print(n.err_string())
         print("\nSUMMED ERROR: ", errorVec)
     
 
