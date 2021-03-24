@@ -208,6 +208,15 @@ class OpenFaceInput:
             print("\n".join(lines))
     
     def start(self):
+        if not feature_extractor_executable.exists():
+            import shutil
+            cwidth = shutil.get_terminal_size().columns
+            print("#"*cwidth)
+            print(f" No file found at {feature_extractor_executable}! ".center(cwidth, "#"))
+            print(f" Please modify the path in your _setup_data.py file ".center(cwidth, "#"))
+            print("#"*cwidth)
+            return
+        
         # if openface_output_dir.exists():
         #     shutil.rmtree(openface_output_dir)
         self.output_dir.mkdir(exist_ok=True)
