@@ -49,14 +49,17 @@ class MidiInputThread():
 
         self.noteCounter = 1
         
+        self.has_valid_port_set = False
         try:
             input_port = input_port or [p for p in mido.get_input_names() 
                                         if midi_controller_name in p][0]
-        except IndexError:
-            raise Exception("No Midi device connected!")
+            
+            self.setPort(input_port)
         
-        self.setPort(input_port)
-    
+        except IndexError:
+            # print("WARN: MidiInputThread opened without specifying an input port")
+            pass
+            
 
 
     def setPort(self, portName):
@@ -82,11 +85,14 @@ class MidiInputThread():
         # (callback is necessary to avoid blocking after port changes)
         try:
             self.inport = mido.open_input(portName, callback=self.handleMidiInput)
+            self.has_valid_port_set = True
         except IOError as e:
-            print(e)
+            import traceback
+            traceback.print_exc()
 
         ###TODO FOR TESTING
         testPort = portName
+        
 
 
     # handle MIDI input message (callback function of input port)
@@ -133,6 +139,12 @@ class MidiInputThread():
 
         @return: None
         """
+        if not self.has_valid_port_set:
+            raise Exception("""
+You tried to start the MidiInputThread without specifying the input port.
+Either use the setPort function or enter the name of your default midi 
+input device in the _setup_data.py file.""")
+
         self.handleInput = True
 
     def inputOff(self):
@@ -161,5 +173,5 @@ if __name__ == "__main__":
     mit.inputOn()
     
     import time 
-    time.sleep(30)
+    time.sleep(5)
     mit.inputOff()
