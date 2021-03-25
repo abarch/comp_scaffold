@@ -323,7 +323,13 @@ def computeError(targetNoteInfoList, actualNoteInfoList,
     #TODO missing missing notes / extra notes
     errors = Error(pitch=error_pitch, note_hold_time=error_note_hold_time, timing=error_timing)
     
-    note_list_to_plot(output_note_list, openface_data)
+    insert_lyrics_into_ly(output_note_list)
+    
+    try:
+        note_list_to_plot(output_note_list, openface_data)
+    except:
+        import traceback
+        traceback.print_exc()
     
     return output_note_list, errors
 
@@ -505,14 +511,45 @@ def note_list_to_plot(note_list, openface_data=None):
     plt.show()
 
 
+def insert_lyrics_into_ly(note_list):
+    import shutil
+    from pathlib import Path
+    original_ly = Path("output/temp/output.ly")
+    modified_ly = Path("output/temp/output_with_errors.ly")
+    
+    content = original_ly.read_text().splitlines()
+    lyric_str = note_list_to_lyrics(note_list)
+    
+    # print(lyric_str)
+    
+    for idx, line in enumerate(content):
+        if not r"\context Voice" in line:
+            continue
+        else:
+            break
+    else:
+        print("(insert_lyrics_into_ly) LINE NOT FOUND!!!")
+        return
+    
+    content.insert(idx+1, lyric_str)
+    
+    modified_ly.write_text("\n".join(content))
+    
+    import subprocess
+    subprocess.run(['lilypond', '--png', '-o', modified_ly.parent, modified_ly], stderr=subprocess.DEVNULL)
+    
+    
+    
+    
+
 if __name__ == "__main__":
     from midiInput import NoteInfo
     
     target_notes = simple_scale()
     actual_notes = target_notes.copy()
     
-    # drop_notes(actual_notes)
-    repeat_notes(actual_notes)
+    drop_notes(actual_notes)
+    # repeat_notes(actual_notes)
     # wrong_pitch(actual_notes)
     # add_pause(actual_notes)
     
@@ -524,7 +561,8 @@ if __name__ == "__main__":
     print(actual_notes)
     
     # print(computeError(target_notes, actual_notes))
-    output_note_list, error = computeError(target_notes, actual_notes[:5])
+    output_note_list, error = computeError(target_notes, actual_notes)
     
     # print(note_list_to_lyrics(output_note_list))
     # note_list_to_plot(output_note_list)
+    insert_lyrics_into_ly(output_note_list)

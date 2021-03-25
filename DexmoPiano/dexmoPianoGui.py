@@ -2,6 +2,7 @@
 
 # from tkinter import *
 import tkinter as tk
+from pathlib import Path
 from tkinter import filedialog
 from PIL import Image, ImageTk
 from matplotlib.figure import Figure
@@ -73,6 +74,23 @@ def startTask():
     # errorVal = threadHandler.get_errors()
     errors.append(abs(errorVal))
     add_error_plot()
+    
+    ## if there is a score with errors, show it in a new window
+    score_with_error = Path(tempDir) / "output_with_errors.png"
+    
+    if score_with_error.exists():
+        new_window = tk.Toplevel(root)
+        new_window.geometry("835x1181")
+        background = Image.open(score_with_error)
+        background = background.convert("RGBA")
+        
+        img = ImageTk.PhotoImage(background)
+        
+        panel = tk.Label(new_window, image=img)
+        panel.image = img
+        panel.place(x=0, y=0, width=835, height=1181)
+    
+    
 
 
 def startDemo():

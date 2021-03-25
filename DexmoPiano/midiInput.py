@@ -70,6 +70,11 @@ class MidiInputThread():
         @param portName: New MIDI port.
         @return: None
         """
+        
+        if portName in [None, "None"]:
+            return
+        # print(repr(portName))
+        
         ###TODO: remove
         global testPort
 
