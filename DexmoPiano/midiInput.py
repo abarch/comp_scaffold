@@ -2,13 +2,15 @@ import mido
 
 import noteHandler as nh
 
-
+from custom_logging import get_logger_for_this_file
 from _setup_data import midi_controller_name
 from collections import namedtuple, defaultdict
 
 
 NoteInfo = namedtuple("NoteInfo", ["pitch", "velocity", "note_on_time", "note_off_time"])
 empty_noteinfo = lambda: NoteInfo(-1,-1,-1,-1)
+
+logger = get_logger_for_this_file("midiInput")
 
 def adapt_noteinfo(source, pitch=None, note_on_time=None, note_off_time=None,
                    velocity=None):
@@ -115,7 +117,7 @@ class MidiInputThread():
         #print("current input port:", testPort)
 
         if self.handleInput:
-
+            logger.debug(repr(msg))
             if not msg.is_meta:
                 if (msg.type == 'note_on') or (msg.type == 'note_off'):
 

@@ -1,10 +1,12 @@
 import time
+from custom_logging import get_logger_for_this_file
 
 # number of digits up to which a float is rounded
 ROUND_DIGITS = 3
 
 startTime = 0.0
 
+# logger = get_logger_for_this_file(__name__)
 
 def initTime():
     """
