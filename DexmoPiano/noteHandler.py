@@ -6,7 +6,7 @@ ROUND_DIGITS = 3
 
 startTime = 0.0
 
-# logger = get_logger_for_this_file(__name__)
+logger = get_logger_for_this_file(__name__)
 
 def initTime():
     """
@@ -57,7 +57,7 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
     if noteType == 'note_on' and velocity > 0: # in some keyboards instead of note_off we get note_on with velocity==0.
         # check if note_on was not set already
         if note_info.note_on_time != -1:
-            print("note_on was set twice! Pitch:", pitch)
+            logger.error(f"note_on was set twice! Pitch: {pitch} | {(noteType, pitch, velocity)}")
             return -1
 
         noteInfoTemp[pitch] = adapt_noteinfo(note_info, pitch=pitch,
@@ -69,7 +69,7 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
     elif noteType == 'note_off' or (noteType == 'note_on' and velocity == 0):
         # check if note_off was not set already
         if (note_info.note_on_time == -1) or (note_info.note_off_time != -1):
-            print("note_off was set twice! Pitch:", pitch)
+            logger.error(f"note_on was set twice! Pitch: {pitch} | {(noteType, pitch, velocity)}")
             return -1
 
         

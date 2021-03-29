@@ -45,6 +45,7 @@ class MidiInputThread():
         # initialize note array and list
         self.noteInfoList = []
         self.noteInfoTemp = defaultdict(empty_noteinfo)
+        self.midi_log_func = logger.debug
 
         # only handle input if true
         self.handleInput = False
@@ -93,7 +94,10 @@ class MidiInputThread():
         try:
             self.inport = mido.open_input(portName, callback=self.handleMidiInput)
             self.has_valid_port_set = True
-        except IOError as e:
+            succ_msg = "Succesfully set midi input port to {portName}"
+            print(succ_msg)
+            logger.info(succ_msg)
+        except:
             import traceback
             traceback.print_exc()
 
@@ -115,9 +119,9 @@ class MidiInputThread():
         global testPort
 
         #print("current input port:", testPort)
+        self.midi_log_func(f"handle_input={self.handleInput} | {repr(msg)}")
 
         if self.handleInput:
-            logger.debug(repr(msg))
             if not msg.is_meta:
                 if (msg.type == 'note_on') or (msg.type == 'note_off'):
 
@@ -125,8 +129,14 @@ class MidiInputThread():
                     noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity,
                                              self.noteInfoTemp, self.noteInfoList)
 
-                    if type(noteInfo) == list:
-                        print("ACTUAL:", self.noteCounter, "\t", noteInfo)
+                    if noteInfo == -1: 
+                        # there was an error
+                        # change the log level of the midi messages from debug to warning
+                        self.midi_log_func = logger.warning
+
+                    if type(noteInfo) == NoteInfo:
+                        # print("ACTUAL:", self.noteCounter, "\t", noteInfo)
+                        logger.debug(f"ACTUAL: {self.noteCounter}\t {noteInfo}")
                         self.noteCounter += 1
 
 
