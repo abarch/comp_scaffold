@@ -94,7 +94,7 @@ class MidiInputThread():
         try:
             self.inport = mido.open_input(portName, callback=self.handleMidiInput)
             self.has_valid_port_set = True
-            succ_msg = "Succesfully set midi input port to {portName}"
+            succ_msg = f"Succesfully set midi input port to {portName}"
             print(succ_msg)
             logger.info(succ_msg)
         except:
