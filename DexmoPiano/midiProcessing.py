@@ -276,6 +276,7 @@ def _generate_task_v1(noteValues, notesPerBar, noOfBars, pitches, bpm, left, rig
     for bar in range(noOfBars - 1):  # last bar is for extra notes
         # determine no. of notes in this bar
         noOfNotes = random.choice(notesPerBar)
+        noOfNotes = min(noOfNotes, len(stepRange))
 
         # shift step numbers
         shift = (bar + INTRO_BARS) * numerator
