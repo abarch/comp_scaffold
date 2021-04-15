@@ -60,7 +60,7 @@ def startTask():
     timestr = getCurrentTimestamp()
 
     # use MIDI file with metronome staff
-    targetNotes, actualNotes, errorVal = threadHandler.startThreads(inputFileStrs[2], guidanceMode)
+    targetNotes, actualNotes, errorVal = threadHandler.startThreads(inputFileStrs[2], guidanceMode, useVisualAttention=useVisualAttention.get())
 
     if not midiSaved:
         saveMidiAndXML(targetNotes)
@@ -573,6 +573,13 @@ def load_taskButtons():
     rightHand.set(True)
     chk = tk.Checkbutton(root, text='right hand', var=rightHand)
     chk.place(x=75, y=635)
+    
+    global useVisualAttention
+    useVisualAttention = tk.BooleanVar()
+    useVisualAttention.set(False)
+    chk = tk.Checkbutton(root, text='Use Visual Attention', var=useVisualAttention)
+    chk.place(x=0, y=735)
+    
 
     ## Back to Menu
     tk.Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)

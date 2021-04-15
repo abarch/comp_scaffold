@@ -58,7 +58,7 @@ def set_inport(portName):
         print("ERROR: inputThread was not defined yet")
 
 
-def startThreads(midiFileLocation, guidance, openface=True):
+def startThreads(midiFileLocation, guidance, useVisualAttention=True):
     """
     Starts the MIDI playback thread and activates the MIDI input handler.
     After the player thread terminates, the input handler is deactivated again.
@@ -75,7 +75,8 @@ def startThreads(midiFileLocation, guidance, openface=True):
     inputThread.resetArrays()
 
     #start openface
-    if openface:
+    # print("USE VA:", useVisualAttention)
+    if useVisualAttention:
         from openfaceInput import OpenFaceInput
         ofi = OpenFaceInput()
         ofi.start()
@@ -100,7 +101,7 @@ def startThreads(midiFileLocation, guidance, openface=True):
     # deactivate input handling
     inputThread.inputOff()
 
-    if openface:
+    if useVisualAttention:
         import time
         time.sleep(2)
         openface_data = ofi.stop()
