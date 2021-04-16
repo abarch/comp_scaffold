@@ -44,7 +44,7 @@ timeSig = (4, 4)
 
 from collections import namedtuple
 
-Task = namedtuple("Task", "time_sig bars data")
+Task = namedtuple("Task", "time_sig noOfBars data")
 
 def write_midi(out_file, mf):
     """
@@ -204,7 +204,7 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
 
     # add 3 extra notes per hand for proper fingering numbers
     for t in range(3):
-        tempTime = ((task.bars - 1) * numerator) + t + 1
+        tempTime = ((task.noOfBars - 1) * numerator) + t + 1
         # count_notes += 1
         for hSide in range(2):
             if lastPitch[hSide]:
@@ -219,7 +219,7 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
     write_midi(outFiles[0], mf)
 
     ### METRONOME ###
-    add_metronome(task.bars, numerator, outFiles[1], True, mf)
+    add_metronome(task.noOfBars, numerator, outFiles[1], True, mf)
 
     ### FINGERNUMBERS ###
     print("generated notes right: " + str(count_notes_right) + " generated notes left: " + str(count_notes_left))
@@ -327,7 +327,7 @@ def _generate_task_v1(noteValues, notesPerBar, noOfBars, pitches, bpm, left, rig
 
         t += 1
         
-    return Task(time_sig=timeSig, bars=bars,data=data)
+    return Task(time_sig=timeSig, noOfBars=bars, data=data)
 
 
 def add_metronome(bars, numerator, outFile, writeFile, mf):

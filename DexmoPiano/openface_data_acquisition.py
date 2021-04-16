@@ -536,16 +536,16 @@ def eval_holdout_session():
         
         
         def class_mapper(target_class):
-            if target_class.lower() in ["screen", "keyboard", "air"]:
+            if target_class.lower() in ["screen", "keyboard"]: #, "air"
                 return target_class.lower()
             return None
         
         def feature_filter(feature):
             if feature in ["clf_target", "class", "class_method", "timestamp", "frame"]:
                 return False
-            # if "pose" in feature:
-            #     return True
-            # return False
+            if "gaze" in feature: # or "eye" in feature
+                return True
+            return False
             return True # "p" in feature
         
         
@@ -664,5 +664,5 @@ if __name__ == "__main__":
     # main_acquire_data(dummy=False)
     
     # df = train_classifier_on_saved()
-    save_clfs()
-    # eval_holdout_session()
+    # save_clfs()
+    eval_holdout_session()

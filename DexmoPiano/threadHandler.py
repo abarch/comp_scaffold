@@ -2,9 +2,7 @@ from threading import Thread
 
 import dexmoOutput
 from midiInput import MidiInputThread, empty_noteinfo
-import errorCalc
-import errorCalcLevenshtein as errorCalcLV
-
+from error_calc import functions as errorCalc
 from collections import defaultdict
 
 # GLOBAL CONSTANTS
@@ -137,11 +135,14 @@ def startThreads(midiFileLocation, guidance, useVisualAttention=True):
     # print("\nDIFFERENCE: ", errorDiff)
 
     import imp
-    imp.reload(errorCalcLV)
+    imp.reload(errorCalc)
 
     try:
-        output_note_list, errorVec = errorCalcLV.computeError(targetTimes, actualTimes, 
-                                                    openface_data=openface_data)
+        output_note_list, errorVec = \
+            errorCalc.computeErrorEvo(targetTimes, actualTimes, 
+                                    openface_data=openface_data,
+                                    inject_explanation=True,
+                                    plot=True)
         print("\n\n--- ERRORS ---")
         print("\nNOTE_ERRORS:")
         import shutil
