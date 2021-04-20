@@ -6,6 +6,7 @@ import os
 import random
 
 import pianoplayer_interface
+from optionsWindow import get_pitchlist, NoteRangePerHand
 
 # some code taken from https://github.com/Michael-F-Ellis/tbon
 
@@ -45,6 +46,7 @@ timeSig = (4, 4)
 from collections import namedtuple
 
 Task = namedtuple("Task", "time_sig noOfBars data")
+TaskNote = namedtuple("TaskNote", "start pitch duration")
 
 def write_midi(out_file, mf):
     """
@@ -148,14 +150,14 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, cu
     add_fingernumbers(outFiles[2], sf, True, right, left, mf, c_to_g)  # c_to_g false?
 
 
-def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, outFiles):
+def generateMidi(noteValues, notesPerBar, noOfBars, note_range, bpm, left, right, outFiles):
     """
     Generates a MIDI file with custom notes considering various options.
 
     @param noteValues: Possible durations of the notes (e.g. 1, 1/2 etc.).
     @param notesPerBar: Amounts of notes that a bar can contain.
     @param noOfBars: Total number of bars (plus initial empty bar for metronome).
-    @param pitches: Possible MIDI pitch numbers (0-127).
+    @param pitches: A NoteRangePerHand object, declaring the allowed pitches for each hand.
     @param bpm: Tempo (beats per minute).
     @param left: True for generating notes for the left hand.
     @param right: True for generating notes for the right hand.
@@ -174,7 +176,7 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
         mf.addProgramChange(L_TRACK, CHANNEL_PIANO, TIME_AT_START, INSTRUM_PIANO)
 
 
-    task = _generate_task_v1(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right)
+    task = _generate_task_v1(noteValues, notesPerBar, noOfBars, note_range, left, right)
     numerator, denominator = task.time_sig
     set_time_signature(numerator, denominator, R_TRACK, mf)
     
@@ -226,107 +228,119 @@ def generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, o
     if (((left and not right) and count_notes_left > 7) or
             ((right and not left) and count_notes_right > 7) or
             (left and right and count_notes_left > 7 and count_notes_right > 7)):
+        ## i didn't write this code but I assume it wants to make sure that 
+        ## if a hand is playing it has at least 8 notes.
+        
         sf, measures, bpm = generate_fingers_and_write_xml(outFiles[0], outFiles[3], right, left)
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, False)
-    elif right and not left and min(pitches) >= 60 and max(pitches) <= 68:
-        # generate c - g mapping
-        sf = converter.parse(outFiles[0])
-        print("Map Notes between C4 - G#4 for right hand")
-        add_fingernumbers(outFiles[2], sf, False, right, left, mf, True)
-    elif left and not right and min(pitches) >= 48 and max(pitches) <= 55:
-        # generate c-g mapping
-        sf = converter.parse(outFiles[0])
-        print("Map Notes between C3 - G3 for left hand")
-        add_fingernumbers(outFiles[2], sf, False, right, left, mf, True)
-    elif left and right and min(pitches) >= 48 and max(pitches) <= 68 and \
-            not any(item in pitches for item in list(range(56, 59))):
-        # generate c-g mapping
-        sf = converter.parse(outFiles[0])
-        print("Map Notes between C3 - G3 for left hand and C4 - G#4 for right hand")
-        add_fingernumbers(outFiles[2], sf, False, right, left, mf, True)
+    
     else:
-        # change pitches
-        print("Not enough Notes to generate finger-numbers!")
-        if left and right:
-            print("Generate again with Notes between C3 - G3 for left hand and C4 - G#4 for right hand")
-            pitches = [48, 50, 52, 53, 55, 60, 62, 64, 65, 67, 68]
-        elif left and not right:
-            print("Generate again with Notes between C3 - G3 for left hand)")
-            pitches = [48, 50, 52, 53, 55]
-        elif right and not left:
-            print("Generate again with Notes between C4 - G#4 for right hand")
-            pitches = [60, 62, 64, 65, 67, 68]
-        generateMidi(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right, outFiles)
+        def c_to_g_map(note_range):
+            ## the add_fingernumbers function wants to know if the pitches 
+            ## allow for a c_to_g mapping, for dexmo purposes.
+            
+            if note_range in [NoteRangePerHand.ONE_NOTE, 
+                              NoteRangePerHand.TWO_NOTES,
+                              NoteRangePerHand.C_TO_G]:
+                return True
+            elif note_range in [NoteRangePerHand.ONE_OCTAVE,
+                                NoteRangePerHand.ONE_OCTAVE_WHITE,
+                                NoteRangePerHand.ONE_OCTAVE_BLACK]:
+                return False
+            
+            raise ValueError(f"Please specify whether {repr(note_range)} allows for c_to_g dexmo mapping.")
+        
+        c_to_g = c_to_g_map(note_range)
+        
+        sf = converter.parse(outFiles[0])
+        add_fingernumbers(outFiles[2], sf, False, right, left, mf, c_to_g=c_to_g)
+        
+    
 
 
-def _generate_task_v1(noteValues, notesPerBar, noOfBars, pitches, bpm, left, right):
+def _generate_task_v1(noteValues, notesPerBar, noOfBars, note_range, left, right): #, bpm, left, right
     ### EXERCISE GENERATION ###
     numerator, denominator = timeSig
 
     # adjust no. of bars (in case of intro bars)
     bars = noOfBars + INTRO_BARS
 
-    ### CHOOSE TIME_AT_STARTSTEPS ###
 
-    timesteps = []
-    minNoteVal = min(noteValues)
-
-    # randomly generate the chosen number of timesteps (notes) per bar
-    stepRange = [temp for temp in range(numerator) if temp % (minNoteVal * numerator) == 0]
-    for bar in range(noOfBars - 1):  # last bar is for extra notes
-        # determine no. of notes in this bar
-        noOfNotes = random.choice(notesPerBar)
-        noOfNotes = min(noOfNotes, len(stepRange))
-
-        # shift step numbers
-        shift = (bar + INTRO_BARS) * numerator
-        steps = [temp + shift for temp in stepRange]
-
-        timesteps.append(random.sample(steps, noOfNotes))
-
-    # flatten and sort list
-    timesteps = sorted([item for sublist in timesteps for item in sublist])
-
-    # append dummy element to avoid additional bar
-    timesteps.append(bars * numerator)
-
-    # print("timesteps:", timesteps[:-1])
-
-    ### ADD PIANO NOTES ###
-
-    # add music (piano) notes
-    
-
-    data = list()
-    # custom for-loop
-    t = 0
-    while t < (len(timesteps) - 1):
-        # compute maximum note length until next note
-        maxNoteVal = (timesteps[t + 1] - timesteps[t]) / denominator
-        ###temp = maxNoteVal
-
-        # compute maximum note length until next bar
-        if not ACROSS_BARS:
-            maxToNextBar = 1 - ((timesteps[t] % denominator) / denominator)
-            maxNoteVal = min([maxNoteVal, maxToNextBar])
-
-        ###print(timesteps[t], "min(", temp, maxToNextBar, ") =", maxNoteVal)
-
-        # calculate possible note values at current time step
-        possNoteValues = [v for v in noteValues if v <= maxNoteVal]
-        # if list is empty, increment time step by 1 and try again
-        if not possNoteValues:
-            print(t, timesteps[t], maxNoteVal)
-            timesteps[t] = timesteps[t] + 1
-            continue
-
-        duration = random.choice(possNoteValues)
-        pitch = random.choice(pitches)
-
-        data.append( (timesteps[t], pitch, duration*denominator ) )
-
-        t += 1
+    hands = list()
+    if left:
+        hands.append("left")
+    if right:
+        hands.append("right")
         
+    data = list()
+    for hand in hands:
+        pitches = get_pitchlist(note_range, right=hand=="right")
+        ### CHOOSE TIME_AT_STARTSTEPS ###
+    
+        timesteps = []
+        minNoteVal = min(noteValues)
+    
+        # randomly generate the chosen number of timesteps (notes) per bar
+        stepRange = [temp for temp in range(numerator) if temp % (minNoteVal * numerator) == 0]
+        for bar in range(noOfBars - 1):  # last bar is for extra notes
+            # determine no. of notes in this bar
+            noOfNotes = random.choice(notesPerBar)
+            noOfNotes = min(noOfNotes, len(stepRange))
+    
+            # shift step numbers
+            shift = (bar + INTRO_BARS) * numerator
+            steps = [temp + shift for temp in stepRange]
+    
+            timesteps.append(random.sample(steps, noOfNotes))
+    
+        # flatten and sort list
+        timesteps = sorted([item for sublist in timesteps for item in sublist])
+    
+        # append dummy element to avoid additional bar
+        timesteps.append(bars * numerator)
+    
+        # print("timesteps:", timesteps[:-1])
+    
+        ### ADD PIANO NOTES ###
+    
+        # add music (piano) notes
+        
+    
+        # custom for-loop
+        t = 0
+        while t < (len(timesteps) - 1):
+            # compute maximum note length until next note
+            maxNoteVal = (timesteps[t + 1] - timesteps[t]) / denominator
+            ###temp = maxNoteVal
+    
+            # compute maximum note length until next bar
+            if not ACROSS_BARS:
+                maxToNextBar = 1 - ((timesteps[t] % denominator) / denominator)
+                maxNoteVal = min([maxNoteVal, maxToNextBar])
+    
+            ###print(timesteps[t], "min(", temp, maxToNextBar, ") =", maxNoteVal)
+    
+            # calculate possible note values at current time step
+            possNoteValues = [v for v in noteValues if v <= maxNoteVal]
+            # if list is empty, increment time step by 1 and try again
+            if not possNoteValues:
+                print(t, timesteps[t], maxNoteVal)
+                timesteps[t] = timesteps[t] + 1
+                continue
+    
+            duration = random.choice(possNoteValues)
+            pitch = random.choice(pitches)
+    
+            data.append( TaskNote(timesteps[t], pitch, duration*denominator ) )
+            
+            if duration == 1/8:
+                ## if the duration is 1/8, add a note right after to differentiate it more from 1/4
+                pitch = random.choice(pitches)
+                data.append( TaskNote(timesteps[t]+0.5, pitch, duration*denominator ) )
+    
+            t += 1
+    
+    data = sorted(data, key=lambda n: n.start)
     return Task(time_sig=timeSig, noOfBars=bars, data=data)
 
 
@@ -546,7 +560,7 @@ def map_note_to_c_till_g(note):
 
 
 if __name__ == "__main__":
-
+    
     noOfBars = 24
 
     outFiles = ["./output/output.mid", "./output/output-m.mid",

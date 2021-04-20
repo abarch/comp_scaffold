@@ -1,13 +1,59 @@
 # from tkinter import *
+import enum
 import tkinter as tk
 
+class NoteRangePerHand(enum.Enum):
+    ONE_NOTE = enum.auto()
+    TWO_NOTES = enum.auto()
+    C_TO_G = enum.auto()
+    ONE_OCTAVE = enum.auto()
+    ONE_OCTAVE_WHITE = enum.auto()
+    ONE_OCTAVE_BLACK = enum.auto()
+    
+    
+noteRangePerHandDescription = ["One note (C)", "Two notes (C,D)", 
+                               "Notes C-G (for 5 fingers)", "One octave",
+                               "One octave (only white keys)",
+                               "One octave (only black keys)"
+                               ]
+
+noteRangeMap = {const: desc for const, desc in 
+                zip(NoteRangePerHand, noteRangePerHandDescription)}
+noteRangeMap.update(                   
+                    {desc: const for const, desc in 
+                zip(NoteRangePerHand, noteRangePerHandDescription)}
+                    )
+
+def get_pitchlist(note_range, right=True):
+    if right:
+        base_note = 60 #C4
+    else:
+        base_note = 48 #C3
+        
+    if note_range == NoteRangePerHand.ONE_NOTE:
+        pitchesList = [0]
+    elif note_range == NoteRangePerHand.TWO_NOTES:
+        pitchesList = [0, 2]
+    elif note_range == NoteRangePerHand.C_TO_G:
+        pitchesList = [0, 2, 4, 5, 7]
+    elif note_range == NoteRangePerHand.ONE_OCTAVE:
+        pitchesList = list(range(0, 12))
+    elif note_range == NoteRangePerHand.ONE_OCTAVE_WHITE:
+        pitchesList = [0,2,4,5,7,9,11]
+    elif note_range == NoteRangePerHand.ONE_OCTAVE_BLACK:
+        pitchesList = [1,3,6,8,10]
+    else:
+        raise ValueError(f"got unexpected note_range {repr(note_range)}!")
+        
+    return [base_note + p for p in pitchesList]
+    
 
 class optionsWindowClass():
     """
     Class for the GUI's options window, accessible from the main window.
     """
 
-    def __init__(self, root, bpm, maxNoteperBar, numberOfBars, noteValuesList, pitchesList, twoHandsTup):
+    def __init__(self, root, bpm, maxNoteperBar, numberOfBars, noteValuesList, noteRangePerHand, twoHandsTup):
         """
         Initializes necessary variables.
 
@@ -24,11 +70,10 @@ class optionsWindowClass():
         self.maxNoteperBar = maxNoteperBar
         self.numberOfBars = numberOfBars
         self.noteValuesList = noteValuesList
-        self.pitchesList = pitchesList
+        self.noteRange = noteRangePerHand
         self.twoHandsTup = twoHandsTup
 
-        self.pitchesOptions = ["One note (C)", "Two notes (C,D)", "Notes C-G (for 5 fingers)", "One octave",
-                               "Two octaves (two hands)"]
+        self.pitchesOptions = noteRangePerHandDescription
 
     # create Window to specify next task, root waiting until this window is closed
     def changeParameter(self):
@@ -163,23 +208,15 @@ class optionsWindowClass():
 
         return noteValuesList
 
-    #TODO: Combine check_pitches and get_pitches (dictionary?)
     def check_pitches(self):
         """
         Matches a description to the user-selected note pitches.
 
         @return: Note pitches description.
         """
-        if(self.pitchesList == [60]):
-            return "One note (C)"
-        elif (self.pitchesList == [60, 62]):
-            return "Two notes (C,D)"
-        elif (self.pitchesList == [60, 62, 64, 65,67]):
-            return "Notes C-G (for 5 fingers)"
-        elif (self.pitchesList == list(range(60, 72))):
-            return "One octave"
-        elif (self.pitchesList == list(range(48, 72))):
-            return "Two octaves (two hands)"
+        
+        return noteRangeMap[self.noteRange]
+        
 
     def get_pitches(self):
         """
@@ -187,20 +224,9 @@ class optionsWindowClass():
 
         @return: Note pitches list.
         """
-        pitchesList = []
-
-        if (chosenpitches.get() == "One note (C)"):
-            pitchesList = [60]
-        elif (chosenpitches.get() == "Two notes (C,D)"):
-            pitchesList = [60, 62]
-        elif (chosenpitches.get() == "Notes C-G (for 5 fingers)"):
-            pitchesList = [60, 62, 64, 65, 67]
-        elif (chosenpitches.get() == "One octave"):
-            pitchesList = list(range(60, 72))
-        elif (chosenpitches.get() == "Two octaves (two hands)"):
-            pitchesList = list(range(48, 72))
-
-        return pitchesList
+        
+        return noteRangeMap[chosenpitches.get()]
+        
 
     def show_empty_list_error(self):
         """
@@ -233,7 +259,7 @@ class optionsWindowClass():
             self.numberOfBars = saveBarNumber
             self.maxNoteperBar = int(saveNotesPerBar)
             self.noteValuesList = self.get_noteValues()
-            self.pitchesList = self.get_pitches()
+            self.noteRange = self.get_pitches()
             self.twoHandsTup = (saveLeftHand, saveRightHand)
             self.specifyWindow.destroy()
 
@@ -252,4 +278,4 @@ class optionsWindowClass():
 
         @return: All current option values.
         """
-        return self.bpm, self.numberOfBars, self.maxNoteperBar, self.noteValuesList, self.pitchesList, self.twoHandsTup
+        return self.bpm, self.numberOfBars, self.maxNoteperBar, self.noteValuesList, self.noteRange, self.twoHandsTup

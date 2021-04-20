@@ -34,8 +34,8 @@ maxNotePerBar = 2
 numberOfBars = 7
 bpm = 120
 noteValuesList = [1, 1 / 2, 1 / 4, 1 / 8]
-# pitchesList = [60, 62]
-pitchesList = [60, 62, 64, 65,67] #list(range(48, 72))
+from optionsWindow import NoteRangePerHand
+noteRangePerHand = NoteRangePerHand.C_TO_G
 twoHandsTup = (False, True)
 # outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
 
@@ -121,7 +121,7 @@ def saveMidiAndXML(targetNotes):
     shutil.move(inputFileStrs[0], outputDir + timestr + '.mid')
 
     # XML
-    currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsTup]
+    currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup]
     fileIO.createXML(outputDir, timestr, currOptions, targetNotes)
 
 
@@ -180,7 +180,7 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
         midiProcessing.generateMidi(noteValues=noteValuesList,
                                     notesPerBar=list(range(1, maxNotePerBar + 1)),
                                     noOfBars=numberOfBars,
-                                    pitches=pitchesList,
+                                    note_range=noteRangePerHand,
                                     bpm=bpm,
                                     left=twoHandsTup[0],
                                     right=twoHandsTup[1],
@@ -366,9 +366,9 @@ def specifyTask():
 
     @return: None
     """
-    global bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsTup, errors, changetask
+    global bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup, errors, changetask
 
-    values = bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsTup
+    values = bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup
     options.changeParameter()
 
     newValues = options.get_data()
@@ -376,7 +376,7 @@ def specifyTask():
     if values != newValues:
         errors = []
         changetask = []
-    bpm, numberOfBars, maxNotePerBar, noteValuesList, pitchesList, twoHandsTup = newValues
+    bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup = newValues
 
 
 ##_____________________________ERROR-PLOT_____________________________________##
@@ -788,6 +788,6 @@ root.geometry("1500x1000")
 
 check_dexmo_connected(mainWindow=False)
 options = optionsWindowClass(root=root, bpm=bpm, numberOfBars=numberOfBars, maxNoteperBar=maxNotePerBar,
-                             noteValuesList=noteValuesList, pitchesList=pitchesList, twoHandsTup=twoHandsTup)
+                             noteValuesList=noteValuesList, noteRangePerHand=noteRangePerHand, twoHandsTup=twoHandsTup)
 
 root.mainloop()
