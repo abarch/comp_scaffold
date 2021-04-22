@@ -6,7 +6,7 @@ import os
 import random
 
 import pianoplayer_interface
-from optionsWindow import get_pitchlist, NoteRangePerHand
+from task_generation.note_range_per_hand import get_pitchlist, NoteRangePerHand
 
 # some code taken from https://github.com/Michael-F-Ellis/tbon
 
@@ -26,7 +26,7 @@ VOLUME = 100
 TIME_AT_START = 0  # start at the beginning
 
 INTRO_BARS = 1  # no. of empty first bars for metronome intro
-ACROSS_BARS = 0  # allow notes to reach across two bars
+
 
 R_TRACK = 0  # right hand track
 L_TRACK = 1  # left hand track
@@ -41,12 +41,6 @@ timeSig = (4, 4)
 
 
 # outFiles: [midi, midi+metronome, midi+metronome+dexmo, musicXML]
-
-
-from collections import namedtuple
-
-Task = namedtuple("Task", "time_sig noOfBars data")
-TaskNote = namedtuple("TaskNote", "start pitch duration")
 
 def write_midi(out_file, mf):
     """
@@ -150,7 +144,7 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, cu
     add_fingernumbers(outFiles[2], sf, True, right, left, mf, c_to_g)  # c_to_g false?
 
 
-def generateMidi(noteValues, notesPerBar, noOfBars, note_range, bpm, left, right, outFiles):
+def generateMidi(task, outFiles):
     """
     Generates a MIDI file with custom notes considering various options.
 
@@ -166,9 +160,12 @@ def generateMidi(noteValues, notesPerBar, noOfBars, note_range, bpm, left, right
     """
     ## from init here: tracknumber, tempo etc
 
+    right = len(task.notes_right) > 0
+    left  = len(task.notes_left)  > 0
+
     mf = MIDIFile(numTracks=TRACKS)
 
-    set_tracks(mf, bpm)
+    set_tracks(mf, task.bpm)
     
     if right:
         mf.addProgramChange(R_TRACK, CHANNEL_PIANO, TIME_AT_START, INSTRUM_PIANO)
@@ -176,16 +173,15 @@ def generateMidi(noteValues, notesPerBar, noOfBars, note_range, bpm, left, right
         mf.addProgramChange(L_TRACK, CHANNEL_PIANO, TIME_AT_START, INSTRUM_PIANO)
 
 
-    task = _generate_task_v1(noteValues, notesPerBar, noOfBars, note_range, left, right)
-    numerator, denominator = task.time_sig
+    numerator, denominator = task.time_signature
     set_time_signature(numerator, denominator, R_TRACK, mf)
     
     count_notes_left = 0
     count_notes_right = 0
     lastPitch = [None, None]
 
-
-    for start, pitch, duration in task.data:
+    all_notes = task.notes_left + task.notes_right
+    for start, pitch, duration in all_notes:
         # choose right/left hand, split at C4 (MIDI: pitch 60)
         if left and ((not right) or (pitch < 60)):
             handTrack = L_TRACK
@@ -206,7 +202,7 @@ def generateMidi(noteValues, notesPerBar, noOfBars, note_range, bpm, left, right
 
     # add 3 extra notes per hand for proper fingering numbers
     for t in range(3):
-        tempTime = ((task.noOfBars - 1) * numerator) + t + 1
+        tempTime = ((task.number_of_bars - 1) * numerator) + t + 1
         # count_notes += 1
         for hSide in range(2):
             if lastPitch[hSide]:
@@ -221,7 +217,7 @@ def generateMidi(noteValues, notesPerBar, noOfBars, note_range, bpm, left, right
     write_midi(outFiles[0], mf)
 
     ### METRONOME ###
-    add_metronome(task.noOfBars, numerator, outFiles[1], True, mf)
+    add_metronome(task.number_of_bars, numerator, outFiles[1], True, mf)
 
     ### FINGERNUMBERS ###
     print("generated notes right: " + str(count_notes_right) + " generated notes left: " + str(count_notes_left))
@@ -250,98 +246,12 @@ def generateMidi(noteValues, notesPerBar, noOfBars, note_range, bpm, left, right
             
             raise ValueError(f"Please specify whether {repr(note_range)} allows for c_to_g dexmo mapping.")
         
-        c_to_g = c_to_g_map(note_range)
+        c_to_g = c_to_g_map(task.note_range)
         
         sf = converter.parse(outFiles[0])
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, c_to_g=c_to_g)
-        
-    
 
-
-def _generate_task_v1(noteValues, notesPerBar, noOfBars, note_range, left, right): #, bpm, left, right
-    ### EXERCISE GENERATION ###
-    numerator, denominator = timeSig
-
-    # adjust no. of bars (in case of intro bars)
-    bars = noOfBars + INTRO_BARS
-
-
-    hands = list()
-    if left:
-        hands.append("left")
-    if right:
-        hands.append("right")
-        
-    data = list()
-    for hand in hands:
-        pitches = get_pitchlist(note_range, right=hand=="right")
-        ### CHOOSE TIME_AT_STARTSTEPS ###
-    
-        timesteps = []
-        minNoteVal = min(noteValues)
-    
-        # randomly generate the chosen number of timesteps (notes) per bar
-        stepRange = [temp for temp in range(numerator) if temp % (minNoteVal * numerator) == 0]
-        for bar in range(noOfBars - 1):  # last bar is for extra notes
-            # determine no. of notes in this bar
-            noOfNotes = random.choice(notesPerBar)
-            noOfNotes = min(noOfNotes, len(stepRange))
-    
-            # shift step numbers
-            shift = (bar + INTRO_BARS) * numerator
-            steps = [temp + shift for temp in stepRange]
-    
-            timesteps.append(random.sample(steps, noOfNotes))
-    
-        # flatten and sort list
-        timesteps = sorted([item for sublist in timesteps for item in sublist])
-    
-        # append dummy element to avoid additional bar
-        timesteps.append(bars * numerator)
-    
-        # print("timesteps:", timesteps[:-1])
-    
-        ### ADD PIANO NOTES ###
-    
-        # add music (piano) notes
-        
-    
-        # custom for-loop
-        t = 0
-        while t < (len(timesteps) - 1):
-            # compute maximum note length until next note
-            maxNoteVal = (timesteps[t + 1] - timesteps[t]) / denominator
-            ###temp = maxNoteVal
-    
-            # compute maximum note length until next bar
-            if not ACROSS_BARS:
-                maxToNextBar = 1 - ((timesteps[t] % denominator) / denominator)
-                maxNoteVal = min([maxNoteVal, maxToNextBar])
-    
-            ###print(timesteps[t], "min(", temp, maxToNextBar, ") =", maxNoteVal)
-    
-            # calculate possible note values at current time step
-            possNoteValues = [v for v in noteValues if v <= maxNoteVal]
-            # if list is empty, increment time step by 1 and try again
-            if not possNoteValues:
-                print(t, timesteps[t], maxNoteVal)
-                timesteps[t] = timesteps[t] + 1
-                continue
-    
-            duration = random.choice(possNoteValues)
-            pitch = random.choice(pitches)
-    
-            data.append( TaskNote(timesteps[t], pitch, duration*denominator ) )
-            
-            if duration == 1/8:
-                ## if the duration is 1/8, add a note right after to differentiate it more from 1/4
-                pitch = random.choice(pitches)
-                data.append( TaskNote(timesteps[t]+0.5, pitch, duration*denominator ) )
-    
-            t += 1
-    
-    data = sorted(data, key=lambda n: n.start)
-    return Task(time_sig=timeSig, noOfBars=bars, data=data)
+                
 
 
 def add_metronome(bars, numerator, outFile, writeFile, mf):
@@ -472,8 +382,8 @@ def add_dexmo_note_to_midi(note, track, channel, mf, c_to_g):
             pitch = map_note_to_c_till_g(note)
         else:
             pitch = convert_note_to_dexmo_note(note)
-        print("add dexmo note: " + str(note) + " original pitch: " + str(note.pitch.ps) + " dexmo pitch: " + str(
-            pitch))
+        # print("add dexmo note: " + str(note) + " original pitch: " + str(note.pitch.ps) + " dexmo pitch: " + str(
+        #     pitch))
         if pitch is not None:
             mf.addNote(track=track,
                        channel=channel,

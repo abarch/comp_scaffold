@@ -30,14 +30,17 @@ outputPngStr = tempDir + 'output.png'
 
 GuidanceModeList = ["None", "At every note", "Individual"]
 guidanceMode = "At every note"
-maxNotePerBar = 2
-numberOfBars = 7
-bpm = 120
-noteValuesList = [1, 1 / 2, 1 / 4, 1 / 8]
-from optionsWindow import NoteRangePerHand
-noteRangePerHand = NoteRangePerHand.C_TO_G
-twoHandsTup = (False, True)
-# outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
+
+from task_generation.generator import TaskParameters
+taskParameters = TaskParameters()
+# maxNotePerBar = 2
+# numberOfBars = 7
+# bpm = 120
+# noteValuesList = [1, 1 / 2, 1 / 4, 1 / 8]
+# from task_generation.note_range_per_hand import NoteRangePerHand
+# noteRangePerHand = NoteRangePerHand.C_TO_G
+# twoHandsTup = (False, True)
+## outFiles = [inputMidiStr, outputSubdir + 'output-m.mid']
 
 errors = []
 changetask = []
@@ -46,7 +49,6 @@ midiSaved = False
 currentMidi = None
 
 firstStart = True
-
 
 def startTask():
     """
@@ -61,6 +63,8 @@ def startTask():
 
     # use MIDI file with metronome staff
     targetNotes, actualNotes, errorVal = threadHandler.startThreads(inputFileStrs[2], guidanceMode, useVisualAttention=useVisualAttention.get())
+
+    scheduler.register_error(errorVal)
 
     if not midiSaved:
         saveMidiAndXML(targetNotes)
@@ -89,6 +93,8 @@ def startTask():
         panel = tk.Label(new_window, image=img)
         panel.image = img
         panel.place(x=0, y=0, width=835, height=1181)
+        
+    refresh_buttons()
     
     
 
@@ -121,8 +127,8 @@ def saveMidiAndXML(targetNotes):
     shutil.move(inputFileStrs[0], outputDir + timestr + '.mid')
 
     # XML
-    currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup]
-    fileIO.createXML(outputDir, timestr, currOptions, targetNotes)
+    # currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup]
+    fileIO.createXML(outputDir, timestr, taskParameters.astuple(), targetNotes)
 
 
 def getCurrentTimestamp():
@@ -133,22 +139,39 @@ def getCurrentTimestamp():
     return time.strftime("%Y%m%d-%H%M%S")
 
 
-def getTimeSortedMidiFiles():
-    """
-    Finds all files with .mid suffix in a directory and sorts them by their timestamp.
+def generateNextTask():
+    from task_generation.scheduler import choosePracticeMode
+    from task_generation.practice_modes import PracticeMode
+    choice = choosePracticeMode(root)
+    
+    def inEnum(val, enum):
+        try:
+            return val in enum
+        except:
+            return False
+    
+    if choice == "NEW_TASK":
+        nextTask()
+        return
+    elif choice == "TEST_MOVEMENT_1":
+        scheduler.new_task_forced_practice_sequence_prior(taskParameters, 
+                                                          [PracticeMode.SINGLE_NOTE])
+        loadUpTask()
+    elif inEnum(choice, PracticeMode):
+        scheduler.queue_practice_mode(choice)
+        loadUpTask()
+    else:
+        raise ValueError(f"Unexpected choice {repr(choice)}!")
 
-    @return: Sorted list of MIDI files.
-    """
-    ll = os.listdir(outputDir)
-    files = [x.split('.')[0] for x in ll if '.mid' in x]
-    #TODO: Is this for-loop necessary? Does it do anything?
-    for i in files:
-        i = time.strftime(i)
-    files.sort()
-    return files
+def nextTask():
+    scheduler.get_next_task(taskParameters=taskParameters)
+    loadUpTask()
+    
+def previousTask():
+    scheduler.get_previous_task()
+    loadUpTask()
 
-
-def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
+def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     """
     Generates a new MIDI file considering the current settings or opens a user-selected one.
     In each case, a metronome track and fingering numbers are added (if possible).
@@ -161,6 +184,7 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     global midiSaved, currentMidi
     delete_warning()
 
+
     # load saved midi
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
@@ -172,18 +196,13 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
 
     # generate new midi
     else:
-        files = os.listdir(tempDir)
-        for item in files:
-            if item.endswith('.xml'):
-                os.remove(os.path.join(tempDir, item))
+        # files = os.listdir(tempDir)
+        # for item in files:
+        #     if item.endswith('.xml'):
+        #         os.remove(os.path.join(tempDir, item))
 
-        midiProcessing.generateMidi(noteValues=noteValuesList,
-                                    notesPerBar=list(range(1, maxNotePerBar + 1)),
-                                    noOfBars=numberOfBars,
-                                    note_range=noteRangePerHand,
-                                    bpm=bpm,
-                                    left=twoHandsTup[0],
-                                    right=twoHandsTup[1],
+        task = scheduler.current_task_data()
+        midiProcessing.generateMidi(task,
                                     outFiles=inputFileStrs)
 
         currentMidi = None
@@ -208,67 +227,67 @@ def nextTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     add_error_plot()
 
 
-def nextSavedTask(goToTask=False):
-    """
-    Loads the next (newer) saved MIDI file if it exists.
+# def nextSavedTask(goToTask=False):
+#     """
+#     Loads the next (newer) saved MIDI file if it exists.
 
-    @param goToTask: True for switching to next task immediately.
-    @return: False if no next task is found.
-    """
-    global midiSaved, currentMidi, errors, changetask
-    if currentMidi == None:
-        return False
+#     @param goToTask: True for switching to next task immediately.
+#     @return: False if no next task is found.
+#     """
+#     global midiSaved, currentMidi, errors, changetask
+#     if currentMidi == None:
+#         return False
 
-    files = getTimeSortedMidiFiles()
-    # if the current file is already the newest or there are none, there is no next task
-    if len(files) < 1 or (files.index(currentMidi) + 1) == len(files):
-        return False
+#     files = getTimeSortedMidiFiles()
+#     # if the current file is already the newest or there are none, there is no next task
+#     if len(files) < 1 or (files.index(currentMidi) + 1) == len(files):
+#         return False
 
-    newMidi = files[files.index(currentMidi) + 1]
+#     newMidi = files[files.index(currentMidi) + 1]
 
-    if (goToTask == True):
-        # TODO: delete? and add errors from xml in GUI
-        errors = []
-        changetask = []
+#     if (goToTask == True):
+#         # TODO: delete? and add errors from xml in GUI
+#         errors = []
+#         changetask = []
 
-        midiSaved = True
-        currentMidi = newMidi
-        nextTask(userSelectedTask=True, userSelectedLocation=outputDir + newMidi + '.mid')
+#         midiSaved = True
+#         currentMidi = newMidi
+#         loadUpTask(userSelectedTask=True, userSelectedLocation=outputDir + newMidi + '.mid')
 
 
-def previousTask(goToTask=False):
-    """
-    Loads the previous (older) saved MIDI file if it exists.
+# def previousTask(goToTask=False):
+#     """
+#     Loads the previous (older) saved MIDI file if it exists.
 
-    @param goToTask: True for switching to next task immediately.
-    @return: False if no previous task is found.
-    """
-    global midiSaved, currentMidi, errors, changetask
+#     @param goToTask: True for switching to next task immediately.
+#     @return: False if no previous task is found.
+#     """
+#     global midiSaved, currentMidi, errors, changetask
 
-    files = getTimeSortedMidiFiles()
-    # if there are no midi files return false
-    if len(files) < 1:
-        return False
+#     files = getTimeSortedMidiFiles()
+#     # if there are no midi files return false
+#     if len(files) < 1:
+#         return False
 
-    # if the current is already the oldest, there is no previous task
-    if (currentMidi != None):
-        if files.index(currentMidi) == 0:
-            return False
+#     # if the current is already the oldest, there is no previous task
+#     if (currentMidi != None):
+#         if files.index(currentMidi) == 0:
+#             return False
 
-    # if actual task is already saved, use second newest to go back
-    if midiSaved:
-        newMidi = files[files.index(currentMidi) - 1]
-    else:
-        newMidi = files[len(files) - 1]
+#     # if actual task is already saved, use second newest to go back
+#     if midiSaved:
+#         newMidi = files[files.index(currentMidi) - 1]
+#     else:
+#         newMidi = files[len(files) - 1]
 
-    if (goToTask == True):
-        # TODO: delete? and add errors from xml in GUI
-        errors = []
-        changetask = []
+#     if (goToTask == True):
+#         # TODO: delete? and add errors from xml in GUI
+#         errors = []
+#         changetask = []
 
-        midiSaved = True
-        currentMidi = newMidi
-        nextTask(userSelectedTask=True, userSelectedLocation=outputDir + newMidi + '.mid')
+#         midiSaved = True
+#         currentMidi = newMidi
+#         loadUpTask(userSelectedTask=True, userSelectedLocation=outputDir + newMidi + '.mid')
 
 
 def check_dexmo_connected(mainWindow):
@@ -366,17 +385,18 @@ def specifyTask():
 
     @return: None
     """
-    global bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup, errors, changetask
-
-    values = bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup
+    global errors, changetask, taskParameters
+    
+    prev_values = taskParameters
+    
     options.changeParameter()
 
     newValues = options.get_data()
     # if parameters changed, delete errors to start a new diagram
-    if values != newValues:
+    if prev_values != newValues:
         errors = []
         changetask = []
-    bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup = newValues
+    taskParameters = newValues
 
 
 ##_____________________________ERROR-PLOT_____________________________________##
@@ -546,7 +566,7 @@ def load_taskButtons():
     guideopt = tk.OptionMenu(root, guidance, *GuidanceModeList, command=set_guidance)
     guideopt.place(x=10, y=270, width=150, height=30)
 
-    tk.Button(root, text='Generate new Task', command=nextTask).place(x=10, y=400, height=50, width=150)
+    tk.Button(root, text='Generate new Task', command=generateNextTask).place(x=10, y=400, height=50, width=150)
     tk.Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=460, height=25, width=150)
     tk.Button(root, text='Open Midi file', command=openfile).place(x=10, y=520, height=25, width=150)
 
@@ -592,23 +612,23 @@ def refresh_buttons():
     @return: None
     """
     # next and previous tasks buttons
-    if (nextSavedTask() == False):
-        tk.Button(root, text='Next Task >>', command=nextSavedTask, state=tk.DISABLED).place(x=10, y=800, height=50,
+    if not scheduler.next_task_exists():
+        tk.Button(root, text='Next Task >>', state=tk.DISABLED).place(x=10, y=800, height=50,
                                                                                        width=150)
     else:
-        tk.Button(root, text='Next Task >>', command=lambda: nextSavedTask(True)).place(x=10, y=800, height=50, width=150)
+        tk.Button(root, text='Next Task >>', command=nextTask).place(x=10, y=800, height=50, width=150)
 
-    files = getTimeSortedMidiFiles()
-    if currentMidi != None:
-        currMidiIdx = files.index(currentMidi) + 1
-        l2 = tk.Label(root, text=" Midi File " + str(currMidiIdx) + " of " + str(len(files)))
-        l2.place(x=10, y=860, width=150, height=20)
+    # files = getTimeSortedMidiFiles()
+    # if currentMidi != None:
+    #     currMidiIdx = files.index(currentMidi) + 1
+    #     l2 = tk.Label(root, text=" Midi File " + str(currMidiIdx) + " of " + str(len(files)))
+    #     l2.place(x=10, y=860, width=150, height=20)
 
-    if (previousTask() == False):
-        tk.Button(root, text='<< Previous Task', command=previousTask, state=tk.DISABLED).place(x=10, y=880, height=50,
+    if not scheduler.previous_task_exists():
+        tk.Button(root, text='<< Previous Task', state=tk.DISABLED).place(x=10, y=880, height=50,
                                                                                           width=150)
     else:
-        tk.Button(root, text='<< Previous Task', command=lambda: previousTask(True)).place(x=10, y=880, height=50, width=150)
+        tk.Button(root, text='<< Previous Task', command=previousTask).place(x=10, y=880, height=50, width=150)
 
     # add button to show note sheet with haptic guidance
     global showGuidance
@@ -638,7 +658,7 @@ def openfile():
 
     @return: None
     """
-    nextTask(userSelectedTask=True,
+    loadUpTask(userSelectedTask=True,
              userSelectedLocation=filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")]))
 
 
@@ -771,6 +791,10 @@ def choose_ports():
 
 ##_____________________________START LOOP HERE________________________________##
 
+from task_generation.scheduler import Scheduler
+scheduler = Scheduler(loadUpTask)
+
+
 # create file output folder if it does not already exist
 subprocess.run(['mkdir', '-p', tempDir], stderr=subprocess.DEVNULL)
 # Create a window and title
@@ -787,7 +811,8 @@ load_Startmenu()
 root.geometry("1500x1000")
 
 check_dexmo_connected(mainWindow=False)
-options = optionsWindowClass(root=root, bpm=bpm, numberOfBars=numberOfBars, maxNoteperBar=maxNotePerBar,
-                             noteValuesList=noteValuesList, noteRangePerHand=noteRangePerHand, twoHandsTup=twoHandsTup)
+options = optionsWindowClass(root=root, taskParamters=taskParameters)
 
 root.mainloop()
+
+

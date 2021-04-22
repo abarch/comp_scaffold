@@ -1,77 +1,21 @@
 # from tkinter import *
-import enum
 import tkinter as tk
-
-class NoteRangePerHand(enum.Enum):
-    ONE_NOTE = enum.auto()
-    TWO_NOTES = enum.auto()
-    C_TO_G = enum.auto()
-    ONE_OCTAVE = enum.auto()
-    ONE_OCTAVE_WHITE = enum.auto()
-    ONE_OCTAVE_BLACK = enum.auto()
-    
-    
-noteRangePerHandDescription = ["One note (C)", "Two notes (C,D)", 
-                               "Notes C-G (for 5 fingers)", "One octave",
-                               "One octave (only white keys)",
-                               "One octave (only black keys)"
-                               ]
-
-noteRangeMap = {const: desc for const, desc in 
-                zip(NoteRangePerHand, noteRangePerHandDescription)}
-noteRangeMap.update(                   
-                    {desc: const for const, desc in 
-                zip(NoteRangePerHand, noteRangePerHandDescription)}
-                    )
-
-def get_pitchlist(note_range, right=True):
-    if right:
-        base_note = 60 #C4
-    else:
-        base_note = 48 #C3
-        
-    if note_range == NoteRangePerHand.ONE_NOTE:
-        pitchesList = [0]
-    elif note_range == NoteRangePerHand.TWO_NOTES:
-        pitchesList = [0, 2]
-    elif note_range == NoteRangePerHand.C_TO_G:
-        pitchesList = [0, 2, 4, 5, 7]
-    elif note_range == NoteRangePerHand.ONE_OCTAVE:
-        pitchesList = list(range(0, 12))
-    elif note_range == NoteRangePerHand.ONE_OCTAVE_WHITE:
-        pitchesList = [0,2,4,5,7,9,11]
-    elif note_range == NoteRangePerHand.ONE_OCTAVE_BLACK:
-        pitchesList = [1,3,6,8,10]
-    else:
-        raise ValueError(f"got unexpected note_range {repr(note_range)}!")
-        
-    return [base_note + p for p in pitchesList]
-    
+from task_generation.note_range_per_hand import noteRangePerHandDescription, noteRangeMap
 
 class optionsWindowClass():
     """
     Class for the GUI's options window, accessible from the main window.
     """
 
-    def __init__(self, root, bpm, maxNoteperBar, numberOfBars, noteValuesList, noteRangePerHand, twoHandsTup):
+    def __init__(self, root, taskParamters):
         """
         Initializes necessary variables.
 
         @param root: GUI root.
-        @param bpm: Tempo (beats per minute).
-        @param maxNoteperBar: Maximum number of notes that a bar can contain.
-        @param numberOfBars: Total number of bars.
-        @param noteValuesList: Possible durations of the notes (e.g. 1, 1/2 etc.).
-        @param pitchesList: Possible MIDI pitch numbers (0-127).
-        @param twoHandsTup: Tuple of booleans, True if left/right hand is active.
+        @param taskParameters: a TaskParameters object
         """
         self.root = root
-        self.bpm = bpm
-        self.maxNoteperBar = maxNoteperBar
-        self.numberOfBars = numberOfBars
-        self.noteValuesList = noteValuesList
-        self.noteRange = noteRangePerHand
-        self.twoHandsTup = twoHandsTup
+        self.taskParameters = taskParamters
 
         self.pitchesOptions = noteRangePerHandDescription
 
@@ -97,27 +41,27 @@ class optionsWindowClass():
         global fullNote, halfNote, quarterNote, eighthNote, sixteenthNote
 
         fullNote = tk.BooleanVar()
-        fullNote.set(1 in self.noteValuesList)
+        fullNote.set(1 in self.taskParameters.noteValues)
         chk1 = tk.Checkbutton(self.specifyWindow, text='1', var=fullNote)
         chk1.grid(column=1, row=2)
 
         halfNote = tk.BooleanVar()
-        halfNote.set(1/2 in self.noteValuesList)
+        halfNote.set(1/2 in self.taskParameters.noteValues)
         chk1_2 = tk.Checkbutton(self.specifyWindow, text='1/2', var=halfNote)
         chk1_2.grid(column=2, row=2)
 
         quarterNote = tk.BooleanVar()
-        quarterNote.set(1/4 in self.noteValuesList)
+        quarterNote.set(1/4 in self.taskParameters.noteValues)
         chk1_4 = tk.Checkbutton(self.specifyWindow, text='1/4', var=quarterNote)
         chk1_4.grid(column=3, row=2)
 
         eighthNote = tk.BooleanVar()
-        eighthNote.set(1/8 in self.noteValuesList)
+        eighthNote.set(1/8 in self.taskParameters.noteValues)
         chk1_8 = tk.Checkbutton(self.specifyWindow, text='1/8', var=eighthNote)
         chk1_8.grid(column=4, row=2)
 
         sixteenthNote = tk.BooleanVar()
-        sixteenthNote.set(1/16 in self.noteValuesList)
+        sixteenthNote.set(1/16 in self.taskParameters.noteValues)
         chk1_16 = tk.Checkbutton(self.specifyWindow, text='1/16', var=sixteenthNote)
         chk1_16.grid(column=5, row=2)
 
@@ -127,7 +71,7 @@ class optionsWindowClass():
 
         OptionList = ["1","2","3","4"]
         maxNoteNumber = tk.StringVar(self.specifyWindow)
-        maxNoteNumber.set(self.maxNoteperBar)
+        maxNoteNumber.set(self.taskParameters.maxNotesPerBar)
 
         opt = tk.OptionMenu(self.specifyWindow, maxNoteNumber, *OptionList)
         opt.grid(row=4,columnspan=4,sticky=tk.W,)
@@ -138,7 +82,7 @@ class optionsWindowClass():
 
         numberBars = tk.Scale(self.specifyWindow, from_=2, to=30, orient=tk.HORIZONTAL)
         numberBars.grid(row=6, columnspan=4,sticky=tk.W,)
-        numberBars.set(self.numberOfBars)
+        numberBars.set(self.taskParameters.noOfBars)
 
     # BEATS per minute
         l4 = tk.Label(self.specifyWindow, text=" Beats per minute:")
@@ -146,7 +90,7 @@ class optionsWindowClass():
 
         bpmscale = tk.Scale(self.specifyWindow, from_=10, to=200, orient=tk.HORIZONTAL)
         bpmscale.grid(row=8, columnspan=4,sticky=tk.W,)
-        bpmscale.set(self.bpm)
+        bpmscale.set(self.taskParameters.bpm)
 
     # NOTEPITCHES checkboxes
         l5 = tk.Label(self.specifyWindow, text=" Notepitches:")
@@ -164,12 +108,12 @@ class optionsWindowClass():
 
         global rightHand, leftHand
         rightHand = tk.BooleanVar()
-        rightHand.set(self.twoHandsTup[1])
+        rightHand.set(self.taskParameters.right)
         chk = tk.Checkbutton(self.specifyWindow, text='Use right hand', var=rightHand)
         chk.grid(column=1,columnspan=3, row=13)
 
         leftHand = tk.BooleanVar()
-        leftHand.set(self.twoHandsTup[0])
+        leftHand.set(self.taskParameters.left)
         chk = tk.Checkbutton(self.specifyWindow, text='Use left hand', var=leftHand)
         chk.grid(column=3, columnspan=3, row=13)
 
@@ -215,7 +159,7 @@ class optionsWindowClass():
         @return: Note pitches description.
         """
         
-        return noteRangeMap[self.noteRange]
+        return noteRangeMap[self.taskParameters.note_range]
         
 
     def get_pitches(self):
@@ -255,12 +199,13 @@ class optionsWindowClass():
         if (saveRightHand == False and saveLeftHand == False) or not self.get_noteValues() or not self.get_pitches():
             self.show_empty_list_error()
         else:
-            self.bpm = saveBPM
-            self.numberOfBars = saveBarNumber
-            self.maxNoteperBar = int(saveNotesPerBar)
-            self.noteValuesList = self.get_noteValues()
-            self.noteRange = self.get_pitches()
-            self.twoHandsTup = (saveLeftHand, saveRightHand)
+            self.taskParameters.bpm = saveBPM
+            self.taskParameters.noOfBars =  saveBarNumber
+            self.taskParameters.maxNotesPerBar = int(saveNotesPerBar)
+            self.taskParameters.noteValues = self.get_noteValues()
+            self.taskParameters.note_range = self.get_pitches()
+            self.taskParameters.left = saveLeftHand
+            self.taskParameters.right = saveRightHand
             self.specifyWindow.destroy()
 
     def quit_options(self):
@@ -278,4 +223,4 @@ class optionsWindowClass():
 
         @return: All current option values.
         """
-        return self.bpm, self.numberOfBars, self.maxNoteperBar, self.noteValuesList, self.noteRange, self.twoHandsTup
+        return self.taskParameters
