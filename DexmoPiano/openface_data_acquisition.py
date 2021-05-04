@@ -339,6 +339,7 @@ def preprocess_factory(adding_meta_data, class_mapper, feature_filter,
         # return 
             
         clf_cols = [col for col in df.columns if feature_filter(col)]
+        # print("FILTERED COLS:", clf_cols)
         
         if annotated_data:
             df = df[clf_cols + ["clf_target"]]
@@ -412,6 +413,7 @@ def train_classifier_on_saved(camera_pos="above_screen"):
         # if "pose" in feature:
         #     return True
         # return False
+        return feature[1] == "_"
         return True # "p" in feature
     
     
@@ -521,6 +523,9 @@ def eval_holdout_session():
     train_scores = list()
     test_scores  = list()
     
+    conf_mat_Y = list()
+    conf_mat_pred_Y = list()
+    
         
     for holdout_df, holdout_info in full_dfs:
         df = pd.concat([df for df, i in full_dfs if i != holdout_info])
@@ -536,17 +541,20 @@ def eval_holdout_session():
         
         
         def class_mapper(target_class):
-            if target_class.lower() in ["screen", "keyboard"]: #, "air"
+            if target_class.lower() in ["screen", "keyboard", "air"]: #
                 return target_class.lower()
             return None
         
         def feature_filter(feature):
             if feature in ["clf_target", "class", "class_method", "timestamp", "frame"]:
                 return False
-            if "gaze" in feature: # or "eye" in feature
-                return True
-            return False
-            return True # "p" in feature
+            # # if "gaze" in feature: # or "eye" in feature
+            # #     return True
+            # # return False
+            # return feature[1] == "_" and feature[0].lower() in "xyz"
+            # # return True # "p" in feature
+            # # return "pose" in feature
+            return True
         
         
         
@@ -558,14 +566,14 @@ def eval_holdout_session():
         df, _, _ = preprocess(df)
         holdout_df, clf_cols, target_classes = preprocess(holdout_df)
         
-        
         from sklearn.model_selection import train_test_split
         
         # train, test = train_test_split(df, test_size=0.25)
         train = df
         test = holdout_df
         
-        
+        print(train.info())
+        print(test.info())        
         ####
         def df2Xy(df):
             X = df[clf_cols]
@@ -578,9 +586,9 @@ def eval_holdout_session():
         from sklearn.svm import LinearSVC
 
         
-        # clf = DecisionTreeClassifier(max_depth=4)
+        clf = DecisionTreeClassifier(max_depth=3)
         # clf = RandomForestClassifier()
-        clf = LinearSVC(max_iter=1000)
+        # clf = LinearSVC(max_iter=1000)
         
         X, y = df2Xy(train)
         # y = 
@@ -636,8 +644,12 @@ def eval_holdout_session():
                                     target_names=target_classes
                                    ))
         
+        conf_mat_Y.append(y)
+        conf_mat_pred_Y.append(predicted_y)
         plot_confusion_matrix(clf, X, y, display_labels=target_classes)
         plt.show()
+        
+        
         
         print("-"*16)
         
@@ -650,6 +662,36 @@ def eval_holdout_session():
     print("TEST  MEAN:   {:.3f}".format(np.mean( test_scores)))
     print("TEST  MEDIAN: {:.3f}".format(np.median(test_scores)))
         
+    
+    y_true = np.hstack(conf_mat_Y)
+    y_pred = np.hstack(conf_mat_pred_Y)
+    
+    print(y_true.shape)
+    
+    from sklearn.metrics import confusion_matrix
+    from sklearn.metrics._plot.confusion_matrix import ConfusionMatrixDisplay
+    
+    cm = confusion_matrix(y_true, y_pred,
+                          normalize="true")
+
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm,
+                                  display_labels=target_classes,
+                                  )
+    disp.plot(colorbar=False)
+    plt.title("DecisionTree Depth=3")
+    # plt.title("SVC")
+    # confusion_matrix(y_total, y_pred_total, labels=target_classes)
+    
+    # plt.savefig("tree_d3_landmarks_only.eps")
+    
+    # import tikzplotlib
+
+    # tikzplotlib.clean_figure()
+    # tikzplotlib.save("test.tex")
+
+    
+    plt.show()
+    
     ###
         
     # return clf, target_classes, preprocess

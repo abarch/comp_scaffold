@@ -15,6 +15,7 @@ class TaskData:
     notes_right: list
     notes_left:  list
     bpm: float
+    _all_notes_fixed: tuple = None
     
     def asdict(self):
         return asdict(self)
@@ -25,8 +26,21 @@ class TaskData:
     def beats_per_measure(self):
         return self.time_signature[0]
     
-    def generate_practice_mode(self, practice_mode):
-        pass
+    # def generate_practice_mode(self, practice_mode):
+    #     pass
+
+    def note2hand(self, note):
+        if note in self.notes_right:
+            return "right"
+        if note in self.notes_left:
+            return "left"
+        raise ValueError()
+        
+    def all_notes(self):
+        if self._all_notes_fixed:
+            return self._all_notes_fixed
+        self._all_notes_fixed = tuple(sorted(self.notes_left + self.notes_right, key=lambda n:n.start))
+        return self._all_notes_fixed
     
     def __repr__(self):
         h = str(id(self))[-5:]

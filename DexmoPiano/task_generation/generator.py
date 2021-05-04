@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import random
-from dataclasses import dataclass, astuple
+from dataclasses import dataclass, astuple, asdict
 import dataclasses as dc
 from task_generation.note_range_per_hand import NoteRangePerHand, get_pitchlist
 
@@ -36,6 +36,8 @@ class TaskParameters:
     
     def astuple(self):
         return astuple(self)
+    
+        
 
 
 def generate_task(task_parameters):
