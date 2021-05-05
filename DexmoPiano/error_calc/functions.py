@@ -41,25 +41,25 @@ def computeErrorOld(targetNoteInfoList, actualNoteInfoList,
 
     return timeSums, errorDiff
 
-def computeErrorLV(targetNoteInfoList, actualNoteInfoList, 
+def computeErrorLV(task_data, actualNoteInfoList, 
                    openface_data=None,
                    inject_explanation=True,
                    plot=False):
     
     from error_calc.mappingLevenshtein import get_mapping
     
-    mapping = get_mapping(targetNoteInfoList, actualNoteInfoList)
+    mapping = get_mapping(task_data, actualNoteInfoList)
     
-    error = get_explanation(targetNoteInfoList, actualNoteInfoList, 
+    error = get_explanation(task_data, actualNoteInfoList, 
                             mapping,
-                            task_infos=FAKE_TASK_INFO,
+                            # task_infos=FAKE_TASK_INFO,
                             inject_explanation=inject_explanation,
                             plot=plot
                             )
     
     return error
 
-def computeErrorEvo(targetNoteInfoList, actualNoteInfoList, 
+def computeErrorEvo(task_data, actualNoteInfoList, 
                     openface_data=None,
                    inject_explanation=True,
                    plot=False,
@@ -67,12 +67,12 @@ def computeErrorEvo(targetNoteInfoList, actualNoteInfoList,
     
     from error_calc.mappingEvo import get_mapping
     
-    mapping = get_mapping(targetNoteInfoList, actualNoteInfoList,
+    mapping = get_mapping(task_data, actualNoteInfoList,
                           interactive=interactive)
     
-    error = get_explanation(targetNoteInfoList, actualNoteInfoList, 
+    error = get_explanation(task_data, actualNoteInfoList, 
                             mapping,
-                            task_infos=FAKE_TASK_INFO,
+                            # task_infos=FAKE_TASK_INFO,
                             inject_explanation=inject_explanation,
                             plot=plot
                             )

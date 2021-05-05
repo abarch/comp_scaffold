@@ -4,6 +4,7 @@ from music21 import converter
 import copy
 import os
 import random
+import mido
 
 import pianoplayer_interface
 from task_generation.note_range_per_hand import get_pitchlist, NoteRangePerHand
@@ -180,25 +181,26 @@ def generateMidi(task, outFiles):
     count_notes_right = 0
     lastPitch = [None, None]
 
-    all_notes = task.notes_left + task.notes_right
-    for start, pitch, duration in all_notes:
-        # choose right/left hand, split at C4 (MIDI: pitch 60)
-        if left and ((not right) or (pitch < 60)):
-            handTrack = L_TRACK
-            count_notes_left += 1
-            lastPitch[0] = (handTrack, pitch)
-        else:
-            handTrack = R_TRACK
-            count_notes_right += 1
-            lastPitch[1] = (handTrack, pitch)
-
-        # print("original note pitches: " + str(pitch))
-        mf.addNote(track=handTrack,
-                   channel=CHANNEL_PIANO,
-                   pitch=pitch,
-                   time=start,
-                   duration=duration,
-                   volume=VOLUME)
+    for handTrack, notes in [(L_TRACK, task.notes_left),
+                             (R_TRACK, task.notes_right)]:
+        for  (start, pitch, duration) in notes:
+            # choose right/left hand, split at C4 (MIDI: pitch 60)
+            if left and ((not right) or (pitch < 60)):
+                handTrack = L_TRACK
+                count_notes_left += 1
+                lastPitch[0] = (handTrack, pitch)
+            else:
+                handTrack = R_TRACK
+                count_notes_right += 1
+                lastPitch[1] = (handTrack, pitch)
+    
+            # print("original note pitches: " + str(pitch))
+            mf.addNote(track=handTrack,
+                       channel=CHANNEL_PIANO,
+                       pitch=pitch,
+                       time=start,
+                       duration=duration,
+                       volume=VOLUME)
 
     # add 3 extra notes per hand for proper fingering numbers
     for t in range(3):
@@ -215,6 +217,15 @@ def generateMidi(task, outFiles):
 
     # write 1st MIDI file (piano only)
     write_midi(outFiles[0], mf)
+    
+    ### parse the exact times back from the midi file
+    ## extremly unintuitive, but the most straight forward way i fear.
+    temp_mido_file = mido.MidiFile(outFiles[0])
+    mid_left = _midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
+    mid_right = _midi_messages_to_note_events(temp_mido_file.tracks[1], temp_mido_file)
+    
+    task.midi.register_midi_events(mid_left, mid_right)
+    
 
     ### METRONOME ###
     add_metronome(task.number_of_bars, numerator, outFiles[1], True, mf)
@@ -251,8 +262,36 @@ def generateMidi(task, outFiles):
         sf = converter.parse(outFiles[0])
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, c_to_g=c_to_g)
 
-                
+ 
 
+               
+def _midi_messages_to_note_events(messages, mido_file):
+    from midiInput import empty_noteinfo
+    from collections import defaultdict
+    from noteHandler import handleNote
+    from mido import tick2second
+
+    def get_tempo(mido_file):
+        for msg in mido_file:
+            if hasattr(msg, "tempo"):
+                return msg.tempo
+        raise Exception("No tempo defined??")
+    
+    notes_temp = defaultdict(empty_noteinfo)
+    out = list()
+    time = 0.0
+    tempo = get_tempo(mido_file)
+    for msg in messages:
+        time += tick2second(msg.time, mido_file.ticks_per_beat, tempo)
+        
+        if msg.is_meta:
+            continue
+        
+        if (msg.type == 'note_on') or (msg.type == 'note_off'):
+            handleNote(msg.type, msg.note, msg.velocity, notes_temp, out,
+                   timeFunc=lambda: time)
+        
+    return out
 
 def add_metronome(bars, numerator, outFile, writeFile, mf):
     """

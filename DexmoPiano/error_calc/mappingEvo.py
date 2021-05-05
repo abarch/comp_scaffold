@@ -12,7 +12,6 @@ from deap import base, creator, tools, algorithms
 # IND_SIZE=3
 
 def get_eval_function(target_notes, actual_notes):
-    
     # TODO find good value for time_error_window or different workaround.
     # high values are needed for finding the correct missing notes if notes are similar
     
@@ -307,10 +306,10 @@ def find_best_mapping(target_notes, actual_notes, interactive=False):
     return best
 
 
-def get_mapping(targetNoteInfoList, actualNoteInfoList, interactive=False,
+def get_mapping(task_data, actualNoteInfoList, interactive=False,
                  openface_data=None):
     
-    mapping = find_best_mapping(targetNoteInfoList, actualNoteInfoList, 
+    mapping = find_best_mapping(task_data.all_notes(), actualNoteInfoList, 
                                 interactive=interactive)
     
     return mapping

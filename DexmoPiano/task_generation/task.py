@@ -1,11 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import dataclasses as dc
 from collections import defaultdict
 from dataclasses import dataclass, asdict, astuple
 from task_generation.practice_modes import apply_practice_mode
 from task_generation.note_range_per_hand import NoteRangePerHand
 
+@dataclass
+class MidiNoteEventContainer:
+    left: list = dc.field(init=False)
+    right: list = dc.field(init=False)
+    together: list = dc.field(init=False)
+    
+    def register_midi_events(self, midi_left, midi_right):
+        # if hasattr(self, "together"):
+        #     print("SELF TOGETHER:", self.together)
+        #     raise Exception("register_midi called more than once??")
+        self.left = midi_left
+        self.right = midi_right
+        self.together = sorted(self.left + self.right, key=lambda n: n.note_on_time)
+        
+    def __repr__(self):
+        try:
+            return super().__repr__()
+        except:
+            return "MidiNoteEventContainer"
 
 @dataclass(frozen=True)
 class TaskData:
@@ -15,7 +35,8 @@ class TaskData:
     notes_right: list
     notes_left:  list
     bpm: float
-    _all_notes_fixed: tuple = None
+    midi: MidiNoteEventContainer = MidiNoteEventContainer()
+    # _all_notes_fixed: tuple = None
     
     def asdict(self):
         return asdict(self)
@@ -30,17 +51,15 @@ class TaskData:
     #     pass
 
     def note2hand(self, note):
-        if note in self.notes_right:
+        if note in self.midi.right:
             return "right"
-        if note in self.notes_left:
+        if note in self.midi.left:
             return "left"
-        raise ValueError()
+        raise ValueError("note in neither lists?")
         
     def all_notes(self):
-        if self._all_notes_fixed:
-            return self._all_notes_fixed
-        self._all_notes_fixed = tuple(sorted(self.notes_left + self.notes_right, key=lambda n:n.start))
-        return self._all_notes_fixed
+        assert hasattr(self.midi, "together"), "MidiContainer didn't have any events yet?"
+        return self.midi.together
     
     def __repr__(self):
         h = str(id(self))[-5:]
@@ -50,6 +69,10 @@ class TaskData:
         d = self.asdict()
         d["notes_right"] = tuple(d["notes_right"])
         d["notes_left"] = tuple(d["notes_left"])
+        
+        # the midi data is kind of not related to the task itself, thus
+        # shouldn't result in a different hash if different.
+        del d["midi"]
         return hash(tuple(d.items()))
     
 """

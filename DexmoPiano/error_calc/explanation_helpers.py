@@ -168,7 +168,7 @@ class NoteExpected(NotePlayed):
            
         relative_on_diff = self.note_on_time_relative - self.note_on_time_relative_target
         time_viz = fraction_to_single_note(
-                    time_to_fraction(relative_on_diff, task_infos.bpm, task_infos.beats_per_measure),
+                    time_to_fraction(relative_on_diff, task_infos.bpm, task_infos.beats_per_measure()),
                     for_ly = lilypond,
                     # levels=1
                     )
@@ -186,7 +186,7 @@ class NoteExpected(NotePlayed):
         
         hold_diff = self.note_hold_time - self.note_hold_time_target
         time_viz = fraction_to_single_note(
-                    time_to_fraction(hold_diff, task_infos.bpm, task_infos.beats_per_measure),
+                    time_to_fraction(hold_diff, task_infos.bpm, task_infos.beats_per_measure()),
                     for_ly = lilypond,
                     # levels=1
                     )

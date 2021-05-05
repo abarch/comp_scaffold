@@ -79,24 +79,46 @@ def get_explanation(task_data, actual, mapping,
     target_debug = note_info_list_add_debug(target, list(range(len(target))), anchor_map)
     actual_debug = note_info_list_add_debug(actual, mapping, anchor_map)
     
+    
+    #### EXTRA NOTES ####
+    
+    extra_notes_dict = dict(left=list(), right=list())
+    extra_notes = [a for idx, a in enumerate(actual_debug) if idx not in mapping]
+    for extra_note in extra_notes:
+        if len(task_data.notes_left) == 0:
+            extra_notes_dict["right"].append(extra_note)
+            continue
+        if len(task_data.notes_right) == 0:
+            extra_notes_dict["left"].append(extra_note)
+            continue
+        
+        pitch_time_dist = [(abs(extra_note.pitch-n.pitch), abs(extra_note.note_on_time-n.note_on_time), "left")
+                           for n in task_data.midi.left]
+        pitch_time_dist.extend([(abs(extra_note.pitch-n.pitch), abs(extra_note.note_on_time-n.note_on_time), "right")
+                           for n in task_data.midi.right]
+            )
+        hand = sorted(pitch_time_dist)[0][2]
+        extra_notes_dict[hand].append(extra_note)
+    
+    
+    
     Error = namedtuple("Error", ["pitch", "note_hold_time", "timing",
                                  "n_missing_notes", "t_missing_notes",
                                  "n_extra_notes", "t_extra_notes",
+                                 "number_of_notes"
                                  ])
     
     errors = []
     output_note_list = list()
     
     for hand in ("left", "right"):
-    
+        num_notes = len(getattr(task_data, f"notes_{hand}"))
         error_timing = 0
         error_note_hold_time   = 0
         error_pitch  = 0
         
         notes_missing = 0
         notes_missing_t = 0
-        actual_notes_unused = {}
-        
         
         for t_i, a_i in enumerate(mapping):
             ## check whether the target notes belogs to the hand we want to calculate
@@ -113,8 +135,6 @@ def get_explanation(task_data, actual, mapping,
                 
                 continue
             
-            
-            actual_notes_unused.remove(a_i)
             a = actual_debug[a_i]
             
             pitch_diff = t.pitch - a.pitch
@@ -139,12 +159,12 @@ def get_explanation(task_data, actual, mapping,
         errors.append( Error(pitch=error_pitch, note_hold_time=error_note_hold_time, timing=error_timing,
                n_missing_notes=notes_missing,
                t_missing_notes=notes_missing_t,
-               n_extra_notes = len(actual_notes_unused),
-               t_extra_notes = sum(actual_debug[a].note_hold_time for a in actual_notes_unused)
+               n_extra_notes = len(extra_notes_dict[hand]),
+               t_extra_notes = sum(extra.note_hold_time for extra in extra_notes_dict[hand]),
+               number_of_notes=num_notes
                ) )
         
-        for unused_a_i in actual_notes_unused:
-            a = actual_debug[unused_a_i]
+        for a in extra_notes:
             output_note_list.append(NoteExtra(a.pitch, a.velocity, 
                         a.note_on_time, a.time_after_anchor, a.note_hold_time))
 
@@ -167,22 +187,25 @@ def get_explanation(task_data, actual, mapping,
     
     # ONE FOR EACH HAND?
     
+    error_left, error_right = errors
+    
+    error_total = Error(*[l+r for l, r in zip(error_left, error_right)])
     
     #TODO missing missing notes / extra notes
     
     
     
     if inject_explanation:
-        insert_lyrics_into_ly(output_note_list, task_infos)
+        insert_lyrics_into_ly(output_note_list, task_data)
     
     if plot:
         try:
-            note_list_to_plot(output_note_list, task_infos, openface_data)
+            note_list_to_plot(output_note_list, task_data, openface_data)
         except:
             import traceback
             traceback.print_exc()
     
-    return output_note_list, errors
+    return output_note_list, error_total, error_left, error_right
 
 #lyr_string(self, task_infos, lilypond=False, debug=False):
 

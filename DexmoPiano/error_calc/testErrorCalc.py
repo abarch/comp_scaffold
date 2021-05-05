@@ -5,16 +5,23 @@ import time
 # from midiInput import NoteInfo
 from error_calc.explanation import NoteExtra, NoteMissing
 from collections import namedtuple
-NoteInfo = namedtuple("NoteInfo", ["pitch", "velocity", "note_on_time", "note_off_time"])
-
+# NoteInfo = namedtuple("NoteInfo", ["pitch", "velocity", "note_on_time", "note_off_time"])
+from task_generation.task import TaskData
+from task_generation.generator import TaskNote
+from task_generation.note_range_per_hand import NoteRangePerHand
 
 def simple_scale():
     LENGTH = 8
     notes = list()
     for pitch, start_time in zip(range(LENGTH), range(LENGTH)):
-        notes.append(NoteInfo(pitch, 100, start_time*2, start_time*2+1))
+        notes.append(TaskNote(start_time*2, start_time*2+1))
         
-    return notes
+    return TaskData(time_signature=(4,4), 
+                    number_of_bars=99, 
+                    note_range=NoteRangePerHand.C_TO_G, 
+                    notes_right=notes, 
+                    notes_left=[],
+                    bpm=120)
 
 
 def simple_rhythmic():
@@ -28,7 +35,7 @@ def simple_rhythmic():
     for length in lengths:
         for i in range(n_notes):
             
-            notes.append(NoteInfo(pitch, 100, time, time+length))
+            notes.append(TaskNote = namedtuple("TaskNote", "start pitch duration")(pitch, 100, time, time+length))
             time += length*2
             
     return notes
@@ -141,7 +148,7 @@ if __name__ == "__main__":
     target_notes = simple_scale() #simple_rhythmic
     # target_notes = simple_rhythmic() 
     
-    actual_notes = target_notes.copy()
+    actual_notes = target_notes.all_notes().copy()
     
     # drop_notes(actual_notes)
     # repeat_notes(actual_notes)

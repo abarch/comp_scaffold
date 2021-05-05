@@ -31,7 +31,7 @@ def getTime():
     return round(time.time() - startTime, ROUND_DIGITS)
 
 
-def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
+def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList, timeFunc=getTime):
     """
     Handles a given MIDI note, played by the user.
     Every note is defined by two events: note_on (pressed) and note_off (released).
@@ -45,6 +45,7 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
     @param velocity: Velocity of the MIDI note.
     @param noteInfoTemp: Temporary list containing each possible note's current state.
     @param noteInfoList: List of all notes played by the user.
+    @param timeFunc: Function that returns the (absolute) time of the event.
     @return: -1 for error, 0 for note_on success, noteInfo for note_off success
     """
     
@@ -61,7 +62,7 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
             return -1
 
         noteInfoTemp[pitch] = adapt_noteinfo(note_info, pitch=pitch,
-                                             note_on_time=getTime(), 
+                                             note_on_time=timeFunc(), 
                                              velocity=velocity)
         return 0
 
@@ -74,7 +75,7 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
 
         
         final_note_info = adapt_noteinfo(note_info,
-                                         note_off_time=getTime())
+                                         note_off_time=timeFunc())
         
         # reset entry
         try:

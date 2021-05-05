@@ -53,8 +53,18 @@ class MidiInputThread():
         self.noteCounter = 1
         
         self.has_valid_port_set = False
+        
         try:
-            input_port = input_port or [p for p in mido.get_input_names() 
+            available_names = mido.get_input_names() 
+        except:
+            # import traceback
+            # traceback.print_exc()
+            print("WARNING: Error ocurred during 'mido.get_input_names()'")
+            
+            available_names = []
+        
+        try:
+            input_port = input_port or [p for p in available_names 
                                         if midi_controller_name in p][0]
             
             self.setPort(input_port)
@@ -181,7 +191,7 @@ if __name__ == "__main__":
     # testMode = True
 
     # # print available MIDI input ports
-    print(mido.get_input_names())
+    # print(mido.get_input_names())
     
     # input_port = [p for p in mido.get_input_names() if "Q25" in p][0]
     

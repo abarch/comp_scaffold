@@ -87,7 +87,8 @@ def damerau_levenshtein_distance(s1, s2, with_transposition=True, verbose=True):
 
 
 
-def get_mapping(targetNoteInfoList, actualNoteInfoList):
+def get_mapping(task_data, actualNoteInfoList):
+    targetNoteInfoList = task_data.all_notes()
     target = sorted(targetNoteInfoList, key=lambda n:n.note_on_time)
     actual = sorted(actualNoteInfoList, key=lambda n:n.note_on_time)
     

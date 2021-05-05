@@ -56,7 +56,7 @@ def set_inport(portName):
         print("ERROR: inputThread was not defined yet")
 
 
-def startThreads(midiFileLocation, guidance, useVisualAttention=True):
+def startThreads(midiFileLocation, guidance, task_data, useVisualAttention=True):
     """
     Starts the MIDI playback thread and activates the MIDI input handler.
     After the player thread terminates, the input handler is deactivated again.
@@ -138,8 +138,8 @@ def startThreads(midiFileLocation, guidance, useVisualAttention=True):
     imp.reload(errorCalc)
 
     try:
-        output_note_list, errorVec = \
-            errorCalc.computeErrorEvo(targetTimes, actualTimes, 
+        output_note_list, errorVec, errorVecLeft, errorVecRight = \
+            errorCalc.computeErrorEvo(task_data, actualTimes, 
                                     openface_data=openface_data,
                                     inject_explanation=True,
                                     plot=True)
@@ -152,6 +152,9 @@ def startThreads(midiFileLocation, guidance, useVisualAttention=True):
         for n in output_note_list:
             print(n.err_string())
         print("\nSUMMED ERROR: ", errorVec)
+        
+        print("ERROR LEFT: ", errorVecLeft)
+        print("ERROR RIGHT:", errorVecRight)
     
 
         return targetTimes, actualTimes, sum(errorVec)
