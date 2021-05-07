@@ -138,7 +138,7 @@ def get_explanation(task_data, actual, mapping,
             a = actual_debug[a_i]
             
             pitch_diff = t.pitch - a.pitch
-            if pitch_diff > 0:
+            if abs(pitch_diff) > 0:
                 # print("WRONG PITCH", t_i, t, a_i, a)
                 error_pitch += 1
                 
