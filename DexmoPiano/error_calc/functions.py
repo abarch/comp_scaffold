@@ -4,11 +4,6 @@ except:
     from explanation import get_explanation
 
 
-##TODO make this real
-from collections import namedtuple
-TaskInfos = namedtuple("TaskInfos", ["bpm", "beats_per_measure"])
-FAKE_TASK_INFO = TaskInfos(bpm=120, beats_per_measure=4)
-
 
 def computeErrorOld(targetNoteInfoList, actualNoteInfoList,
                     openface_data=None,

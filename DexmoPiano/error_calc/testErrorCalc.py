@@ -5,23 +5,33 @@ import time
 # from midiInput import NoteInfo
 from error_calc.explanation import NoteExtra, NoteMissing
 from collections import namedtuple
-# NoteInfo = namedtuple("NoteInfo", ["pitch", "velocity", "note_on_time", "note_off_time"])
+NoteInfo = namedtuple("NoteInfo", ["pitch", "velocity", "note_on_time", "note_off_time"])
 from task_generation.task import TaskData
 from task_generation.generator import TaskNote
 from task_generation.note_range_per_hand import NoteRangePerHand
+
+
+
+def TaskDataFromNotes(left=None, right=None):
+    left = left or list()
+    right = right or list()
+    td = TaskData(time_signature=(4,4), 
+                    number_of_bars=99, 
+                    note_range=NoteRangePerHand.C_TO_G, 
+                    notes_right=left, #not used but checked with len i think
+                    notes_left=right, #not used but checked with len i think
+                    bpm=120)
+    td.midi.register_midi_events(left, right)
+    return td
+
 
 def simple_scale():
     LENGTH = 8
     notes = list()
     for pitch, start_time in zip(range(LENGTH), range(LENGTH)):
-        notes.append(TaskNote(start_time*2, start_time*2+1))
+        notes.append(NoteInfo(pitch, 64, start_time*2, start_time*2+1))
         
-    return TaskData(time_signature=(4,4), 
-                    number_of_bars=99, 
-                    note_range=NoteRangePerHand.C_TO_G, 
-                    notes_right=notes, 
-                    notes_left=[],
-                    bpm=120)
+    return notes
 
 
 def simple_rhythmic():
@@ -35,7 +45,7 @@ def simple_rhythmic():
     for length in lengths:
         for i in range(n_notes):
             
-            notes.append(TaskNote = namedtuple("TaskNote", "start pitch duration")(pitch, 100, time, time+length))
+            notes.append(NoteInfo(pitch, 100, time, time+length))
             time += length*2
             
     return notes
@@ -129,7 +139,9 @@ def test_evo_scale_drop():
                 a.note_on_time for a in actual_notes)
         
         
-        explanation, error = ce_evo(target_notes, actual_notes, False, False)
+        explanation, error, _, _ = ce_evo(
+            TaskDataFromNotes(right=target_notes),
+                                    actual_notes, False, False)
         
         selected_time_ons = set()
         for note in explanation:
@@ -148,7 +160,7 @@ if __name__ == "__main__":
     target_notes = simple_scale() #simple_rhythmic
     # target_notes = simple_rhythmic() 
     
-    actual_notes = target_notes.all_notes().copy()
+    actual_notes = target_notes.copy()
     
     # drop_notes(actual_notes)
     # repeat_notes(actual_notes)
@@ -167,9 +179,10 @@ if __name__ == "__main__":
     from error_calc.functions import computeErrorEvo as ce_evo
     
     from functools import partial
-    ce_evo = partial(ce_evo, interactive=True)
+    # ce_evo = partial(ce_evo, interactive=True)
     
-    error_funcs = dict(old=ce_old, 
+    error_funcs = dict(
+                        # old=ce_old, ## too old
                         levenshtein=ce_lv,
                         evo=ce_evo,    
                        )
@@ -185,7 +198,9 @@ if __name__ == "__main__":
     for name, computeError in error_funcs.items():
         print(name)
         start_time = time.time()
-        # error = computeError(target_notes, actual_notes)[1]
+        error = computeError(
+            TaskDataFromNotes(right=target_notes), 
+            actual_notes)[1]
         # print("ERROR:", error)
         # error_dict[name] = error
         
@@ -196,4 +211,4 @@ if __name__ == "__main__":
     pprint.pprint(error_dict)
     # print(computeError(target_notes, actual_notes))
     # output_note_list, error = computeError(target_notes, actual_notes)
-    test_evo_scale_drop()
+    # test_evo_scale_drop()
