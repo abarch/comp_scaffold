@@ -52,7 +52,7 @@ def createTrialEntry(path, midiPrefix, timestamp, guidanceMode, actualNotes, err
     root = tree.getroot()
     trials = root.find("trials")
 
-    trialNo = len(trials.getchildren()) + 1
+    trialNo = len(list(trials)) + 1
 
     trial = ET.SubElement(trials, "trial", trial_no=str(trialNo), timestamp=str(timestamp))
     
