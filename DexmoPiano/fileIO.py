@@ -16,7 +16,7 @@ def createXML(path, midiPrefix, options, targetNotes):
     root = ET.Element("MIDI", midiNo=midiPrefix)
 
     targets = ET.SubElement(root, "target_notes")
-    
+
     targetNotesJson = json.dumps([ni._asdict() for ni in targetNotes])
     ET.SubElement(targets, "notes", name="Note List").text = targetNotesJson
     ET.SubElement(targets, "options", name="Option List").text = str(options)
@@ -55,7 +55,7 @@ def createTrialEntry(path, midiPrefix, timestamp, guidanceMode, actualNotes, err
     trialNo = len(list(trials)) + 1
 
     trial = ET.SubElement(trials, "trial", trial_no=str(trialNo), timestamp=str(timestamp))
-    
+
     actualNotesJson = json.dumps([ni._asdict() for ni in actualNotes])
     ET.SubElement(trial, "notes", name="Played Notes").text = actualNotesJson
     ET.SubElement(trial, "guidance", name="Guidance Mode").text = str(guidanceMode)
@@ -74,7 +74,7 @@ def prettifyXML(filepath):
     """
     from pathlib import Path
     filepath = Path(filepath)
-    
+
     rough_string = filepath.read_text()
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
@@ -84,7 +84,7 @@ def prettifyXML(filepath):
 def printXML(filepath, pretty):
     """
     Prints a given XML file, either directly or prettified (formatted).
-    IMPORTANT: this prints out quotations marks as &quot etc. 
+    IMPORTANT: this prints out quotations marks as &quot etc.
             but they are written correctly to file.
 
     @param filepath: Path of the XML file.
@@ -100,16 +100,15 @@ def printXML(filepath, pretty):
         print(ET.tostring(root))
 
 
-
 if __name__ == "__main__":
 
     outpath = "./output/"
     midiPrefix = "midi001"   # without .mid
     outfile = outpath + midiPrefix + ".xml"
     options = [1, True, "bla"]
-    
+
     from midiInput import NoteInfo
-    
+
     targetNotes = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]
     targetNotes = [NoteInfo(*t) for t in targetNotes]
     actualNotes = [[11, 22, 33, 44], [55, 66, 77, 88], [99, 0, 0, 0]]

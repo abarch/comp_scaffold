@@ -1,5 +1,6 @@
 import time
 from custom_logging import get_logger_for_this_file
+import config
 
 # number of digits up to which a float is rounded
 ROUND_DIGITS = 3
@@ -48,9 +49,9 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList, timeFunc=g
     @param timeFunc: Function that returns the (absolute) time of the event.
     @return: -1 for error, 0 for note_on success, noteInfo for note_off success
     """
-    
+
     from midiInput import adapt_noteinfo
-    
+
     # the NoteInfo object before any updates
     note_info = noteInfoTemp[pitch]
 
@@ -60,9 +61,9 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList, timeFunc=g
         if note_info.note_on_time != -1:
             logger.error(f"note_on was set twice! Pitch: {pitch} | {(noteType, pitch, velocity)}")
             return -1
-
+        config.vnotes.update_key_pressed(pitch, time.time() - config.playing_start_time) # update visual notes
         noteInfoTemp[pitch] = adapt_noteinfo(note_info, pitch=pitch,
-                                             note_on_time=timeFunc(), 
+                                             note_on_time=timeFunc(),
                                              velocity=velocity)
         return 0
 
@@ -73,21 +74,31 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList, timeFunc=g
             logger.error(f"note_on was set twice! Pitch: {pitch} | {(noteType, pitch, velocity)}")
             return -1
 
-        
+        config.vnotes.update_key_released(pitch, time.time() - config.playing_start_time) # update visual notes
         final_note_info = adapt_noteinfo(note_info,
                                          note_off_time=timeFunc())
-        
+        """ (Safety) Copy from PianoLab, should be done by adapt_note_info
+        noteOffTime = getTime()
+        noteInfoTemp[pitch][1] = [noteOffTime]
+        noteOnTime = noteInfoTemp[pitch][0]
+        velocityOn = noteInfoTemp[pitch][2] # velocity when the key was pressed
+        velocityOff = velocity
+        """
         # reset entry
+        """ (Safety)Copy from PianoLab
+        noteInfoTemp[pitch] = [-1, -1, -1]
+        noteInfo = [pitch, velocityOn, noteOnTime, noteOffTime, velocityOff]
+        """
         try:
             noteInfoTemp.pop(pitch)
-            # same as 
+            # same as
             # del noteInfoTemp[pitch]
         except KeyError:
             print("Error removing from noteInfoTemp")
 
 
         noteInfoList.append(final_note_info)
-        
+
         return final_note_info
 
     else:
