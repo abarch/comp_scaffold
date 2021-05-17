@@ -53,7 +53,8 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
         if noteInfoTemp[pitch][0] != -1:
             print("note_on was set twice! Pitch:", pitch)
             return -1
-        config.vnotes.update_key_pressed(pitch, time.time() - config.playing_start_time) # update visual notes
+        if config.showVerticalGuidance:
+            config.vnotes.update_key_pressed(pitch, time.time() - config.playing_start_time) # update visual notes
         noteInfoTemp[pitch] = [getTime(), -1, velocity]
 
         return 0
@@ -64,8 +65,8 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList):
         if (noteInfoTemp[pitch][0] == -1) or (noteInfoTemp[pitch][1] != -1):
             print("note_off was set twice! Pitch:", pitch)
             return -1
-
-        config.vnotes.update_key_released(pitch, time.time() - config.playing_start_time) # update visual notes
+        if config.showVerticalGuidance:
+            config.vnotes.update_key_released(pitch, time.time() - config.playing_start_time) # update visual notes
         noteOffTime = getTime()
         ### TODO: needed? see TODO below
         noteInfoTemp[pitch][1] = [noteOffTime]
