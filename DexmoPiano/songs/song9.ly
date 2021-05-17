@@ -5,7 +5,7 @@
  }
 \score {
  {
-  \relative c'{\numericTimeSignature c2 c4 e c2 e g g4 e c2 e g e4 c e2 g4 e e2 g4 e c1 \bar "|."}
+  \relative c'{\numericTimeSignature c e c g' e c2 g'4 e c g' e c g' e2 g4 e g c, g' c, e2 c4 e2 g4 c,1 \bar "|."}
 
 }
 \layout {

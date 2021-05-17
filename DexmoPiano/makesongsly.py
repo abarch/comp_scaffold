@@ -56,8 +56,8 @@ if __name__ == "__main__":
         bpm = 60
     else:
         bpm = int(sys.argv[2])
-
-    if n < 1:  # Do all the sample songs
+    print("n = " + str(n))
+    if n < 2:  # Do all the sample songs
         for k in range(10):
             make_song('song' + str(k+1), bpm)
     else:
