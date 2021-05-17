@@ -142,7 +142,7 @@ def mateSwapEntries(ind1, ind2, indpb):
 ## TODO maybe have a weighed choice when mutating based on the surroundings of
 ## the mutation, either just index based or with an additional function which
 ## has timing information. 
-## -> it makes little sense to mutate the X in [0, 2, X, 3, ...] to 10 or highter
+## -> it makes little sense to mutate the X in [0, 2, X, 3, ...] to 10 or higher
 ## we expect the mapping to be somewhat in ascending order
 
 ## TODO have some shift mutations
