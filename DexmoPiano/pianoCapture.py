@@ -165,7 +165,7 @@ def load_songlist(filename):
 
 def load_songs():
     for k in range(len(songNames)):
-        Button(root, text=songNames[k], fg='blue', command=lambda k=k: loadSong(songFiles[k], songNames[k]))\
+        Button(root, wraplength=200, text=songNames[k], fg='blue', command=lambda k=k: loadSong(songFiles[k], songNames[k]))\
             .place(x=30, y=k * 60 + 30, height=50, width=200)
 
 
