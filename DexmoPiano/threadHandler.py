@@ -13,7 +13,7 @@ import config
 import fileIO
 
 # GLOBAL CONSTANTS
-# MAX_NOTE = 128
+MAX_NOTE = 128
 global portname
 
 
@@ -83,26 +83,26 @@ def set_outport(portName):
         print("ERROR: outputThread was not defined yet")
 
 def startThreads(midiFileLocation, guidance, task_data, useVisualAttention=True):
-	"""
+    """
     Starts the MIDI playback thread and activates the MIDI input handler.
     After the player thread terminates, the input handler is deactivated again.
     The user's played notes and the error are received and displayed afterwards.
 
-	@param midiFileLocation: Path to the MIDI file.
-	@param guidance: Current Dexmo guidance mode.
-	@return: Target notes, actual notes and the error.
-	"""
+    @param midiFileLocation: Path to the MIDI file.
+    @param guidance: Current Dexmo guidance mode.
+    @return: Target notes, actual notes and the error.
+    """
     global targetTemp, targetTimes, inputThread, outputThread
 
     ###TODO: change?
     resetArrays()
     inputThread.resetArrays()
-	outputThread.resetArrays()
+    #outputThread.resetArrays()
 
-	if useVisualAttention:
-		from openfaceInput import OpenFaceInput
-		ofi = OpenFaceInput()
-		ofi.start()
+    if useVisualAttention:
+        from openfaceInput import OpenFaceInput
+        ofi = OpenFaceInput()
+        ofi.start()
 
     # MIDI PLAYER THREAD
     # initialize MIDI file player thread
