@@ -35,11 +35,16 @@ class TaskData:
     notes_right: list
     notes_left:  list
     bpm: float
-    midi: MidiNoteEventContainer = MidiNoteEventContainer()
+    midi: MidiNoteEventContainer = dc.field(default_factory=MidiNoteEventContainer)
     # _all_notes_fixed: tuple = None
     
+    def __post_init__(self):
+        assert type(self.midi) != dict
+    
     def asdict(self):
-        return asdict(self)
+        _d = asdict(self)
+        _d["midi"] = self.midi # the midi container gets turned into a dict!?
+        return _d
     
     def astuple(self):
         return astuple(self)
