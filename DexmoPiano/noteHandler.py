@@ -61,7 +61,9 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList, timeFunc=g
         if note_info.note_on_time != -1:
             logger.error(f"note_on was set twice! Pitch: {pitch} | {(noteType, pitch, velocity)}")
             return -1
-        #config.vnotes.update_key_pressed(pitch, time.time() - config.playing_start_time) # update visual notes
+        # if config.showVerticalGuidance:
+        #   config.vnotes.update_key_pressed(pitch, time.time() - config.playing_start_time) # update visual notes
+        #   noteInfoTemp[pitch] = [getTime(), -1, velocity]
         noteInfoTemp[pitch] = adapt_noteinfo(note_info, pitch=pitch,
                                              note_on_time=timeFunc(),
                                              velocity=velocity)
@@ -73,8 +75,8 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList, timeFunc=g
         if (note_info.note_on_time == -1) or (note_info.note_off_time != -1):
             logger.error(f"note_on was set twice! Pitch: {pitch} | {(noteType, pitch, velocity)}")
             return -1
-
-        #config.vnotes.update_key_released(pitch, time.time() - config.playing_start_time) # update visual notes
+        if config.showVerticalGuidance:
+            config.vnotes.update_key_released(pitch, time.time() - config.playing_start_time) # update visual notes
         final_note_info = adapt_noteinfo(note_info,
                                          note_off_time=timeFunc())
         """ (Safety) Copy from PianoLab, should be done by adapt_note_info

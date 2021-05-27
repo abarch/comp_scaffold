@@ -70,19 +70,19 @@ class VisualNotes():
                                         self.start_pos_x + k * self.key_width + 0.2 * self.key_width, self.start_pos_y + 0.66 * self.key_length,
 
                                         fill='black')
-    def init_v_curser(self):
-        # initialize vertical curser
-        self.v_curser = self.canvas.create_line(self.start_pos_x-25, self.start_pos_y + self.key_length, self.start_pos_x-10, self.start_pos_y + self.key_length, width=5, fill='red')
+    def init_v_cursor(self):
+        # initialize vertical cursor
+        self.v_cursor = self.canvas.create_line(self.start_pos_x-25, self.start_pos_y + self.key_length, self.start_pos_x-10, self.start_pos_y + self.key_length, width=5, fill='red')
 
-    def init_h_curser(self, x_pos, y_pos, h_quarter_len):
-        # initialize horizontal curser
+    def init_h_cursor(self, x_pos, y_pos, h_quarter_len):
+        # initialize horizontal cursor
 
-        self.h_curser_x = x_pos
-        self.h_curser_y = y_pos
+        self.h_cursor_x = x_pos
+        self.h_cursor_y = y_pos
         self.h_quarter_len = h_quarter_len
         self.current_wait_for_note_x = x_pos
 
-        self.h_curser = self.canvas.create_line(self.h_curser_x, self.h_curser_y, self.h_curser_x, self.h_curser_y+20, width = 5, fill='red')
+        self.h_cursor = self.canvas.create_line(self.h_cursor_x, self.h_cursor_y, self.h_cursor_x, self.h_cursor_y+20, width = 5, fill='red')
 
 
     # def draw_actual_notes(self, actual_notes):
@@ -122,11 +122,11 @@ class VisualNotes():
         self.draw_keyboard(False)
 
     def update_actual_notes(self, current_ts):
-        # update vertical curser
-        self.canvas.coords(self.v_curser, self.start_pos_x-25, self.start_pos_y + self.key_length + (self.tempo / 60.0) * self.quarter_len * current_ts, self.start_pos_x-10, self.start_pos_y + self.key_length + (self.tempo / 60.0) * self.quarter_len * current_ts)
+        # update vertical cursor
+        self.canvas.coords(self.v_cursor, self.start_pos_x-25, self.start_pos_y + self.key_length + (self.tempo / 60.0) * self.quarter_len * current_ts, self.start_pos_x-10, self.start_pos_y + self.key_length + (self.tempo / 60.0) * self.quarter_len * current_ts)
 
-        # update horizontal curser
-        self.canvas.coords(self.h_curser, self.h_curser_x+ (self.tempo / 60.0) * self.h_quarter_len * current_ts, self.h_curser_y, self.h_curser_x+ (self.tempo / 60.0) * self.h_quarter_len * current_ts, self.h_curser_y+20)
+        # update horizontal cursor
+        self.canvas.coords(self.h_cursor, self.h_cursor_x+ (self.tempo / 60.0) * self.h_quarter_len * current_ts, self.h_cursor_y, self.h_cursor_x+ (self.tempo / 60.0) * self.h_quarter_len * current_ts, self.h_cursor_y+20)
 
             # update current pitch box
         if self.current_pitch:
@@ -137,8 +137,9 @@ class VisualNotes():
                                     self.start_pos_y + self.key_length + (self.tempo / 60.0) * self.quarter_len *
                                     current_ts)
 
+
     def init_wait_for_note(self):
-        # initialize cursers to be on the first note.
+        # initialize cursors to be on the first note.
 
         self.current_wait_for_note_y = self.start_pos_y+ self.key_length #+ self.quarter_len * self.duration_list[0]
         #self.current_wait_for_note_x = self.h_quarter_len * self.duration_list[0]
@@ -146,16 +147,16 @@ class VisualNotes():
         self.current_wait_for_note = 0
 
 
-        # update vertical curser
-        self.canvas.coords(self.v_curser, self.start_pos_x - 25,
+        # update vertical cursor
+        self.canvas.coords(self.v_cursor, self.start_pos_x - 25,
                            self.current_wait_for_note_y,
                            self.start_pos_x - 10,
                            self.current_wait_for_note_y)
 
-        # update horizontal curser
-        self.canvas.coords(self.h_curser, self.current_wait_for_note_x,
-                           self.h_curser_y, self.current_wait_for_note_x,
-                           self.h_curser_y + 20)
+        # update horizontal cursor
+        self.canvas.coords(self.h_cursor, self.current_wait_for_note_x,
+                           self.h_cursor_y, self.current_wait_for_note_x,
+                           self.h_cursor_y + 20)
 
     def is_wait_for_note_done(self):
         # return true if all notes have been played
@@ -176,18 +177,18 @@ class VisualNotes():
          #   self.current_wait_for_note_y += self.quarter_len * self.duration_list[self.current_wait_for_note]
          #   self.current_wait_for_note += 1
 
-            # update cursers
+            # update cursors
 
-            # update vertical curser
-            self.canvas.coords(self.v_curser, self.start_pos_x - 25,
+            # update vertical cursor
+            self.canvas.coords(self.v_cursor, self.start_pos_x - 25,
                                self.current_wait_for_note_y,
                                self.start_pos_x - 10,
                                self.current_wait_for_note_y)
 
-            # update horizontal curser
-            self.canvas.coords(self.h_curser, self.current_wait_for_note_x ,
-                               self.h_curser_y, self.current_wait_for_note_x,
-                               self.h_curser_y + 20)
+            # update horizontal cursor
+            self.canvas.coords(self.h_cursor, self.current_wait_for_note_x ,
+                               self.h_cursor_y, self.current_wait_for_note_x,
+                               self.h_cursor_y + 20)
 
             # update time and next note
             self.current_wait_for_note_y += self.quarter_len * self.duration_list[self.current_wait_for_note]
@@ -215,7 +216,7 @@ class VisualNotes():
         self.current_pitch = []
         self.current_wait_for_note = 0
         self.current_wait_for_note_y = self.start_pos_y + self.key_length
-        self.current_wait_for_note_x = self.h_curser_x
+        self.current_wait_for_note_x = self.h_cursor_x
 
 def parse_note(note, last_duration = 4):
     notes2int = {"c":1, "d":2, "e":3, "f":4, "g":5, "a":6, "b":7}
