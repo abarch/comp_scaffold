@@ -2,10 +2,29 @@
 # -*- coding: utf-8 -*-
 
 from task_generation.generator import TaskParameters
-from task_generation.practice_modes import PracticeMode
+
+SIMPLIFIED_TEST_ENUMS = False
+
+if SIMPLIFIED_TEST_ENUMS == False:
+    from task_generation.practice_modes import PracticeMode
+    from task_generation.note_range_per_hand import NoteRangePerHand
+    
+else:
+    import enum
+    class PracticeMode(enum.Enum):
+        IMP_PITCH = enum.auto()
+        IMP_TIMING = enum.auto()
+        
+    class NoteRangePerHand(enum.Enum):
+        EASY = enum.auto()
+        MEDIUM = enum.auto()
+        HARD = enum.auto()
+    
+    
 
 practicemode2int = {pm: i for i, pm in enumerate(PracticeMode)}
 int2practicemode = {i: pm for i, pm in enumerate(PracticeMode)}
+    
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,6 +34,10 @@ import GPy
 
 from dataclasses import dataclass
 from collections import defaultdict
+
+
+
+
 
 @dataclass
 class GPPlotData:
@@ -363,7 +386,7 @@ if __name__ == "__main__":
     GP = GaussianProcess()
     
     tp = TaskParameters()
-    # print(GP.get_best_practice_mode(c, tp))
+    print(GP.get_best_practice_mode(c, tp))
     
     for i in range(8):
         print("ADD DATA")
@@ -379,7 +402,7 @@ if __name__ == "__main__":
     # GP.add_data_point(c, tp, PracticeMode.IDENTITY, 5)
     # GP.add_data_point(c, tp, PracticeMode.SLOWER, 2)
     
-    # print(GP.get_best_practice_mode(c, tp))
+    print(GP.get_best_practice_mode(c, tp))
     
     # GP.plot_single(c=c, practice_mode=PracticeMode.IDENTITY)
     # GP.plot_single(c=c, practice_mode=PracticeMode.SLOWER)
