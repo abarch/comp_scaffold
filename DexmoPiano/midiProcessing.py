@@ -288,8 +288,7 @@ def _midi_messages_to_note_events(messages, mido_file):
             continue
         
         if (msg.type == 'note_on') or (msg.type == 'note_off'):
-            handleNote(msg.type, msg.note, msg.velocity, notes_temp, out,
-                   timeFunc=lambda: time)
+            handleNote(msg.type, msg.note, msg.velocity, notes_temp, out, timeFunc=lambda: time)
         
     return out
 

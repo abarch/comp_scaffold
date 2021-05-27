@@ -194,7 +194,7 @@ def animate_keyboard():
         for i in range(0, 123 * 5):
             # if config.noteStatus:
             config.vnotes.update_actual_notes(time.time() - config.playing_start_time)
-            print(i)
+            # print(i)
             # print(config.vnotes.is_wait_for_note_done())
             # else:
             #   config.vnotes.update_key_released(60,3)
@@ -324,7 +324,6 @@ def load_Startmenu():
     if len(inputs_midi) > 0 and len(outputs_midi) > 0:
         print("setting state to normal")
         connectButton["state"] = "normal"
-
 
 def updateGuidance():
     global showNotes1, showNotes2, showScoreGuidance, showVerticalGuidance, canvas, piano_img, hand_img

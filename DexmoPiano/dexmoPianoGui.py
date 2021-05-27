@@ -16,6 +16,7 @@ import os
 import dexmoOutput
 import fileIO
 import midiProcessing
+from DexmoPiano import config
 from optionsWindow import optionsWindowClass
 import threadHandler
 
@@ -552,6 +553,14 @@ def load_taskButtons():
     @return: None
     """
     global currentMidi, metronome
+    global showScoreGuidance, showVerticalGuidance
+    showScoreGuidance = tk.IntVar(value=1)
+    showVerticalGuidance = tk.IntVar(value=1)
+    showVerticalGuidanceCheck = tk.Checkbutton(root, text='Show vertical guidance', variable=showVerticalGuidance,
+                                               command=updateGuidance)
+    showVerticalGuidanceCheck.place(x=1200, y=300, height=50, width=200)
+    config.showVerticalGuidance = showVerticalGuidance.get()
+
     tk.Button(root, text='Start Task', command=startTask).place(x=10, y=90, height=50, width=150)
     tk.Button(root, text='Start Demo', command=startDemo).place(x=10, y=150, height=50, width=150)
 
@@ -606,6 +615,26 @@ def load_taskButtons():
 
     ## Back to Menu
     tk.Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
+
+def updateGuidance():
+    global showNotes1, showNotes2, showScoreGuidance, showVerticalGuidance, canvas, piano_img, hand_img
+
+    config.showVerticalGuidance = showVerticalGuidance.get()
+
+    if showVerticalGuidance.get() == 0:
+        canvas.create_rectangle(0, 200, 500, 600, fill='white', outline='white')
+    else:
+        setupVisualNotes()
+
+    if showNotes1.get() == 0:
+        canvas.create_rectangle(200, 300, 200+264-1, 300+219-1, fill='white', outline='white')
+    else:
+        canvas.create_image(200, 300, anchor=NW, image=piano_img)
+
+    if showNotes2.get() == 0:
+        canvas.create_rectangle(470, 300, 470+277-1, 300+277-1, fill='white', outline='white')
+    else:
+        canvas.create_image(470, 300, anchor=NW, image=hand_img)
 
 def refresh_buttons():
     """

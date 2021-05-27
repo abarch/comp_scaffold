@@ -61,8 +61,7 @@ class MidiOutputThread:
                 if (msg.type == 'note_on') or (msg.type == 'note_off'):
 
                     # handle note
-                    noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity,
-                                             self.noteInfoTemp, self.noteInfoList)
+                    noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity, self.noteInfoTemp, self.noteInfoList)
 
                     if type(noteInfo) == list:
                         print("ACTUAL:", self.noteCounter, "\t", noteInfo)

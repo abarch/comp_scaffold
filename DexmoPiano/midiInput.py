@@ -136,8 +136,7 @@ class MidiInputThread():
                 if (msg.type == 'note_on') or (msg.type == 'note_off'):
 
                     # handle note
-                    noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity,
-                                             self.noteInfoTemp, self.noteInfoList)
+                    noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity, self.noteInfoTemp, self.noteInfoList)
 
                     if noteInfo == -1: 
                         # there was an error

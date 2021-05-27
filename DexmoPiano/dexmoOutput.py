@@ -197,7 +197,7 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
                     ##____________________HANDLE note_____________________________##
                     if (msg.type == 'note_on') or (msg.type == 'note_off'):
                         # handle note
-                        noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity, noteInfoTemp, noteInfoList)
+                        noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity, noteInfoTemp, noteInfoList, showVerticalGuidance)
 
                         if type(noteInfo) == list:
                             print("TARGET:", noteCounter, "\t", noteInfo)
