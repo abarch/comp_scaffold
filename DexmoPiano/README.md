@@ -55,20 +55,34 @@ A hand-exoskeleton and a keyboard (connected via MIDI) are used to record the us
 
 
 ## Required software/packages
-* Python 3.6
+* Python > 3.7
 * python-rtmidi v1.4.1 (via PIP3, needs Debian/Ubuntu package *libjack-dev*)
-* LilyPond [v2.18.2](http://lilypond.org/download/binaries/) (available in ubuntu bionic packages)
-* python3-tk v3.6.9-1\~18.04 (available in ubuntu bionic packages)
-* Qsynth v0.5.0-2 (available in ubuntu bionic packages) - e.g. if the keyboard does not have its own audio output
+* LilyPond [v2.20.0](http://lilypond.org/download/binaries/) (available in ubuntu bionic packages)
+* python3-tk v3.8.5-1~20.04.1 (available in ubuntu bionic packages)
+* Qsynth v0.6.1-1 (available in ubuntu bionic packages) - e.g. if the keyboard does not have its own audio output
 * vmpk v0.4.0-3 (available in ubuntu bionic packages) - virtual midi keyboard, if no physical one is available
 * Debian/Ubuntu package *libasound-dev* might be required (if error "Cannot find alsa/asoundlib.h" occurs)
 
 ### requirements.txt
 includes required python packages:
-* pianoplayer v2.1.0
+* pianoplayer v2.2.0
 * MIDIUtil v1.2.1
 * mido v1.2.9
-* music21 v6.1.0
+* music21 v6.5.0
+* python-rtmidi v1.4.7
+* deap v1.3.1
+* gpy v1.9.9
+* gpyopt v1.2.6
+* graphviz v2.47.1
+* matplotlib v3.3.4
+* seaborn v0.11.1
+* numpy v1.20.0
+* pandas v1.2.1
+* scikit-learn v0.24.1
+* scipy v1.6.3
+* tqdm v4.56.2
+
+(these were the versions I used, I have no reason to believe that other (especially newer) versions should not work.)
 
 in order to install the packages run: 
 ```
