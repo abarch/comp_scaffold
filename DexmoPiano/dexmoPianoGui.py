@@ -65,7 +65,7 @@ def startTask():
     # use MIDI file with metronome staff
     targetNotes, actualNotes, errorVal = \
         threadHandler.startThreads(inputFileStrs[2], guidanceMode, 
-                                   scheduler.current_task_data(), 
+                                    scheduler.current_task_data(), taskParameters,
                                    useVisualAttention=useVisualAttention.get())
 
     scheduler.register_error(errorVal)

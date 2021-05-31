@@ -4,6 +4,7 @@
 from threading import Thread
 
 import dexmoOutput
+from DexmoPiano import hmm_data_acquisition
 from midiInput import MidiInputThread, empty_noteinfo
 from error_calc import functions as errorCalc
 from collections import defaultdict
@@ -82,7 +83,7 @@ def set_outport(portName):
     else:
         print("ERROR: outputThread was not defined yet")
 
-def startThreads(midiFileLocation, guidance, task_data, useVisualAttention=True):
+def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisualAttention=True):
     """
     Starts the MIDI playback thread and activates the MIDI input handler.
     After the player thread terminates, the input handler is deactivated again.
@@ -173,13 +174,17 @@ def startThreads(midiFileLocation, guidance, task_data, useVisualAttention=True)
         cwidth = shutil.get_terminal_size().columns
 
         # print("NOTES".center(cwidth, "+"))
+        note_errorString = []
         for n in output_note_list:
             print(n.err_string())
+            note_errorString.append(n.err_string(use_colors=False))
         print("\nSUMMED ERROR: ", errorVec)
 
         print("ERROR LEFT: ", errorVecLeft)
         print("ERROR RIGHT:", errorVecRight)
 
+        hmm_data_acquisition.save_hmm_data(errorVec, errorVecLeft, errorVecRight, task_data,
+                                           taskParameters, note_errorString )
 
         return targetTimes, actualTimes, sum(errorVec)
     except:

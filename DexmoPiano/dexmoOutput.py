@@ -156,7 +156,7 @@ def play_demo(midiFile, guidanceMode):
 
 
 # only haptic feedback guidance
-def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
+def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode, showVerticalGuidance=None):
     """
     Starts the practice task by playing only the metronome (if chosen)
     and giving the according haptic feedback with Dexmo (depending on guidance mode).
@@ -197,7 +197,7 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode):
                     ##____________________HANDLE note_____________________________##
                     if (msg.type == 'note_on') or (msg.type == 'note_off'):
                         # handle note
-                        noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity, noteInfoTemp, noteInfoList, showVerticalGuidance)
+                        noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity, noteInfoTemp, noteInfoList)
 
                         if type(noteInfo) == list:
                             print("TARGET:", noteCounter, "\t", noteInfo)

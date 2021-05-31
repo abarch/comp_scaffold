@@ -74,6 +74,7 @@ def get_explanation(task_data, actual, mapping,
                     plot=True,
                     ):
     target = task_data.all_notes()
+    print("task_data", task_data.__dict__)
     
     anchor_map = get_anchor_map(target)
     target_debug = note_info_list_add_debug(target, list(range(len(target))), anchor_map)
@@ -155,13 +156,19 @@ def get_explanation(task_data, actual, mapping,
         
             output_note_list.append(NoteExpected(a.pitch, a.velocity, a.note_on_time, a.time_after_anchor, a.note_hold_time, 
                                                  t.pitch, t.velocity, t.note_on_time, t.time_after_anchor, t.note_hold_time))
-        
-        errors.append( Error(pitch=error_pitch, note_hold_time=error_note_hold_time, timing=error_timing,
-               n_missing_notes=notes_missing,
-               t_missing_notes=notes_missing_t,
-               n_extra_notes = len(extra_notes_dict[hand]),
-               t_extra_notes = sum(extra.note_hold_time for extra in extra_notes_dict[hand]),
-               number_of_notes=num_notes
+
+        # if only played with one hand
+        if num_notes == 0:
+            num_notes = 1
+
+        errors.append( Error(pitch=error_pitch / num_notes,
+                             note_hold_time=error_note_hold_time / task_data.number_of_bars * task_data.time_signature[0], # how to get on number of bars and signature(?)
+                             timing=error_timing / num_notes,
+                             n_missing_notes=notes_missing / num_notes,
+                             t_missing_notes=notes_missing_t / num_notes,
+                             n_extra_notes = len(extra_notes_dict[hand]) / num_notes,
+                             t_extra_notes = sum(extra.note_hold_time for extra in extra_notes_dict[hand]),
+                             number_of_notes=num_notes
                ) )
         
         for a in extra_notes:
