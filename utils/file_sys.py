@@ -1,12 +1,17 @@
 import os
+import time
+
+from pathlib import Path
+
+log_folder = Path.cwd().parent
 
 
 def crawler(base_path, execute):
     """
-    Description: This recursive function traverses over all the directories and files of the given directory "base_path" and runs
-    the method or function provided in "execute" everytime a file is encountered. This function is recursive in nature
-    so keep in mind that all the lines of the function will run everytime. This can be a problem when initialisation
-    needs to be done only once through the course of the function's run.
+    Description: This recursive function traverses over all the directories and files of the given directory
+    "base_path" and runs the method or function provided in "execute" everytime a file is encountered. This function
+    is recursive in nature so keep in mind that all the lines of the function will run everytime. This can be a
+    problem when initialisation needs to be done only once through the course of the function's run.
 
     Inputs: base_path - Valid path for a directory that has to be traversed completely atleast once.
                         type:<string> example:'C:/ProgramData'
@@ -23,7 +28,7 @@ def crawler(base_path, execute):
         if os.path.isdir(base_path):
             ls = os.listdir(base_path)
             for file in ls:
-                crawler(base_path+'/'+file,execute)
+                crawler(base_path + '/' + file, execute)
         else:
             try:
                 execute(base_path)
@@ -34,10 +39,30 @@ def crawler(base_path, execute):
         raise FileNotFoundError('No such file or directory exists.')
 
 
+def initTime():
+    """
+    Sets start time globally (at task initialization).
+    @return: None
+    """
+    global startTime
+    startTime = time.time()
+    print("Start time:", startTime)
+
+
+def getTime(resolution: int):
+    """
+    Returns current time in milliseconds.
+    @return: Current time [ms].
+    """
+    return round(time.time() - startTime, resolution)
+
+
 if __name__ == "__main__":
-    daWay = "D:/Projects/midi/data"
+    daWay = "D:/Program Files"
+
 
     def outp(path):
         print(path)
 
-    crawler(daWay,outp)
+
+    crawler(daWay, outp)
