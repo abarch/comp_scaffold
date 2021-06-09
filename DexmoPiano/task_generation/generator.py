@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import collections
 import random
 from dataclasses import dataclass, astuple, asdict
 import dataclasses as dc
+
+import numpy as np
 from task_generation.note_range_per_hand import NoteRangePerHand, get_pitchlist
 
 from collections import namedtuple
@@ -37,7 +39,11 @@ class TaskParameters:
     def astuple(self):
         return astuple(self)
     
-        
+def flatten(x):
+    if isinstance(x, collections.Iterable):
+        return [a for i in x for a in flatten(i)]
+    else:
+        return [x]
 
 
 def generate_task(task_parameters):
@@ -67,20 +73,25 @@ def _generate_task_v1(task_parameters):
     
         # randomly generate the chosen number of timesteps (notes) per bar
         stepRange = [temp for temp in range(numerator) if temp % (minNoteVal * numerator) == 0]
+        print("stepRange", stepRange)
         for bar in range(task_parameters.noOfBars - 1):  # last bar is for extra notes
             # determine no. of notes in this bar
-            noOfNotes = random.choice(range(1, task_parameters.maxNotesPerBar+1))
+            noOfNotes = random.choice(range(1, task_parameters.maxNotesPerBar+4)) #add a lot to maxNotesPerBar to get less pauses
             noOfNotes = min(noOfNotes, len(stepRange))
     
             # shift step numbers
             shift = (bar + INTRO_BARS) * numerator
             steps = [temp + shift for temp in stepRange]
-    
-            timesteps.append(random.sample(steps, noOfNotes))
+            print("steps", steps)
+
+            new_steps = [steps[0]] #add note at beginning of every bar so there are less pauses
+            new_steps.append(random.sample(steps[1:], noOfNotes-1))
+            flat_steps = [a for i in new_steps for a in flatten(i)]
+            timesteps.append(flat_steps)
     
         # flatten and sort list
         timesteps = sorted([item for sublist in timesteps for item in sublist])
-    
+
         # append dummy element to avoid additional bar
         timesteps.append(bars * numerator)
     
@@ -112,8 +123,12 @@ def _generate_task_v1(task_parameters):
                 print(t, timesteps[t], maxNoteVal)
                 timesteps[t] = timesteps[t] + 1
                 continue
-    
-            duration = random.choice(possNoteValues)
+
+            # introduce some randomness, so large values are more equally likely getting picked
+            if random.random() > 0.4:
+                duration = random.choice(possNoteValues)
+            else:
+                duration = max(possNoteValues)
             pitch = random.choice(pitches)
     
             data[hand].append( TaskNote(timesteps[t], pitch, duration*denominator ) )
