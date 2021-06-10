@@ -65,7 +65,7 @@ def note_info_list_add_debug(note_info_list, mapping, anchor_map):
         debug_list.append(
             NoteInfoDebug(n.pitch, n.velocity, n.note_on_time, n.note_off_time,
                           time_after_anchor, note_hold_time))
-            
+    print("debug_list", debug_list)
     return debug_list
 
 def get_explanation(task_data, actual, mapping,
@@ -157,16 +157,18 @@ def get_explanation(task_data, actual, mapping,
             output_note_list.append(NoteExpected(a.pitch, a.velocity, a.note_on_time, a.time_after_anchor, a.note_hold_time, 
                                                  t.pitch, t.velocity, t.note_on_time, t.time_after_anchor, t.note_hold_time))
 
-        # if only played with one hand
+        # if only played with one hand, so to avoid division by zero
         if num_notes == 0:
-            num_notes = 1
+            number = 1
+        else:
+            number = num_notes
 
-        errors.append( Error(pitch=error_pitch / num_notes,
+        errors.append( Error(pitch=error_pitch / number,
                              note_hold_time=error_note_hold_time / task_data.number_of_bars * task_data.time_signature[0], # how to get on number of bars and signature(?)
-                             timing=error_timing / num_notes,
-                             n_missing_notes=notes_missing / num_notes,
-                             t_missing_notes=notes_missing_t / num_notes,
-                             n_extra_notes = len(extra_notes_dict[hand]) / num_notes,
+                             timing=error_timing / number,
+                             n_missing_notes=notes_missing / number,
+                             t_missing_notes=notes_missing_t / number,
+                             n_extra_notes = len(extra_notes_dict[hand]) / number,
                              t_extra_notes = sum(extra.note_hold_time for extra in extra_notes_dict[hand]),
                              number_of_notes=num_notes
                ) )

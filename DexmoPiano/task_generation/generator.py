@@ -34,7 +34,7 @@ class TaskParameters:
     note_range: NoteRangePerHand = NoteRangePerHand.C_TO_G
     left: bool              = False
     right: bool             = True
-    bpm: float              = 120
+    bpm: float              = 100
     
     def astuple(self):
         return astuple(self)

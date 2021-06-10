@@ -22,7 +22,7 @@ def save_hmm_data(errorVec, errorVecLeft, errorVecRight, task_data, taskParamete
 
     ef = open(error_file, 'a', newline='')
     ef_writer = csv.writer(ef, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    ef_writer.writerow([complexityLevel, errorVecRight, errorVec])  # task_data is a placeholder
+    ef_writer.writerow([task_data.practice_mode, complexityLevel, errorVecRight, errorVecLeft])  # task_data is a placeholder
     ef.close()
 
     nf = open(notes_file, 'a', newline='')

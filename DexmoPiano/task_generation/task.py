@@ -36,6 +36,7 @@ class TaskData:
     notes_left:  list
     bpm: float
     midi: MidiNoteEventContainer = dc.field(default_factory=MidiNoteEventContainer)
+    practice_mode: str = "None"
     # _all_notes_fixed: tuple = None
     
     def __post_init__(self):

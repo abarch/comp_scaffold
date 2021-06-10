@@ -168,6 +168,7 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
                                     openface_data=openface_data,
                                     inject_explanation=True,
                                     plot=True)
+        print("task data", task_data.__dict__)
         print("\n\n--- ERRORS ---")
         print("\nNOTE_ERRORS:")
         import shutil
@@ -185,6 +186,7 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
 
         hmm_data_acquisition.save_hmm_data(errorVec, errorVecLeft, errorVecRight, task_data,
                                            taskParameters, note_errorString )
+
 
         return targetTimes, actualTimes, sum(errorVec)
     except:
