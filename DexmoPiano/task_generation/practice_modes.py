@@ -5,7 +5,8 @@ import enum
 
 class PracticeMode(enum.Enum):
     IDENTITY    = enum.auto()
-    SPLIT_HANDS = enum.auto()
+    RIGHT_HAND = enum.auto()
+    LEFT_HAND = enum.auto()
     SINGLE_NOTE = enum.auto()
     SLOWER      = enum.auto()
     
@@ -19,18 +20,19 @@ def apply_practice_mode(task_data, practice_mode):
         new_td["practice_mode"] = "None"
         return [TaskData(**new_td)], ["IDENTITY"]
     
-    if practice_mode == PracticeMode.SPLIT_HANDS:
+    if practice_mode == PracticeMode.RIGHT_HAND:
         td_right = td.asdict()
         td_right["notes_left"] = []
-        td_right["practice_mode"] = "split hands"
+        td_right["practice_mode"] = "right hand"
         td_right = TaskData(**td_right)
-        
+        return [td_right], ["SPLIT_HANDS_R"]
+
+    if practice_mode == PracticeMode.LEFT_HAND:
         td_left = td.asdict()
         td_left["notes_right"] = []
         td_left["practice_mode"] = "split hands"
         td_left = TaskData(**td_left)
-       
-        return [td_right, td_left], ["SPLIT_HANDS_R", "SPLIT_HANDS_L"]
+        return [td_left], ["SPLIT_HANDS_L"]
     
     if practice_mode == PracticeMode.SINGLE_NOTE:
         new_td = td.asdict()
