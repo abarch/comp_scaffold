@@ -33,20 +33,21 @@ def get_pitchlist(note_range, right=True):
         base_note = 60 #C4
     else:
         base_note = 48 #C3
-        
-    if note_range == NoteRangePerHand.ONE_NOTE:
+
+    # Typecast to string, bc weird error gives false comparison otherwise
+    if str(note_range) == str(NoteRangePerHand.ONE_NOTE):
         pitchesList = [0]
-    elif note_range == NoteRangePerHand.TWO_NOTES:
+    elif str(note_range) == str(NoteRangePerHand.TWO_NOTES):
         pitchesList = [0, 2]
-    elif note_range == NoteRangePerHand.C_TO_G:
+    elif str(note_range) == str(NoteRangePerHand.C_TO_G):
         pitchesList = [0, 2, 4, 5, 7]
-    elif note_range == NoteRangePerHand.ONE_OCTAVE:
+    elif str(note_range) == str(NoteRangePerHand.ONE_OCTAVE):
         pitchesList = list(range(0, 12))
-    elif note_range == NoteRangePerHand.C_DUR:
+    elif str(note_range) == str(NoteRangePerHand.C_DUR):
         pitchesList = [0,2,4,5,7,9,11]
-    elif note_range == NoteRangePerHand.A_MOLL:
+    elif str(note_range) == str(NoteRangePerHand.A_MOLL):
         pitchesList = [-3, -1, 0, 2, 4, 5, 8]
-    elif note_range == NoteRangePerHand.ONE_OCTAVE_BLACK:
+    elif str(note_range) == str(NoteRangePerHand.ONE_OCTAVE_BLACK):
         pitchesList = [1,3,6,8,10]
     else:
         raise ValueError(f"got unexpected note_range {repr(note_range)}!")

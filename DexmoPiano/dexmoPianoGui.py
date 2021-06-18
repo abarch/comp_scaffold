@@ -16,7 +16,8 @@ import os
 import dexmoOutput
 import fileIO
 import midiProcessing
-from DexmoPiano import config
+from DexmoPiano import config, difficulty
+from DexmoPiano.task_generation.note_range_per_hand import NoteRangePerHand
 from optionsWindow import optionsWindowClass
 import threadHandler
 
@@ -578,8 +579,9 @@ def load_taskButtons():
     guideopt = tk.OptionMenu(root, guidance, *GuidanceModeList, command=set_guidance)
     guideopt.place(x=10, y=270, width=150, height=30)
 
-    tk.Button(root, text='Generate new Task', command=generateNextTask).place(x=10, y=400, height=50, width=150)
-    tk.Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=460, height=25, width=150)
+    tk.Button(root, text='Generate new Task', command=generateNextTask).place(x=10, y=370, height=40, width=150)
+    tk.Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=415, height=40, width=150)
+    tk.Button(root, text='Difficulty Scaling', command=dif_scaling).place(x=10, y=470, height=40, width=150)
     tk.Button(root, text='Open Midi file', command=openfile).place(x=10, y=520, height=25, width=150)
 
     # Scalebar to change BPM in loaded MIDI File
@@ -615,6 +617,15 @@ def load_taskButtons():
 
     ## Back to Menu
     tk.Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
+
+def dif_scaling():
+    #note_range = NoteRangePerHand(3)
+    parameters = difficulty.getTaskComplexity()
+    #parameters = TaskParameters((4, 4), [1 / 2, 1 / 4], 3, 7, note_range, False, True, 100)
+    print(repr(parameters))
+    scheduler.get_next_task(parameters)
+    loadUpTask()
+    print("Now we scale dynamically the difficulty")
 
 def updateGuidance():
     global showNotes1, showNotes2, showScoreGuidance, showVerticalGuidance, canvas, piano_img, hand_img
