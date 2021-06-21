@@ -52,12 +52,16 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
 
     print("5", errorVecRight)
     print("dic", dic_error)
-    df = pd.Series(dic_error)
+    ds = pd.Series(dic_error)
+    print("ds", ds)
+
+    df = pd.DataFrame(columns=ds.index)
+    df = df.append(ds, ignore_index=True)
     print("df", df)
     df.to_csv(error_file, mode='a', header=False, index=False)
 
     #thresholds(df_error)
-    return df
+    return ds
 
 def get_number(string, value):
     end = string.partition(value + "=")[2]

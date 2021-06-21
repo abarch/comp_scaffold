@@ -65,7 +65,7 @@ def startTask():
     timestr = getCurrentTimestamp()
 
     # use MIDI file with metronome staff
-    print("taskParameter in dexmo", taskParameters)
+    print("actual taskParameter in startTask:", taskParameters)
     targetNotes, actualNotes, errorVal, errorVecLeft, errorVecRight, task_data, note_errorString = \
         threadHandler.startThreads(inputFileStrs[2], guidanceMode,
                                    scheduler.current_task_data(), taskParameters,
@@ -635,6 +635,9 @@ def load_taskButtons():
 
 
 def dif_scaling():
+    global taskParameters
+
+    previous = taskParameters
     print(taskParameters)
     parameters = difficulty.getTaskComplexity()
     scheduler.get_next_task(parameters)
@@ -646,8 +649,14 @@ def get_threshold_info():
 
 
 def new_complexity_level():
-    parameters = difficulty.getTaskComplexity(taskParameters)
-    scheduler.get_next_task(parameters)
+
+    global taskParameters
+
+    previous = taskParameters
+    new_parameters = difficulty.getTaskComplexity(previous)
+    print("New complexity_level: ", repr(new_parameters))
+    taskParameters = new_parameters
+    scheduler.get_next_task(new_parameters)
     loadUpTask()
 
 
