@@ -16,8 +16,7 @@ import os
 import dexmoOutput
 import fileIO
 import midiProcessing
-from DexmoPiano import config, difficulty
-from DexmoPiano.task_generation.note_range_per_hand import NoteRangePerHand
+from DexmoPiano import config, difficulty, hmm_data_acquisition
 from optionsWindow import optionsWindowClass
 import threadHandler
 
@@ -34,6 +33,7 @@ GuidanceModeList = ["None", "At every note", "Individual"]
 guidanceMode = "At every note"
 
 from task_generation.generator import TaskParameters
+
 taskParameters = TaskParameters()
 # maxNotePerBar = 2
 # numberOfBars = 7
@@ -52,6 +52,7 @@ currentMidi = None
 
 firstStart = True
 
+
 def startTask():
     """
     Starts practice task which only has metronome output (if chosen) and haptic
@@ -64,10 +65,19 @@ def startTask():
     timestr = getCurrentTimestamp()
 
     # use MIDI file with metronome staff
-    targetNotes, actualNotes, errorVal = \
-        threadHandler.startThreads(inputFileStrs[2], guidanceMode, 
-                                    scheduler.current_task_data(), taskParameters,
+    print("taskParameter in dexmo", taskParameters)
+    targetNotes, actualNotes, errorVal, errorVecLeft, errorVecRight, task_data, note_errorString = \
+        threadHandler.startThreads(inputFileStrs[2], guidanceMode,
+                                   scheduler.current_task_data(), taskParameters,
                                    useVisualAttention=useVisualAttention.get())
+    df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
+                                                  taskParameters, note_errorString)
+    next_level = difficulty.thresholds(df_error)
+    print("Next Level", next_level)
+    if next_level:
+        new_complexity_level()
+    else:
+        get_threshold_info()
 
     scheduler.register_error(errorVal)
 
@@ -83,25 +93,23 @@ def startTask():
     # errorVal = threadHandler.get_errors()
     errors.append(abs(errorVal))
     add_error_plot()
-    
+
     ## if there is a score with errors, show it in a new window
     score_with_error = Path(tempDir) / "output_with_errors.png"
-    
+
     if score_with_error.exists():
         new_window = tk.Toplevel(root)
         new_window.geometry("835x1181")
         background = Image.open(score_with_error)
         background = background.convert("RGBA")
-        
+
         img = ImageTk.PhotoImage(background)
-        
+
         panel = tk.Label(new_window, image=img)
         panel.image = img
         panel.place(x=0, y=0, width=835, height=1181)
-        
+
     refresh_buttons()
-    
-    
 
 
 def startDemo():
@@ -148,18 +156,18 @@ def generateNextTask():
     from task_generation.scheduler import choosePracticeMode
     from task_generation.practice_modes import PracticeMode
     choice = choosePracticeMode(root)
-    
+
     def inEnum(val, enum):
         try:
             return val in enum
         except:
             return False
-    
+
     if choice == "NEW_TASK":
         nextTask()
         return
     elif choice == "TEST_MOVEMENT_1":
-        scheduler.new_task_forced_practice_sequence_prior(taskParameters, 
+        scheduler.new_task_forced_practice_sequence_prior(taskParameters,
                                                           [PracticeMode.SINGLE_NOTE])
         loadUpTask()
     elif inEnum(choice, PracticeMode):
@@ -168,13 +176,16 @@ def generateNextTask():
     else:
         raise ValueError(f"Unexpected choice {repr(choice)}!")
 
+
 def nextTask():
     scheduler.get_next_task(taskParameters=taskParameters)
     loadUpTask()
-    
+
+
 def previousTask():
     scheduler.get_previous_task()
     loadUpTask()
+
 
 def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     """
@@ -189,12 +200,12 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     global midiSaved, currentMidi
     delete_warning()
 
-
     # load saved midi
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
         try:
-            midiProcessing.generate_metronome_and_fingers_for_midi(leftHand.get(), rightHand.get(), inputFileStrs, chosenMidiFile, custom_bpm=midiBPM.get())
+            midiProcessing.generate_metronome_and_fingers_for_midi(leftHand.get(), rightHand.get(), inputFileStrs,
+                                                                   chosenMidiFile, custom_bpm=midiBPM.get())
         except:
             add_both_hands_warning()
             return
@@ -218,12 +229,12 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
 
     subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
 
-    #clearFrame()
+    # clearFrame()
     load_notesheet(outputPngStr)
 
     check_dexmo_connected(mainWindow=True)
     refresh_buttons()
-    #load_taskButtons()
+    # load_taskButtons()
 
     # if task is changed remember trial to show in visualisation
     if errors:
@@ -391,9 +402,9 @@ def specifyTask():
     @return: None
     """
     global errors, changetask, taskParameters
-    
+
     prev_values = taskParameters
-    
+
     options.changeParameter()
 
     newValues = options.get_data()
@@ -490,6 +501,7 @@ def add_error_details():
     checkbox = tk.Checkbutton(root, text='show error details', command=add_error_plot, var=details)
     checkbox.place(x=1050, y=440)
 
+
 ##____________________________________________________________________________##
 
 def add_no_fingernumbers_warning():
@@ -501,8 +513,9 @@ def add_no_fingernumbers_warning():
     """
     global numNotesWarning
     numNotesWarning = tk.Label(root, text=" Info: \n Too few notes generated to show\n fingernumbers on music sheet.",
-      fg="red")
+                               fg="red")
     numNotesWarning.place(x=1030, y=770, width=250, height=100)
+
 
 def delete_no_fingernumbers_warning():
     """
@@ -514,6 +527,7 @@ def delete_no_fingernumbers_warning():
     numNotesWarning = tk.Label(root, text="")
     numNotesWarning.place(x=1030, y=770, width=250, height=100)
 
+
 def add_both_hands_warning():
     """
     Creates a warning in case that a user-selected MIDI file has only one track/staff
@@ -523,8 +537,9 @@ def add_both_hands_warning():
     """
     global handWarning
     handWarning = tk.Label(root, text=" Warning: \n Hand selection error \n or too few notes in file.",
-      fg="red")
+                           fg="red")
     handWarning.place(x=10, y=660, width=150, height=70)
+
 
 def delete_warning():
     """
@@ -536,6 +551,7 @@ def delete_warning():
     handWarning = tk.Label(root, text="")
     handWarning.place(x=10, y=660, width=150, height=70)
 
+
 def add_Dexmo_Warning():
     """
     Creates a warning in case that Dexmo is not connected.
@@ -543,7 +559,7 @@ def add_Dexmo_Warning():
     @return: None
     """
     tk.Label(root, text=" Warning: \n No Dexmo connected, \n no guidance possible.",
-          fg="red").place(x=10, y=300, width=150, height=70)
+             fg="red").place(x=10, y=300, width=150, height=70)
 
 
 # create button for demo, practicing, next task, back to start menu, guidance mode
@@ -589,7 +605,7 @@ def load_taskButtons():
     l = tk.Label(root, text=" BPM for loaded MIDI File:")
     l.place(x=10, y=550)
 
-    midiBPM = tk.Scale(root, from_=0, to=250,length=150, orient=tk.HORIZONTAL)
+    midiBPM = tk.Scale(root, from_=0, to=250, length=150, orient=tk.HORIZONTAL)
     midiBPM.place(x=10, y=570)
     midiBPM.set(0)
 
@@ -607,25 +623,33 @@ def load_taskButtons():
     rightHand.set(True)
     chk = tk.Checkbutton(root, text='right hand', var=rightHand)
     chk.place(x=75, y=635)
-    
+
     global useVisualAttention
     useVisualAttention = tk.BooleanVar()
     useVisualAttention.set(False)
     chk = tk.Checkbutton(root, text='Use Visual Attention', var=useVisualAttention)
     chk.place(x=0, y=735)
-    
 
     ## Back to Menu
     tk.Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
 
+
 def dif_scaling():
-    #note_range = NoteRangePerHand(3)
+    print(taskParameters)
     parameters = difficulty.getTaskComplexity()
-    #parameters = TaskParameters((4, 4), [1 / 2, 1 / 4], 3, 7, note_range, False, True, 100)
-    print(repr(parameters))
     scheduler.get_next_task(parameters)
     loadUpTask()
-    print("Now we scale dynamically the difficulty")
+
+
+def get_threshold_info():
+    threshold_info(root)
+
+
+def new_complexity_level():
+    parameters = difficulty.getTaskComplexity(taskParameters)
+    scheduler.get_next_task(parameters)
+    loadUpTask()
+
 
 def updateGuidance():
     global showNotes1, showNotes2, showScoreGuidance, showVerticalGuidance, canvas, piano_img, hand_img
@@ -638,14 +662,15 @@ def updateGuidance():
         setupVisualNotes()
 
     if showNotes1.get() == 0:
-        canvas.create_rectangle(200, 300, 200+264-1, 300+219-1, fill='white', outline='white')
+        canvas.create_rectangle(200, 300, 200 + 264 - 1, 300 + 219 - 1, fill='white', outline='white')
     else:
         canvas.create_image(200, 300, anchor=NW, image=piano_img)
 
     if showNotes2.get() == 0:
-        canvas.create_rectangle(470, 300, 470+277-1, 300+277-1, fill='white', outline='white')
+        canvas.create_rectangle(470, 300, 470 + 277 - 1, 300 + 277 - 1, fill='white', outline='white')
     else:
         canvas.create_image(470, 300, anchor=NW, image=hand_img)
+
 
 def refresh_buttons():
     """
@@ -657,7 +682,7 @@ def refresh_buttons():
     # next and previous tasks buttons
     if not scheduler.next_task_exists():
         tk.Button(root, text='Next Task >>', state=tk.DISABLED).place(x=10, y=800, height=50,
-                                                                                       width=150)
+                                                                      width=150)
     else:
         tk.Button(root, text='Next Task >>', command=nextTask).place(x=10, y=800, height=50, width=150)
 
@@ -669,7 +694,7 @@ def refresh_buttons():
 
     if not scheduler.previous_task_exists():
         tk.Button(root, text='<< Previous Task', state=tk.DISABLED).place(x=10, y=880, height=50,
-                                                                                          width=150)
+                                                                          width=150)
     else:
         tk.Button(root, text='<< Previous Task', command=previousTask).place(x=10, y=880, height=50, width=150)
 
@@ -678,7 +703,7 @@ def refresh_buttons():
     showGuidance = tk.BooleanVar()
     showGuidance.set(False)
     checkShowGuidance = tk.Checkbutton(root, text='show guidance in note sheet', variable=showGuidance,
-                                    command=showGuidanceNotesheet)
+                                       command=showGuidanceNotesheet)
     checkShowGuidance.place(x=1050, y=900)
 
 
@@ -702,7 +727,7 @@ def openfile():
     @return: None
     """
     loadUpTask(userSelectedTask=True,
-             userSelectedLocation=filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")]))
+               userSelectedLocation=filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")]))
 
 
 def firstTask():
@@ -714,7 +739,7 @@ def firstTask():
     load_taskButtons()
     if not os.path.exists("/tmp/DexmoPiano"):
         os.mkdir("/tmp/DexmoPiano")
-    #try:
+    # try:
     #    os.mkdir("/tmp/DexmoPiano")
     nextTask()
 
@@ -834,9 +859,9 @@ def choose_ports():
 
 ##_____________________________START LOOP HERE________________________________##
 
-from task_generation.scheduler import Scheduler
-scheduler = Scheduler(loadUpTask)
+from task_generation.scheduler import Scheduler, threshold_info
 
+scheduler = Scheduler(loadUpTask)
 
 # create file output folder if it does not already exist
 subprocess.run(['mkdir', '-p', tempDir], stderr=subprocess.DEVNULL)
@@ -857,5 +882,3 @@ check_dexmo_connected(mainWindow=False)
 options = optionsWindowClass(root=root, taskParamters=taskParameters)
 
 root.mainloop()
-
-

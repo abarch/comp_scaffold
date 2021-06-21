@@ -28,10 +28,10 @@ class TaskParameters:
     @param twoHandsTup: Tuple of booleans, True if left/right hand is active.
     """
     timeSignature: tuple    = (4,4)
-    noteValues: list        = dc.field(default_factory= lambda: [1, 1 / 2, 1 / 4, 1 / 8] )
+    noteValues: list        = dc.field(default_factory= lambda: [1 / 2, 1 / 4] )
     maxNotesPerBar: int       = 3
     noOfBars: int           = 7
-    note_range: NoteRangePerHand = NoteRangePerHand.C_TO_G
+    note_range: NoteRangePerHand = NoteRangePerHand.TWO_NOTES
     left: bool              = False
     right: bool             = True
     bpm: float              = 100

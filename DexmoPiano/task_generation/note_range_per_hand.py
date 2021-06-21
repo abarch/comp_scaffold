@@ -11,8 +11,8 @@ class NoteRangePerHand(enum.Enum):
     C_TO_G = enum.auto()
     ONE_OCTAVE = enum.auto()
     C_DUR= enum.auto()
-    A_MOLL = enum.auto()
     ONE_OCTAVE_BLACK = enum.auto()
+    A_MOLL = enum.auto()
     
     
 noteRangePerHandDescription = ["One note (C)", "Two notes (C,D)", 

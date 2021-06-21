@@ -4,7 +4,6 @@
 from threading import Thread
 
 import dexmoOutput
-from DexmoPiano import hmm_data_acquisition
 from midiInput import MidiInputThread, empty_noteinfo
 from error_calc import functions as errorCalc
 from collections import defaultdict
@@ -37,6 +36,7 @@ def resetArrays():
     targetTemp = defaultdict(empty_noteinfo)
     # targetTemp = [[-1, -1, -1]] * MAX_NOTE (PL)
 
+
 def initInputThread():
     """
     Initializes MIDI keyboard input thread.
@@ -53,6 +53,7 @@ def initOutputThread(root):
     global outputThread
 
     outputThread = MidiOutputThread(MAX_NOTE, root)
+
 
 def set_inport(portName):
     """
@@ -71,6 +72,7 @@ def set_inport(portName):
     else:
         print("ERROR: inputThread was not defined yet")
 
+
 # set MIDI input port from GUI (installing callback for input messages)
 def set_outport(portName):
     global outputThread, portname
@@ -82,6 +84,7 @@ def set_outport(portName):
         return True
     else:
         print("ERROR: outputThread was not defined yet")
+
 
 def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisualAttention=True):
     """
@@ -98,7 +101,7 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
     ###TODO: change?
     resetArrays()
     inputThread.resetArrays()
-    #outputThread.resetArrays()
+    # outputThread.resetArrays()
 
     if useVisualAttention:
         from openfaceInput import OpenFaceInput
@@ -107,10 +110,9 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
 
     # MIDI PLAYER THREAD
     # initialize MIDI file player thread
-    playerThread = Thread(target=dexmoOutput.practice_task, #target=outputThread.playMidi (PL)
+    playerThread = Thread(target=dexmoOutput.practice_task,  # target=outputThread.playMidi (PL)
                           args=(midiFileLocation, targetTemp, targetTimes, guidance))
     playerThread.start()
-
 
     # KEYBOARD MIDI INPUT THREAD (has been started before)
     # activate input handling
@@ -140,7 +142,6 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
     else:
         openface_data = None
 
-
     # get array with actual notes
     actualTimes = inputThread.noteInfoList
 
@@ -165,9 +166,9 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
     try:
         output_note_list, errorVec, errorVecLeft, errorVecRight = \
             errorCalc.computeErrorEvo(task_data, actualTimes,
-                                    openface_data=openface_data,
-                                    inject_explanation=True,
-                                    plot=True)
+                                      openface_data=openface_data,
+                                      inject_explanation=True,
+                                      plot=True)
         print("task data", task_data.__dict__)
         print("\n\n--- ERRORS ---")
         print("\nNOTE_ERRORS:")
@@ -184,11 +185,7 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
         print("ERROR LEFT: ", errorVecLeft)
         print("ERROR RIGHT:", errorVecRight)
 
-        hmm_data_acquisition.save_hmm_data(errorVec, errorVecLeft, errorVecRight, task_data,
-                                           taskParameters, note_errorString )
-
-
-        return targetTimes, actualTimes, sum(errorVec)
+        return targetTimes, actualTimes, sum(errorVec), errorVecLeft, errorVecRight, task_data, note_errorString
     except:
         import traceback
         traceback.print_exc()
@@ -204,6 +201,7 @@ def get_errors():
     @return: Error value.
     """
     return errorDiff
+
 
 # Only record the user without playing the expected midi file.
 # If duration is set to 0, wait for the stop button to be pressed
@@ -223,7 +221,8 @@ def startRecordThread(midiFileLocation, guidance, duration, root):
 
     if duration > 0:
         root.update()
-        root.after(duration*1000, recordingFinished)
+        root.after(duration * 1000, recordingFinished)
+
 
 def recordingFinished():
     global targetTimes, actualTimes
@@ -251,11 +250,15 @@ def recordingFinished():
     print("\nDIFFERENCE: ", errorDiff)
 
     options = [1, True, "bla"]
-    fileIO.createXML(config.outputDir, config.currentMidi + config.str_date + config.participant_id + "_" + config.freetext, options, targetTimes)
+    fileIO.createXML(config.outputDir,
+                     config.currentMidi + config.str_date + config.participant_id + "_" + config.freetext, options,
+                     targetTimes)
 
     # create entry containing actual notes in XML
-    fileIO.createTrialEntry(config.outputDir, config.currentMidi + config.str_date + config.participant_id + "_" + config.freetext, config.timestr, config.guidanceMode,
+    fileIO.createTrialEntry(config.outputDir,
+                            config.currentMidi + config.str_date + config.participant_id + "_" + config.freetext,
+                            config.timestr, config.guidanceMode,
                             actualTimes, errorDiff)
     ###TODO: remove (testing)
-    #fileIO.printXML(config.outputDir + config.currentMidi + ".xml", True)
+    # fileIO.printXML(config.outputDir + config.currentMidi + ".xml", True)
     print("Created XML")

@@ -1,8 +1,12 @@
+import copy
 import csv
+from collections import namedtuple
 from datetime import datetime
 
+import pandas as pd
 
-def save_hmm_data(errorVec, errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString):
+
+def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString):
     """
     Prints the error (observations) for the hmm into the file.
     Prints note specific errors into another file.
@@ -18,25 +22,42 @@ def save_hmm_data(errorVec, errorVecLeft, errorVecRight, task_data, taskParamete
         hand = "left"
     else:
         hand = "both"
-    complexityLevel = [task_data.note_range, taskParameters.noteValues, hand]
+    complexityLevel = (task_data.note_range, taskParameters.noteValues, hand)
 
-    ef = open(error_file, 'a', newline='')
-    ef_writer = csv.writer(ef, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    ef_writer.writerow([task_data.practice_mode, complexityLevel, errorVecRight, errorVecLeft])  # task_data is a placeholder
-    ef.close()
+
+    #ef = open(error_file, 'a', newline='')
+    #ef_writer = csv.writer(ef, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    #ef_writer.writerow([task_data.practice_mode, complexityLevel, errorVecRight, errorVecLeft])
+    #ef.close()
 
     nf = open(notes_file, 'a', newline='')
     nf_writer = csv.writer(nf, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     nf_writer.writerow(note_errorString)
     nf.close()
 
-    #TODO: Append Data to DataFrame instead of over csv
-    df_error = preprocessing(error_file)
-    next = thresholds(df_error)
-    #if next:
-        # generate new task with next complexity level
-    #else:
-        # start Practise Mode Learning!
+    dic_error = {}
+    dic_error['practice_mode'] = task_data.practice_mode
+    dic_error['complexityLevel'] = str(complexityLevel)
+    for hand in ['_right', '_left']:
+        if hand == '_right':
+            error = errorVecRight
+        else:
+            error = errorVecLeft
+        dic_error['pitch'+hand] = error.pitch
+        dic_error['note_hold_time'+hand] = error.note_hold_time
+        dic_error['timing'+hand] = error.timing
+        dic_error['n_missing_notes'+hand] = error.n_missing_notes
+        dic_error['n_extra_notes'+hand] = error.n_extra_notes
+        dic_error['Summed'+hand] = error.pitch + error.note_hold_time + error.timing + error.n_missing_notes + error.n_extra_notes
+
+    print("5", errorVecRight)
+    print("dic", dic_error)
+    df = pd.Series(dic_error)
+    print("df", df)
+    df.to_csv(error_file, mode='a', header=False, index=False)
+
+    #thresholds(df_error)
+    return df
 
 def get_number(string, value):
     end = string.partition(value + "=")[2]
@@ -95,23 +116,3 @@ def preprocessing(filename):
 
     return df
 
-def thresholds(df):
-    i = df.shape[0]
-    row = df.iloc[[i-1]]
-    next_level = True
-    for i in ["_right", "_left"]:
-        if row['note_hold_time'+i] >= 1:
-            next_level = False
-        elif row['timing'+i] >= 0.2:
-            next_level = False
-        elif row['pitch'+i] >= 0.1:
-            next_level = False
-        elif row['n_missing_notes'+i] >= 0.1:
-            next_level = False
-        elif row['n_extra_notes'+i] >= 0.1:
-            next_level = False
-    if row['SummedLeft'] >= 1.5:
-        next_level = False
-    elif row['SummedRight'] >= 1.5:
-        next_level = False
-    return next_level

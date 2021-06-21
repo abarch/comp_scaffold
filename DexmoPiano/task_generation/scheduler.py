@@ -183,3 +183,21 @@ def choosePracticeMode(tk_root):
     val = globals()[global_var_name]
     del globals()[global_var_name]
     return val
+
+
+def threshold_info(tk_root):
+    import tkinter as tk
+
+    new_window = tk.Toplevel(tk_root)
+
+    l = tk.Label(new_window, text="I think this needs some more practise. How about we try out different practise "
+                                  "modes and learn together.")
+    l.pack(side=tk.TOP, padx=5, pady=1)
+
+    def close():
+        new_window.destroy()
+
+    b = tk.Button(new_window, text="Okay", command=close)
+    b.pack(side=tk.TOP, padx=5, pady=15)
+
+
