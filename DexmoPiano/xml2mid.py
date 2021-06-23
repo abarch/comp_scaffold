@@ -24,7 +24,6 @@ def xml2mid(xmlfilename, midfilename):
     track = 0
     channel = 0
     time = 0
-    volume = 100
     tempo = 60  # In BPM -  use 60 so that time is just in seconds
 
     mymidi = MIDIFile(1)  # One track, defaults to format 1 (tempo track is created
@@ -37,6 +36,7 @@ def xml2mid(xmlfilename, midfilename):
         startsongtime = notesArray[0][2]
         for m in notesArray:
             note = m[0]
+            volume = m[1]
             starttime = m[2] - startsongtime
             endtime = m[3] - startsongtime
             duration = endtime - starttime
