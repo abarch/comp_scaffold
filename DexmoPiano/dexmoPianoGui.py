@@ -35,6 +35,7 @@ guidanceMode = "At every note"
 from task_generation.generator import TaskParameters
 
 taskParameters = TaskParameters()
+difficultyScaling = False
 # maxNotePerBar = 2
 # numberOfBars = 7
 # bpm = 120
@@ -72,12 +73,13 @@ def startTask():
                                    useVisualAttention=useVisualAttention.get())
     df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
                                                   taskParameters, note_errorString)
-    next_level = difficulty.thresholds(df_error)
-    print("Next Level", next_level)
-    if next_level:
-        new_complexity_level()
-    else:
-        get_threshold_info()
+    if difficultyScaling:
+        next_level = difficulty.thresholds(df_error)
+        print("Next Level", next_level)
+        if next_level:
+            new_complexity_level()
+        else:
+            get_threshold_info()
 
     scheduler.register_error(errorVal)
 
@@ -95,19 +97,20 @@ def startTask():
     add_error_plot()
 
     ## if there is a score with errors, show it in a new window
-    score_with_error = Path(tempDir) / "output_with_errors.png"
+    if not difficultyScaling:
+        score_with_error = Path(tempDir) / "output_with_errors.png"
 
-    if score_with_error.exists():
-        new_window = tk.Toplevel(root)
-        new_window.geometry("835x1181")
-        background = Image.open(score_with_error)
-        background = background.convert("RGBA")
+        if score_with_error.exists():
+            new_window = tk.Toplevel(root)
+            new_window.geometry("835x1181")
+            background = Image.open(score_with_error)
+            background = background.convert("RGBA")
 
-        img = ImageTk.PhotoImage(background)
+            img = ImageTk.PhotoImage(background)
 
-        panel = tk.Label(new_window, image=img)
-        panel.image = img
-        panel.place(x=0, y=0, width=835, height=1181)
+            panel = tk.Label(new_window, image=img)
+            panel.image = img
+            panel.place(x=0, y=0, width=835, height=1181)
 
     refresh_buttons()
 
@@ -635,17 +638,22 @@ def load_taskButtons():
 
 
 def dif_scaling():
-    global taskParameters
+    global taskParameters, difficultyScaling
 
     previous = taskParameters
     print(taskParameters)
+    difficultyScaling = True
     parameters = difficulty.getTaskComplexity()
+    taskParameters = parameters
     scheduler.get_next_task(parameters)
     loadUpTask()
 
 
 def get_threshold_info():
+    global difficultyScaling
+
     threshold_info(root)
+    difficultyScaling = False
 
 
 def new_complexity_level():

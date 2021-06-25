@@ -5,6 +5,7 @@ from DexmoPiano.task_generation.note_range_per_hand import NoteRangePerHand
 def getTaskComplexity(previous=None):
     levels = []
 
+    print("Notes Ranges", list(NoteRangePerHand)[2:])
     ranges = list(NoteRangePerHand)[2:]
     value = [1/2, 1/4]
     hands = ["right", "left"]
