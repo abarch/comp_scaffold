@@ -173,6 +173,8 @@ def generateNextTask():
         scheduler.new_task_forced_practice_sequence_prior(taskParameters,
                                                           [PracticeMode.SINGLE_NOTE])
         loadUpTask()
+    elif choice == "NEXT_LEVEL":
+        new_complexity_level()
     elif inEnum(choice, PracticeMode):
         scheduler.queue_practice_mode(choice)
         loadUpTask()
@@ -641,7 +643,6 @@ def dif_scaling():
     global taskParameters, difficultyScaling
 
     previous = taskParameters
-    print(taskParameters)
     difficultyScaling = True
     parameters = difficulty.getTaskComplexity()
     taskParameters = parameters
