@@ -248,6 +248,7 @@ def generateMidi(task, outFiles):
             
             if note_range in [NoteRangePerHand.ONE_NOTE,
                               NoteRangePerHand.TWO_NOTES,
+                              NoteRangePerHand.THREE_NOTES,
                               NoteRangePerHand.C_TO_G]:
                 return True
             elif note_range in [NoteRangePerHand.ONE_OCTAVE,

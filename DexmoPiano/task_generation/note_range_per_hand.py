@@ -10,16 +10,16 @@ class NoteRangePerHand(enum.Enum):
     TWO_NOTES = enum.auto()
     THREE_NOTES = enum.auto()
     C_TO_G = enum.auto()
-    ONE_OCTAVE = enum.auto()
     C_DUR= enum.auto()
     ONE_OCTAVE_BLACK = enum.auto()
     A_MOLL = enum.auto()
+    ONE_OCTAVE = enum.auto()
     
     
 noteRangePerHandDescription = ["One note (C)", "Two notes (C,D)", "Three Notes (E,F,G)",
-                               "Notes C-G (for 5 fingers)", "One octave",
+                               "Notes C-G (for 5 fingers)",
                                "C-Dur", "A-Moll",
-                               "One octave (only black keys)"
+                               "One octave (only black keys)", "One octave"
                                ]
 
 noteRangeMap = {const: desc for const, desc in 

@@ -8,29 +8,32 @@ def getTaskComplexity(previous=None):
     print("Notes Ranges", list(NoteRangePerHand)[2:])
     ranges = list(NoteRangePerHand)[2:]
     value = [1/2, 1/4]
-    hands = ["right", "left"]
-    right = False
-    left = False
+    hands = ["right", "left", "both"]
+    sim = False
 
     for i in range(len(ranges)):
         if i == 1:
-            hands.append("both")
-        if i == 2:
             value.append(1)
-        if i == 3:
+        if i == 2:
             value.append(1/8)
+        if i == 3:
+            sim = True
         if i == 4:
             value.append(1/16)
         for h in hands:
             if h == "right":
                 right = True
                 left = False
+                simultaneously = True
             elif h == "left":
                 left = True
                 right = False
+                simultaneously = True
             else:
                 right = left = True
-            par = TaskParameters((4,4), value.copy(), 3, 7, ranges[i], left, right, 100)
+                if not sim:
+                    simultaneously = False
+            par = TaskParameters((4,4), value.copy(), 3, 7, ranges[i], left, right, simultaneously, 100)
             # timeSignature, noteValues, nmaxNotesPerBar, noOfBars, note_range, left, right, bpm
             levels.append(par)
     print("These are all levels: ", levels)

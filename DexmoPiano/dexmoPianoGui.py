@@ -410,6 +410,7 @@ def specifyTask():
 
     prev_values = taskParameters
 
+    print("TaskParam in Dexmo specify", repr(taskParameters))
     options.changeParameter()
 
     newValues = options.get_data()
@@ -618,7 +619,7 @@ def load_taskButtons():
     l2.place(x=10, y=610)
 
     # hand checkboxes
-    global rightHand, leftHand
+    global rightHand, leftHand, simultaneously
     leftHand = tk.BooleanVar()
     leftHand.set(True)
     chk = tk.Checkbutton(root, text='left hand', var=leftHand)
@@ -627,6 +628,11 @@ def load_taskButtons():
     rightHand = tk.BooleanVar()
     rightHand.set(True)
     chk = tk.Checkbutton(root, text='right hand', var=rightHand)
+    chk.place(x=75, y=635)
+
+    simultaneously = tk.BooleanVar()
+    simultaneously.set(True)
+    chk = tk.Checkbutton(root, text='simultaneously', var=simultaneously)
     chk.place(x=75, y=635)
 
     global useVisualAttention
