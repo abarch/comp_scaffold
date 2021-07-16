@@ -1,5 +1,5 @@
-from DexmoPiano.task_generation.generator import TaskParameters
-from DexmoPiano.task_generation.note_range_per_hand import NoteRangePerHand
+from task_generation.generator import TaskParameters
+from task_generation.note_range_per_hand import NoteRangePerHand
 
 
 def getTaskComplexity(previous=None):

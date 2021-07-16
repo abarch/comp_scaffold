@@ -16,7 +16,7 @@ import os
 import dexmoOutput
 import fileIO
 import midiProcessing
-from DexmoPiano import config, difficulty, hmm_data_acquisition
+import config, difficulty, hmm_data_acquisition
 from optionsWindow import optionsWindowClass
 import threadHandler
 
