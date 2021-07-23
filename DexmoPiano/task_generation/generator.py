@@ -25,7 +25,7 @@ class TaskParameters:
     @param numberOfBars: Total number of bars.
     @param noteValuesList: Possible durations of the notes (e.g. 1, 1/2 etc.).
     @param pitchesList: Possible MIDI pitch numbers (0-127).
-    @param simultaneously: if false play left/right alternating instead of simultaneously
+    @param alternating: if true play left/right alternating instead of simultaneously
     @param twoHandsTup: Tuple of booleans, True if left/right hand is active.
     """
     timeSignature: tuple    = (4,4)
@@ -35,7 +35,7 @@ class TaskParameters:
     note_range: NoteRangePerHand = NoteRangePerHand.TWO_NOTES
     left: bool              = False
     right: bool             = True
-    simultaneously: bool     = True
+    alternating: bool     = True
     bpm: float              = 100
     
     def astuple(self):
@@ -143,18 +143,19 @@ def _generate_task_v1(task_parameters):
             t += 1
 
     # play with both hands alternating, instead of together at the same time
-    if not task_parameters.simultaneously:
-        for hand in ["left", "right"]:
-            if hand == "left":
-                note_starts = [8,9,10,11,16,17,18,19,24,25,26,27]
-            else:
-                note_starts = [4,5,6,7,12,13,14,15,20,21,22,23]
-            remove = []
-            for task in data[hand]:
-                if task.start not in note_starts:
-                    remove.append(task)
-            for item in remove:
-                data[hand].remove(item)
+    if task_parameters.alternating:
+        if task_parameters.left and task_parameters.right: #only if task with both hands as well
+            for hand in ["left", "right"]:
+                if hand == "left":
+                    note_starts = [8,9,10,11,16,17,18,19,24,25,26,27]
+                else:
+                    note_starts = [4,5,6,7,12,13,14,15,20,21,22,23]
+                remove = []
+                for task in data[hand]:
+                    if task.start not in note_starts:
+                        remove.append(task)
+                for item in remove:
+                    data[hand].remove(item)
 
     # data = sorted(data, key=lambda n: n.start)
     # return Task(time_sig=timeSig, noOfBars=bars, data=data)

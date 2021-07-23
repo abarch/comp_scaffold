@@ -619,7 +619,7 @@ def load_taskButtons():
     l2.place(x=10, y=610)
 
     # hand checkboxes
-    global rightHand, leftHand, simultaneously
+    global rightHand, leftHand, alternating
     leftHand = tk.BooleanVar()
     leftHand.set(True)
     chk = tk.Checkbutton(root, text='left hand', var=leftHand)
@@ -630,9 +630,9 @@ def load_taskButtons():
     chk = tk.Checkbutton(root, text='right hand', var=rightHand)
     chk.place(x=75, y=635)
 
-    simultaneously = tk.BooleanVar()
-    simultaneously.set(True)
-    chk = tk.Checkbutton(root, text='simultaneously', var=simultaneously)
+    alternating = tk.BooleanVar()
+    alternating.set(True)
+    chk = tk.Checkbutton(root, text='alternating', var=alternating)
     chk.place(x=75, y=635)
 
     global useVisualAttention
@@ -650,7 +650,8 @@ def dif_scaling():
 
     previous = taskParameters
     difficultyScaling = True
-    parameters = difficulty.getTaskComplexity()
+    parameters, index = difficulty.getTaskComplexity()
+    #TODO: How and where to show index of complexity level
     taskParameters = parameters
     scheduler.get_next_task(parameters)
     loadUpTask()

@@ -32,7 +32,7 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
 
     nf = open(notes_file, 'a', newline='')
     nf_writer = csv.writer(nf, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    nf_writer.writerow(note_errorString)
+    nf_writer.writerow(note_errorString + "\n")
     nf.close()
 
     dic_error = {}

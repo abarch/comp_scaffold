@@ -24,16 +24,16 @@ def getTaskComplexity(previous=None):
             if h == "right":
                 right = True
                 left = False
-                simultaneously = True
+                alternating = False
             elif h == "left":
                 left = True
                 right = False
-                simultaneously = True
+                alternating = False
             else:
                 right = left = True
                 if not sim:
-                    simultaneously = False
-            par = TaskParameters((4,4), value.copy(), 3, 7, ranges[i], left, right, simultaneously, 100)
+                    alternating = False
+            par = TaskParameters((4,4), value.copy(), 3, 7, ranges[i], left, right, alternating, 100)
             # timeSignature, noteValues, nmaxNotesPerBar, noOfBars, note_range, left, right, bpm
             levels.append(par)
     print("These are all levels: ", levels)
@@ -43,7 +43,7 @@ def getTaskComplexity(previous=None):
             if str(levels[index]) == str(previous):
                 print("this Level is the same:", index, levels[index])
                 print("this is the new Level:", levels[index+1])
-                return levels[index+1]
+                return levels[index+1], index+1
     else: # no previous TaskParameter, first Complexity Level
         return levels[0]
 

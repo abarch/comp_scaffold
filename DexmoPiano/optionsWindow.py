@@ -106,7 +106,7 @@ class optionsWindowClass():
         l6 = tk.Label(self.specifyWindow, text=" One or both hands:")
         l6.grid (row=12,columnspan=4,sticky=tk.W, pady=(20,0))
 
-        global rightHand, leftHand, simultaneously
+        global rightHand, leftHand, alternating
         rightHand = tk.BooleanVar()
         rightHand.set(self.taskParameters.right)
         chk = tk.Checkbutton(self.specifyWindow, text='Use right hand', var=rightHand)
@@ -118,10 +118,9 @@ class optionsWindowClass():
         chk = tk.Checkbutton(self.specifyWindow, text='Use left hand', var=leftHand)
         chk.grid(column=2, columnspan=3, row=13)
 
-        simultaneously = tk.BooleanVar()
-        print("simultan", self.taskParameters.simultaneously)
-        simultaneously.set(self.taskParameters.simultaneously)
-        chk = tk.Checkbutton(self.specifyWindow, text='simultaneously', var=simultaneously)
+        alternating = tk.BooleanVar()
+        alternating.set(self.taskParameters.alternating)
+        chk = tk.Checkbutton(self.specifyWindow, text='alternating', var=alternating)
         chk.grid(column=3, columnspan=3, row=13)
 
     # SAVE and QUIT button
@@ -132,7 +131,7 @@ class optionsWindowClass():
                             command=lambda: self.save_settings(saveBPM=bpmscale.get(), saveBarNumber=numberBars.get(),
                                                                saveNotesPerBar=maxNoteNumber.get(),
                                                                saveRightHand=rightHand.get(), saveLeftHand=leftHand.get(),
-                                                               saveSimultaneously=simultaneously.get()))
+                                                               saveAlternating=alternating.get()))
         saveButton.grid(row=17, column=4, columnspan=3, pady=(20, 0))
 
         quitButton = tk.Button(self.specifyWindow, text='Quit without saving', command=lambda: self.quit_options())
@@ -191,7 +190,7 @@ class optionsWindowClass():
         l7.grid(row=16,column = 2, columnspan=4, sticky=tk.W)
 
     # save settings to generate a new task with it
-    def save_settings(self, saveBPM, saveBarNumber, saveNotesPerBar, saveRightHand, saveLeftHand, saveSimultaneously):
+    def save_settings(self, saveBPM, saveBarNumber, saveNotesPerBar, saveRightHand, saveLeftHand, saveAlternating):
         """
         Saves the settings selected in the options window.
         Invoked when clicking the 'save' button. The options will be applied to
@@ -214,9 +213,8 @@ class optionsWindowClass():
             self.taskParameters.note_range = self.get_pitches()
             self.taskParameters.left = saveLeftHand
             self.taskParameters.right = saveRightHand
-            self.taskParameters.simultaneously = saveSimultaneously
+            self.taskParameters.alternating = saveAlternating
             self.specifyWindow.destroy()
-            print("simultaneously ins saving options", self.taskParameters.simultaneously)
     def quit_options(self):
         """
         Closes the options window without saving changes.
