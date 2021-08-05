@@ -32,7 +32,7 @@ def getTaskComplexity(previous=None):
             else:
                 right = left = True
                 if not sim:
-                    alternating = False
+                    alternating = True
             par = TaskParameters((4,4), value.copy(), 3, 7, ranges[i], left, right, alternating, 100)
             # timeSignature, noteValues, nmaxNotesPerBar, noOfBars, note_range, left, right, bpm
             levels.append(par)
@@ -44,8 +44,9 @@ def getTaskComplexity(previous=None):
                 print("this Level is the same:", index, levels[index])
                 print("this is the new Level:", levels[index+1])
                 return levels[index+1], index+1
+        return None
     else: # no previous TaskParameter, first Complexity Level
-        return levels[0]
+        return levels[0], 0
 
 def thresholds(df):
     next_level = True

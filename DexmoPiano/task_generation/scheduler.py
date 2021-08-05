@@ -203,4 +203,16 @@ def threshold_info(tk_root):
     b = tk.Button(new_window, text="Okay", command=close)
     b.pack(side=tk.TOP, padx=5, pady=15)
 
+def complexity_error(tk_root):
+    import tkinter as tk
 
+    new_window = tk.Toplevel(tk_root)
+
+    l = tk.Label(new_window, text="Error: To use the predefined complexity levels, please start the Difficulty Scaling!")
+    l.pack(side=tk.TOP, padx=5, pady=1)
+
+    def close():
+        new_window.destroy()
+
+    b = tk.Button(new_window, text="Okay", command=close)
+    b.pack(side=tk.TOP, padx=5, pady=15)

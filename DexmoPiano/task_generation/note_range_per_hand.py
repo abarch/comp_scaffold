@@ -11,8 +11,8 @@ class NoteRangePerHand(enum.Enum):
     THREE_NOTES = enum.auto()
     C_TO_G = enum.auto()
     C_DUR= enum.auto()
-    ONE_OCTAVE_BLACK = enum.auto()
     A_MOLL = enum.auto()
+    ONE_OCTAVE_BLACK = enum.auto()
     ONE_OCTAVE = enum.auto()
     
     
@@ -44,14 +44,14 @@ def get_pitchlist(note_range, right=True):
         pitchesList = [4,5,7]
     elif str(note_range) == str(NoteRangePerHand.C_TO_G):
         pitchesList = [0, 2, 4, 5, 7]
-    elif str(note_range) == str(NoteRangePerHand.ONE_OCTAVE):
-        pitchesList = list(range(0, 12))
     elif str(note_range) == str(NoteRangePerHand.C_DUR):
         pitchesList = [0,2,4,5,7,9,11]
     elif str(note_range) == str(NoteRangePerHand.A_MOLL):
-        pitchesList = [-3, -1, 0, 2, 4, 5, 8]
+        pitchesList = [-3, -1, 0, 2, 4, 5, 7]
     elif str(note_range) == str(NoteRangePerHand.ONE_OCTAVE_BLACK):
         pitchesList = [1,3,6,8,10]
+    elif str(note_range) == str(NoteRangePerHand.ONE_OCTAVE):
+        pitchesList = list(range(0, 12))
     else:
         raise ValueError(f"got unexpected note_range {repr(note_range)}!")
         

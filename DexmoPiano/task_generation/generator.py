@@ -67,7 +67,9 @@ def _generate_task_v1(task_parameters):
         
     data = dict(left=[], right=[])
     for hand in hands:
+        print("note range name", task_parameters.note_range)
         pitches = get_pitchlist(task_parameters.note_range, right=hand=="right")
+        print("pitchlist", pitches)
         ### CHOOSE TIME_AT_STARTSTEPS ###
     
         timesteps = []

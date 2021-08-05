@@ -36,6 +36,7 @@ from task_generation.generator import TaskParameters
 
 taskParameters = TaskParameters()
 difficultyScaling = False
+global complex_index
 # maxNotePerBar = 2
 # numberOfBars = 7
 # bpm = 120
@@ -168,6 +169,7 @@ def generateNextTask():
 
     if choice == "NEW_TASK":
         nextTask()
+        update_complexity_index('?')
         return
     elif choice == "TEST_MOVEMENT_1":
         scheduler.new_task_forced_practice_sequence_prior(taskParameters,
@@ -584,6 +586,10 @@ def load_taskButtons():
     showVerticalGuidanceCheck.place(x=1200, y=300, height=50, width=200)
     config.showVerticalGuidance = showVerticalGuidance.get()
 
+    global complex_index
+    complex_index = tk.StringVar()
+    complex_index.set("?")
+    tk.Label(root, textvariable=complex_index, font=("Courier", 40)).place(x=50, y=40)
     tk.Button(root, text='Start Task', command=startTask).place(x=10, y=90, height=50, width=150)
     tk.Button(root, text='Start Demo', command=startDemo).place(x=10, y=150, height=50, width=150)
 
@@ -655,7 +661,7 @@ def dif_scaling():
     taskParameters = parameters
     scheduler.get_next_task(parameters)
     loadUpTask()
-
+    update_complexity_index(index)
 
 def get_threshold_info():
     global difficultyScaling
@@ -669,12 +675,20 @@ def new_complexity_level():
     global taskParameters
 
     previous = taskParameters
-    new_parameters = difficulty.getTaskComplexity(previous)
-    print("New complexity_level: ", repr(new_parameters))
-    taskParameters = new_parameters
-    scheduler.get_next_task(new_parameters)
-    loadUpTask()
+    try:
+        new_parameters, index = difficulty.getTaskComplexity(previous)
+        print("New complexity_level: ", repr(new_parameters))
+        taskParameters = new_parameters
+        scheduler.get_next_task(new_parameters)
+        loadUpTask()
+        update_complexity_index(index)
+    except TypeError:
+        print("Error: To use the predefined complexity levels, please start the Difficulty Scaling!")
+        complexity_error(root)
 
+def update_complexity_index(index):
+    global complex_index
+    complex_index.set(index)
 
 def updateGuidance():
     global showNotes1, showNotes2, showScoreGuidance, showVerticalGuidance, canvas, piano_img, hand_img
@@ -884,7 +898,7 @@ def choose_ports():
 
 ##_____________________________START LOOP HERE________________________________##
 
-from task_generation.scheduler import Scheduler, threshold_info
+from task_generation.scheduler import Scheduler, threshold_info, complexity_error
 
 scheduler = Scheduler(loadUpTask)
 
