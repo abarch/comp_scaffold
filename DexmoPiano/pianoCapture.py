@@ -13,6 +13,7 @@ import queue
 import config
 import sys
 import csv
+import glob
 from visualNotes import VisualNotes
 
 midiInputPort = ''
@@ -24,6 +25,7 @@ midiConnected = 0
 
 songNames = []
 songFiles = []
+songButtons = []
 piano_img = []
 panel = []
 songName = ''  # which song to play
@@ -145,13 +147,19 @@ def stopRecording():
     threadHandler.recordingFinished()
     config.stopButton["state"] = "disabled"
 
-
 def load_songlist(filename):
-    if not os.path.exists(songlist):
+    global songNames, songFiles
+    
+    if not os.path.exists(filename):
         print("Song list file " + songlist + " does not exist, exiting")
         exit()
-    print('Using song list file: ' + songlist)
+    print('Using song list file: ' + filename)
     count = 0
+    if songButtons:
+        for button in songButtons:
+            button.destroy()
+    songNames = []
+    songFiles = []
     with open(filename, newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for row in reader:
@@ -161,13 +169,15 @@ def load_songlist(filename):
                 break
             songNames.append(row[0])
             songFiles.append(row[1])
+    load_songs()
 
 
 def load_songs():
+    global songButtons
     for k in range(len(songNames)):
-        Button(root, wraplength=200, text=songNames[k], fg='blue', command=lambda k=k: loadSong(songFiles[k], songNames[k]))\
-            .place(x=30, y=k * 60 + 30, height=50, width=200)
-
+        b = Button(root, wraplength=200, text=songNames[k], fg='blue', command=lambda k=k: loadSong(songFiles[k], songNames[k]))
+        b.place(x=30, y=k * 60 + 120, height=50, width=200)
+        songButtons.append(b)
 
 def movement():
     global alien1
@@ -272,31 +282,31 @@ def load_Startmenu():
     freetext.place(x=1200, y=110, height=60, width=150)
     freetext.insert(INSERT, "Free text")
 
-    showScoreGuidance = IntVar(value=1)
+    showScoreGuidance = IntVar(value=0)
     showScoreGuidanceCheck = Checkbutton(root, text='Show score guidance', variable=showScoreGuidance,
                                          command=updateGuidance)
     showScoreGuidanceCheck.place(x=1200, y=250, height=50, width=200)
 
-    showVerticalGuidance = IntVar(value=1)
+    showVerticalGuidance = IntVar(value=0)
     showVerticalGuidanceCheck = Checkbutton(root, text='Show vertical guidance', variable=showVerticalGuidance,
                                             command=updateGuidance)
     showVerticalGuidanceCheck.place(x=1200, y=300, height=50, width=200)
     config.showVerticalGuidance = showVerticalGuidance.get()
 
-    showNotes1 = IntVar(value=1)
+    showNotes1 = IntVar(value=0)
     showNotes1Check = Checkbutton(root, text='Show notes guidance (left)', variable=showNotes1,
                                   command=updateGuidance)
     showNotes1Check.place(x=1200, y=350, height=50, width=200)
 
-    showNotes2 = IntVar(value=1)
+    showNotes2 = IntVar(value=0)
     showNotes2Check = Checkbutton(root, text='Show notes guidance (right)', variable=showNotes2,
                                   command=updateGuidance)
     showNotes2Check.place(x=1200, y=400, height=50, width=200)
 
-    Button(root, text='Refresh MIDI', command=refreshMidi).place(x=30, y=640, height=50, width=200)
+    Button(root, text='Refresh MIDI', command=refreshMidi).place(x=30, y=720, height=50, width=200)
 
     connectButton = Button(root, text='Connect', command=connectToMidi)
-    connectButton.place(x=30, y=700, height=50, width=200)
+    connectButton.place(x=30, y=780, height=50, width=200)
     connectButton["state"] = "disabled"
 
 
@@ -315,6 +325,19 @@ def load_Startmenu():
 
     hand_img = ImageTk.PhotoImage(Image.open("finger-positioning-on-piano-crop.png"))
     canvas.create_image(470, 300, anchor=NW, image=hand_img)
+
+    updateGuidance()
+
+    songbooks = []
+    for file in glob.glob("*.csv"):
+        songbooks.append(file)
+
+    songbook = StringVar(root)
+    songbook.set("defaultSongs.csv")
+
+    songbookPopupMenu = OptionMenu(root, songbook, *songbooks, command = load_songlist).place(x=30, y=10, height=40, width=200)
+
+    Button(root, wraplength=200, text='Blank score', fg='red', command=loadBlank).place(x=30, y=60, height=50, width=200)
 
     midiInputPort, inputs_midi = getMidiInputs()
     midiOutputPort, outputs_midi = getMidiOutputs()
@@ -369,10 +392,10 @@ def connectToMidi():
 def refreshMidi():
     global midiInputPort, midiInputPopupMenu, midiOutputPort, midiOutputPopupMenu
     midiInputPort, inputs_midi = getMidiInputs()
-    MidiInputPopupMenu = OptionMenu(root, midiInputPort, *inputs_midi).place(x=30, y=760, height=20, width=200)
+    MidiInputPopupMenu = OptionMenu(root, midiInputPort, *inputs_midi).place(x=30, y=840, height=20, width=200)
 
     midiOutputPort, outputs_midi = getMidiOutputs()
-    MidiOutputPopupMenu = OptionMenu(root, midiOutputPort, *outputs_midi).place(x=30, y=790, height=20, width=200)
+    MidiOutputPopupMenu = OptionMenu(root, midiOutputPort, *outputs_midi).place(x=30, y=880, height=20, width=200)
 
 
 def getMidiInputs():
@@ -398,6 +421,15 @@ def getMidiOutputs():
         midiOutputPort.set(outputs_midi[midiOutputPopupMenu])
     return midiOutputPort, outputs_midi
 
+# Load a blank score
+def loadBlank():
+    global background, panel
+    # Set free text to blank
+    freetext.delete("1.0", "end-1c")
+    freetext.insert(END, "blank")
+    config.freetext = "blank"
+    if panel:
+        panel.destroy()
 
 # Load a song (generate the midi file and the sheet music)
 def loadSong(thisSongFile, thisSongName):
@@ -465,22 +497,22 @@ songlist = 'defaultsongs.csv'
 if len(sys.argv) > 1:  # i.e., no arguments
     songlist = sys.argv[1]
 
-# Load the songs list
-load_songlist(songlist)
-
 root = Tk()
 root.title("Piano capture")
 load_Startmenu()
 
+# Load the songs list
+load_songlist(songlist)
+
+
 # deleteOldFiles()
 
-setupVisualNotes()
+#setupVisualNotes()
 
 # initialize keyboard input and output threads
 threadHandler.initInputThread()
 threadHandler.initOutputThread(root)
 
-load_songs()
 
 # Set the resolution of window
 root.geometry("1500x1000")
