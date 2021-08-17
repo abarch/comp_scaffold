@@ -17,7 +17,7 @@ def make_song(song_name, bpm):
     song = Path(base + '.lypart').read_text()
 
     write_song(base + '.ly', song, bpm)
-    subprocess.run(['lilypond', '--png', '-o', base, base])#, stderr=subprocess.DEVNULL)
+    subprocess.run(['lilypond','-dmidi-extension=midi','--png', '-o', base, base])#, stderr=subprocess.DEVNULL)
 
     # Remove the temp files
     filelist = glob.glob(base + '-*')

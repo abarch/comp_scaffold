@@ -29,6 +29,7 @@ songButtons = []
 piano_img = []
 panel = []
 songName = ''  # which song to play
+songFile = ''  # filename of current song
 generatedBpm: int = 0  # bpm to play the song back at
 
 midiSaved = False  # Indicates if the output file was already created
@@ -53,7 +54,7 @@ def getCurrentTimestamp():
 # generate new midiFile and note sheet and display it
 # dont generate new task if user opened a midi file
 def nextTask(finishAfterSong, userSelectedTask=False, userSelectedLocation=config.inputFileStrs[0]):
-    global midiFileLocation, midiSaved, alien1, generatedBpm, bpmSelected
+    global midiFileLocation, midiSaved, alien1, generatedBpm, bpmSelected, songFile
 
     bpm = int(bpmSelected.get())
 
@@ -61,7 +62,7 @@ def nextTask(finishAfterSong, userSelectedTask=False, userSelectedLocation=confi
 
     # If the bpm has changed since the midi file was generated, regenerate
     if bpm != generatedBpm:
-        makesongsly.make_song(songName, bpm)
+        makesongsly.make_song(songFile, bpm)
 
     que = queue.Queue()
     config.str_date = datetime.datetime.today().strftime('_%Y_%m_%d_%H_%M_%S_')
@@ -433,7 +434,7 @@ def loadBlank():
 
 # Load a song (generate the midi file and the sheet music)
 def loadSong(thisSongFile, thisSongName):
-    global midiFileLocation, songName, generatedBpm, waitButton, playButton, playAfterButton, playAloneButton
+    global midiFileLocation, songName, songFile, generatedBpm, waitButton, playButton, playAfterButton, playAloneButton
     bpm = int(bpmSelected.get())
     print("Loading " + thisSongFile + ", bpm = " + str(bpm))
     # Set free text to name of song
@@ -447,6 +448,7 @@ def loadSong(thisSongFile, thisSongName):
     load_notesheet('songs/' + thisSongFile + '.png')
     midiFileLocation = 'songs/' + thisSongFile + '.midi'
     songName = thisSongName
+    songFile = thisSongFile
 
     if songName and midiConnected:
         waitButton["state"] = "normal"
