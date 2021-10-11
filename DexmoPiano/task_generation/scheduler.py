@@ -164,13 +164,13 @@ def choosePracticeMode(tk_root):
     b = tk.Button(new_window, text="NEW TASK", command=set_option("NEW_TASK"))
     b.pack(side = tk.TOP, padx=5, pady=15)
     
-    b = tk.Button(new_window, text="TEST MOVEMENT 1", command=set_option("TEST_MOVEMENT_1"))
-    b.pack(side = tk.TOP, padx=5, pady=15)
+    #b = tk.Button(new_window, text="TEST MOVEMENT 1", command=set_option("TEST_MOVEMENT_1"))
+    #b.pack(side = tk.TOP, padx=5, pady=15)
 
     b = tk.Button(new_window, text="Next Complexity Level", command=set_option("NEXT_LEVEL"))
     b.pack(side=tk.TOP, padx=5, pady=15)
     
-    l = tk.Label(new_window, text="Same task, but training mode:")
+    l = tk.Label(new_window, text="Same piece, but practice mode:")
     l.pack(side = tk.TOP, padx=5, pady=1)
     
     from task_generation.practice_modes import PracticeMode
@@ -208,7 +208,7 @@ def complexity_error(tk_root):
 
     new_window = tk.Toplevel(tk_root)
 
-    l = tk.Label(new_window, text="Error: To use the predefined complexity levels, please start the Difficulty Scaling!")
+    l = tk.Label(new_window, text="Error: To use the predefined complexity levels, please start the Dynamic Difficulty Adjustment!")
     l.pack(side=tk.TOP, padx=5, pady=1)
 
     def close():

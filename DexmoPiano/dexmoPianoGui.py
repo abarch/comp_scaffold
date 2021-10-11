@@ -73,7 +73,7 @@ def startTask():
                                    scheduler.current_task_data(), taskParameters,
                                    useVisualAttention=useVisualAttention.get())
     df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
-                                                  taskParameters, note_errorString)
+                                                  taskParameters, targetNotes, actualNotes)
     if difficultyScaling:
         next_level = difficulty.thresholds(df_error)
         print("Next Level", next_level)
@@ -609,7 +609,7 @@ def load_taskButtons():
 
     tk.Button(root, text='Generate new Task', command=generateNextTask).place(x=10, y=370, height=40, width=150)
     tk.Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=415, height=40, width=150)
-    tk.Button(root, text='Difficulty Scaling', command=dif_scaling).place(x=10, y=470, height=40, width=150)
+    tk.Button(root, text='Difficulty Adjustment', command=dif_scaling).place(x=10, y=470, height=40, width=150)
     tk.Button(root, text='Open Midi file', command=openfile).place(x=10, y=520, height=25, width=150)
 
     # Scalebar to change BPM in loaded MIDI File
@@ -683,7 +683,7 @@ def new_complexity_level():
         loadUpTask()
         update_complexity_index(index)
     except TypeError:
-        print("Error: To use the predefined complexity levels, please start the Difficulty Scaling!")
+        print("Error: To use the predefined complexity levels, please start the Dynamic Difficulty Adjustment!")
         complexity_error(root)
 
 def update_complexity_index(index):
