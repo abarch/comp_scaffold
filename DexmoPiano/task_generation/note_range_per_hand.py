@@ -29,11 +29,7 @@ noteRangeMap.update(
                 zip(list(NoteRangePerHand)[1:], noteRangePerHandDescription)}
                     )
 
-def get_pitchlist(note_range, right=True):
-    if right:
-        base_note = 60 #C4
-    else:
-        base_note = 48 #C3
+def get_pitchlist(note_range):
 
     # Typecast to string, bc weird error gives false comparison otherwise
     if str(note_range) == str(NoteRangePerHand.ONE_NOTE):
@@ -55,5 +51,8 @@ def get_pitchlist(note_range, right=True):
     else:
         raise ValueError(f"got unexpected note_range {repr(note_range)}!")
         
-    return [base_note + p for p in pitchesList]
-    
+    return pitchesList
+
+def transpose (pitchesList, base_note= 60):        # base_note = 48 #C3
+
+     return [base_note + p for p in pitchesList]

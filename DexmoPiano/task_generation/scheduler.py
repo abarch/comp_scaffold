@@ -112,7 +112,8 @@ class Scheduler:
         
         return self._current_target_task().next_subtask_exists() or \
             self.task_queue_index < len(self.task_queue)-1
-            
+
+    # in case task has been executed, save the error values
     def register_error(self, error):
         if self.in_task_movement():
             task_data = self.task_movement.pop(0)

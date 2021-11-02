@@ -95,7 +95,7 @@ after it was played:
     - errors
 
 """
-    
+# FIXME:  change!!!! to target task again.
 class TargetTask():
     def from_midi(midi_file):
         return NotImplementedError()
@@ -110,6 +110,8 @@ class TargetTask():
         self.task_data = task_data
         self.task_parameters = task_parameters
         self.from_midi = from_midi
+
+        # FIXME :  add comment what is subtask_queue
         self.subtask_queue = [("TARGET", self.task_data)]
         self.subtask_queue_index = 0
         

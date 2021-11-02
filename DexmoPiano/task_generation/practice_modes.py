@@ -3,13 +3,15 @@
 
 import enum
 
+
 class PracticeMode(enum.Enum):
     IDENTITY    = enum.auto()
     RIGHT_HAND = enum.auto()
     LEFT_HAND = enum.auto()
     SINGLE_NOTE = enum.auto()
     SLOWER      = enum.auto()
-    
+
+# given task data, the procedure simplifies that task / changes target velocity
 def apply_practice_mode(task_data, practice_mode):
     from task_generation.task import TaskData
     from task_generation.generator import TaskNote
