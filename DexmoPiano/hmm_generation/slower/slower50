@@ -1,0 +1,15 @@
+score1,score2,pm,level,pitch_right,note_hold_time_right,timing_right,n_missing_notes_right,n_extra_notes_right,summed_right,pitch_left,note_hold_time_left,timing_left,n_missing_notes_left,n_extra_notes_left,summed_left
+3.0,2.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.0,1.783,0.035315789473684,0.0,0.0,1.81831578947368,0,0,0,0,0,0
+4.0,3.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.0,1.864,0.099684210526316,0.0,0.052631578947369,2.01631578947368,0,0,0,0,0,0
+5.0,5.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.105263157894737,1.543,0.123315789473684,0.368421052631579,0.0,2.14,0,0,0,0,0,0
+3.0,2.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.0,2.242,0.038631578947368,0.0,0.0,2.28063157894737,0,0,0,0,0,0
+2.0,1.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.0,1.9135,0.025421052631579,0.0,0.0,1.93892105263158,0,0,0,0,0,0
+5.0,4.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.105263157894737,2.6525,0.09821052631579,0.0,0.0,2.85597368421053,0,0,0,0,0,0
+5.0,5.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.052631578947369,1.39,0.009157894736842,0.421052631578947,0.0,1.87284210526316,0,0,0,0,0,0
+5.0,4.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.0,2.38,0.066263157894737,0.0,0.052631578947369,2.4988947368421,0,0,0,0,0,0
+5.0,4.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.0,2.601,0.125526315789474,0.0,0.0,2.72652631578948,0,0,0,0,0,0
+5.0,5.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.105263157894737,1.421,0.019842105263158,0.578947368421053,0.0,2.12505263157895,0,0,0,0,0,0
+3.0,2.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.0,3.256,0.039578947368422,0.0,0.0,3.29557894736842,0,0,0,0,0,0
+3.0,1.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.0,1.5875,0.033315789473684,0.0,0.0,1.62081578947369,0,0,0,0,0,0
+2.0,1.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.0,1.7545,0.048736842105263,0.0,0.0,1.80323684210526,0,0,0,0,0,0
+2.0,1.0,slower,"(<NoteRangePerHand.TWO_NOTES: 3>, [0.5, 0.25], 'right')",0.0,2.049,0.025526315789474,0.0,0.0,2.07452631578947,0,0,0,0,0,0

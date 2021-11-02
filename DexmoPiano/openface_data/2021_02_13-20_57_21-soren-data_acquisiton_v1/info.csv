@@ -1,0 +1,2 @@
+timestamp,scenario,name,camera_pos,external_light,glasses,posture,folder
+2021_02_13-20_57_21,data_acquisiton_v1,soren,above_screen,yes,yes,sitting,openface_data/2021_02_13-20_57_21-soren-data_acquisiton_v1

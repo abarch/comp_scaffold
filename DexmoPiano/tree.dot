@@ -1,0 +1,38 @@
+digraph Tree {
+node [shape=box, style="filled, rounded", color="black", fontname=helvetica] ;
+graph [ranksep=equally, splines=polyline] ;
+edge [fontname=helvetica] ;
+0 [label="p_rx <= 0.684\nsamples = 100.0%\nvalue = [0.489, 0.193, 0.318]\nclass = screen", fillcolor="#f8dfcd"] ;
+1 [label="AU20_r <= 0.795\nsamples = 81.4%\nvalue = [0.597, 0.014, 0.389]\nclass = screen", fillcolor="#f6d4bc"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label="p_ry <= 0.345\nsamples = 54.6%\nvalue = [0.859, 0.014, 0.127]\nclass = screen", fillcolor="#e99559"] ;
+1 -> 2 ;
+3 [label="samples = 49.0%\nvalue = [0.958, 0.015, 0.026]\nclass = screen", fillcolor="#e68641"] ;
+2 -> 3 ;
+4 [label="samples = 5.7%\nvalue = [0.0, 0.0, 1.0]\nclass = air", fillcolor="#8139e5"] ;
+2 -> 4 ;
+5 [label="Z_53 <= 429.55\nsamples = 26.8%\nvalue = [0.061, 0.015, 0.924]\nclass = air", fillcolor="#8b49e7"] ;
+1 -> 5 ;
+6 [label="samples = 25.7%\nvalue = [0.038, 0.001, 0.961]\nclass = air", fillcolor="#8641e6"] ;
+5 -> 6 ;
+7 [label="samples = 1.0%\nvalue = [0.627, 0.353, 0.02]\nclass = screen", fillcolor="#f4caab"] ;
+5 -> 7 ;
+8 [label="gaze_1_z <= -0.952\nsamples = 18.6%\nvalue = [0.018, 0.977, 0.005]\nclass = keyboard", fillcolor="#3ee684"] ;
+0 -> 8 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+9 [label="eye_lmk_X_21 <= -97.45\nsamples = 0.5%\nvalue = [0.696, 0.304, 0.0]\nclass = screen", fillcolor="#f0b890"] ;
+8 -> 9 ;
+10 [label="samples = 0.3%\nvalue = [1.0, 0.0, 0.0]\nclass = screen", fillcolor="#e58139"] ;
+9 -> 10 ;
+11 [label="samples = 0.1%\nvalue = [0.0, 1.0, 0.0]\nclass = keyboard", fillcolor="#39e581"] ;
+9 -> 11 ;
+12 [label="Y_56 <= 41.35\nsamples = 18.1%\nvalue = [0.0, 0.994, 0.006]\nclass = keyboard", fillcolor="#3ae582"] ;
+8 -> 12 ;
+13 [label="samples = 0.1%\nvalue = [0.0, 0.0, 1.0]\nclass = air", fillcolor="#8139e5"] ;
+12 -> 13 ;
+14 [label="samples = 18.0%\nvalue = [0.0, 1.0, 0.0]\nclass = keyboard", fillcolor="#39e581"] ;
+12 -> 14 ;
+{rank=same ; 0} ;
+{rank=same ; 1; 8} ;
+{rank=same ; 2; 5; 9; 12} ;
+{rank=same ; 3; 4; 6; 7; 10; 11; 13; 14} ;
+}
