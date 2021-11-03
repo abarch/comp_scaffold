@@ -33,7 +33,7 @@ def getTaskComplexity(previous=None):
                 right = left = True
                 if not sim:
                     alternating = True
-            par = TaskParameters((4,4), value.copy(), 3, 7, ranges[i], left, right, alternating, 100)
+            par = TaskParameters((4,4), value.copy(), 3, 7, ranges[i], ranges[i], left, right, alternating, 100)
             # timeSignature, noteValues, nmaxNotesPerBar, noOfBars, note_range, left, right, bpm
             levels.append(par)
     print("These are all levels: ", levels)

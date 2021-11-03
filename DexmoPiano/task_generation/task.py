@@ -31,7 +31,8 @@ class MidiNoteEventContainer:
 class TaskData:
     time_signature: tuple
     number_of_bars: int
-    note_range:  NoteRangePerHand
+    #note_range_left:  NoteRangePerHand
+    #note_range_right: NoteRangePerHand
     notes_right: list
     notes_left:  list
     bpm: float
@@ -97,14 +98,7 @@ after it was played:
 """
 # FIXME:  change!!!! to target task again.
 class TargetTask():
-    def from_midi(midi_file):
-        return NotImplementedError()
-        # return TargetTask(from_midi=True)
-    
-    def from_task_parameters(task_parameters):
-        from task_generation.generator import generate_task
-        task_data = generate_task(task_parameters)
-        return TargetTask(task_data, task_parameters=task_parameters)
+
     
     def __init__(self, task_data, task_parameters=None, from_midi=False):
         self.task_data = task_data
@@ -116,7 +110,16 @@ class TargetTask():
         self.subtask_queue_index = 0
         
         self.errordict = defaultdict(list)
-        
+
+    def from_midi(midi_file):
+        #return NotImplementedError()
+        return TargetTask(from_midi=True)
+
+    def from_task_parameters(task_parameters):
+        from task_generation.generator import generate_task
+        task_data = generate_task(task_parameters)
+        return TargetTask(task_data, task_parameters=task_parameters)
+
     def queue_practice_mode(self, practice_mode):
         new_task_data, description = apply_practice_mode(self.task_data, practice_mode)
         self.subtask_queue_index = len(self.subtask_queue)

@@ -17,7 +17,8 @@ class optionsWindowClass():
         self.root = root
         self.taskParameters = taskParamters
 
-        self.pitchesOptions = noteRangePerHandDescription
+        self.pitchesOptions_left = noteRangePerHandDescription
+        self.pitchesOptions_right =  noteRangePerHandDescription
 
     # create Window to specify next task, root waiting until this window is closed
     def changeParameter(self):
@@ -93,34 +94,46 @@ class optionsWindowClass():
         bpmscale.set(self.taskParameters.bpm)
 
     # NOTEPITCHES checkboxes
-        l5 = tk.Label(self.specifyWindow, text=" Notepitches:")
+        l5 = tk.Label(self.specifyWindow, text=" Right:")
         l5.grid (row=9,columnspan=4,sticky=tk.W, pady=(20,0))
+        l55 = tk.Label(self.specifyWindow, text="Left:")
+        l55.grid(row=9, column=3, columnspan=4, sticky=tk.W, pady=(20,0))
 
-        global chosenpitches
-        chosenpitches = tk.StringVar(self.specifyWindow)
-        chosenpitches.set(self.check_pitches())
-        guideopt = tk.OptionMenu(self.specifyWindow, chosenpitches, *self.pitchesOptions)
+
+        # FIXME: urgently refactor
+        global chosenpitches_left, chosenpitches_right
+        chosenpitches_left = tk.StringVar(self.specifyWindow)
+        chosenpitches_left.set(self.check_pitches_left())
+
+        chosenpitches_right = tk.StringVar(self.specifyWindow)
+        chosenpitches_right.set(self.check_pitches_right())
+
+
+        guideopt = tk.OptionMenu(self.specifyWindow, chosenpitches_right, *self.pitchesOptions_right)
         guideopt.grid(row=10, columnspan=6, sticky=tk.W, )
 
-    #  BOTH HANDS
+        guideopt = tk.OptionMenu(self.specifyWindow, chosenpitches_left, *self.pitchesOptions_left)
+        guideopt.grid(row=10, column=3, columnspan=6, sticky=tk.W, )
+
+        #  BOTH HANDS
         l6 = tk.Label(self.specifyWindow, text=" One or both hands:")
         l6.grid (row=12,columnspan=4,sticky=tk.W, pady=(20,0))
 
         global rightHand, leftHand, alternating
         rightHand = tk.BooleanVar()
         rightHand.set(self.taskParameters.right)
-        chk = tk.Checkbutton(self.specifyWindow, text='Use right hand', var=rightHand)
+        chk = tk.Checkbutton(self.specifyWindow, text='right', var=rightHand)
         chk.grid(column=1,columnspan=3, row=13)
 
         leftHand = tk.BooleanVar()
         print("left", self.taskParameters.left)
         leftHand.set(self.taskParameters.left)
-        chk = tk.Checkbutton(self.specifyWindow, text='Use left hand', var=leftHand)
+        chk = tk.Checkbutton(self.specifyWindow, text='left', var=leftHand)
         chk.grid(column=2, columnspan=3, row=13)
 
         alternating = tk.BooleanVar()
         alternating.set(self.taskParameters.alternating)
-        chk = tk.Checkbutton(self.specifyWindow, text='alternating', var=alternating)
+        chk = tk.Checkbutton(self.specifyWindow, text='altern.', var=alternating)
         chk.grid(column=3, columnspan=3, row=13)
 
     # SAVE and QUIT button
@@ -159,25 +172,42 @@ class optionsWindowClass():
 
         return noteValuesList
 
-    def check_pitches(self):
+    # FIXME: urgently refactor and sum up into an extra parameter structure
+    def check_pitches_left(self):
         """
         Matches a description to the user-selected note pitches.
 
         @return: Note pitches description.
         """
         
-        return noteRangeMap[self.taskParameters.note_range]
-        
+        return noteRangeMap[self.taskParameters.note_range_left]
+    def check_pitches_right(self):
+        """
+        Matches a description to the user-selected note pitches.
 
-    def get_pitches(self):
+        @return: Note pitches description.
+        """
+
+        return noteRangeMap[self.taskParameters.note_range_right]
+
+
+    def get_pitches_left(self):
         """
         Matches the user-selected note pitch description to the respective list.
 
         @return: Note pitches list.
         """
         
-        return noteRangeMap[chosenpitches.get()]
-        
+        return noteRangeMap[chosenpitches_left.get()]
+
+    def get_pitches_right(self):
+        """
+        Matches the user-selected note pitch description to the respective list.
+
+        @return: Note pitches list.
+        """
+
+        return noteRangeMap[chosenpitches_right.get()]
 
     def show_empty_list_error(self):
         """
@@ -203,14 +233,15 @@ class optionsWindowClass():
         @param saveLeftHand: True for generating notes for the left hand.
         @return: None
         """
-        if (saveRightHand == False and saveLeftHand == False) or not self.get_noteValues() or not self.get_pitches():
+        if (saveRightHand == False and saveLeftHand == False) or not self.get_noteValues(): # FIXME or not self.get_pitches():
             self.show_empty_list_error()
         else:
             self.taskParameters.bpm = saveBPM
             self.taskParameters.noOfBars =  saveBarNumber
             self.taskParameters.maxNotesPerBar = int(saveNotesPerBar)
             self.taskParameters.noteValues = self.get_noteValues()
-            self.taskParameters.note_range = self.get_pitches()
+            self.taskParameters.note_range_left = self.get_pitches_left()
+            self.taskParameters.note_range_right = self.get_pitches_right()
             self.taskParameters.left = saveLeftHand
             self.taskParameters.right = saveRightHand
             self.taskParameters.alternating = saveAlternating

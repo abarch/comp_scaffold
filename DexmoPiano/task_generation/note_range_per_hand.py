@@ -11,14 +11,14 @@ class NoteRangePerHand(enum.Enum):
     THREE_NOTES = enum.auto()
     C_TO_G = enum.auto()
     C_DUR= enum.auto()
-    A_MOLL = enum.auto()
+    BLUES = enum.auto()
     ONE_OCTAVE_BLACK = enum.auto()
     ONE_OCTAVE = enum.auto()
     
     
 noteRangePerHandDescription = ["One note (C)", "Two notes (C,D)", "Three Notes (E,F,G)",
-                               "Notes C-G (for 5 fingers)",
-                               "C-Dur", "A-Moll",
+                               "Notes C-G (static finger mapping)",
+                               "C-Dur", "Blues",
                                "One octave (only black keys)", "One octave"
                                ]
 
@@ -42,8 +42,8 @@ def get_pitchlist(note_range):
         pitchesList = [0, 2, 4, 5, 7]
     elif str(note_range) == str(NoteRangePerHand.C_DUR):
         pitchesList = [0,2,4,5,7,9,11]
-    elif str(note_range) == str(NoteRangePerHand.A_MOLL):
-        pitchesList = [-3, -1, 0, 2, 4, 5, 7]
+    elif str(note_range) == str(NoteRangePerHand.BLUES):
+        pitchesList = [0,3,5,6,7,10,11]
     elif str(note_range) == str(NoteRangePerHand.ONE_OCTAVE_BLACK):
         pitchesList = [1,3,6,8,10]
     elif str(note_range) == str(NoteRangePerHand.ONE_OCTAVE):
@@ -53,6 +53,7 @@ def get_pitchlist(note_range):
         
     return pitchesList
 
+# base determines whether the pitch list is for the left or the right hand.
 def transpose (pitchesList, base_note= 60):        # base_note = 48 #C3
 
      return [base_note + p for p in pitchesList]

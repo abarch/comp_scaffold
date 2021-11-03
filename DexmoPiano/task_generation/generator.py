@@ -69,7 +69,7 @@ def _generate_task_v1(task_parameters):
         tnl = transpose(nl, base)
         return tnl
 
-    def get_timesteps(hand, note_range,base):
+    def get_timesteps(hand,  note_range,base):
         pitches = getpitches (note_range, base)
         print("pitchlist", pitches)
         ### CHOOSE TIME_AT_STARTSTEPS ###
@@ -143,84 +143,10 @@ def _generate_task_v1(task_parameters):
 
     #for hand in hands:
     if task_parameters.left:
-        get_timesteps("left", note_range_left, base_note = 48) #C3)
+        get_timesteps("left", task_parameters.note_range_left, 48) #C3)
     if task_parameters.right:
-        get_timesteps("right", note_range_right)
-        # print("note range name", task_parameters.note_range_)
-        # pitches = get_pitchlist(task_parameters.note_range, right=hand=="right")
-        #print("pitchlist", pitches)
-        ### CHOOSE TIME_AT_STARTSTEPS ###
-    
-        # timesteps = []
-        # minNoteVal = min(task_parameters.noteValues)
-        #
-        # # randomly generate the chosen number of timesteps (notes) per bar
-        # stepRange = [temp for temp in range(numerator) if temp % (minNoteVal * numerator) == 0]
-        # print("stepRange", stepRange)
-        # for bar in range(task_parameters.noOfBars - 1):  # last bar is for extra notes
-        #     # determine no. of notes in this bar
-        #     noOfNotes = random.choice(range(1, task_parameters.maxNotesPerBar+4)) #add a lot to maxNotesPerBar to get less pauses
-        #     noOfNotes = min(noOfNotes, len(stepRange))
-        #
-        #     # shift step numbers
-        #     shift = (bar + INTRO_BARS) * numerator
-        #     steps = [temp + shift for temp in stepRange]
-        #     print("steps", steps)
-        #
-        #     new_steps = [steps[0]] #add note at beginning of every bar so there are less pauses
-        #     new_steps.append(random.sample(steps[1:], noOfNotes-1))
-        #     flat_steps = [a for i in new_steps for a in flatten(i)]
-        #     timesteps.append(flat_steps)
-        #
-        # # flatten and sort list
-        # timesteps = sorted([item for sublist in timesteps for item in sublist])
-        #
-        # # append dummy element to avoid additional bar
-        # timesteps.append(bars * numerator)
-        #
-        # # print("timesteps:", timesteps[:-1])
-        #
-        ### ADD PIANO NOTES ###
-        # add music (piano) notes
+        get_timesteps("right", task_parameters.note_range_right, 60)
 
-        # custom for-loop
-        # t = 0
-        # while t < (len(timesteps) - 1):
-        #     # compute maximum note length until next note
-        #     maxNoteVal = (timesteps[t + 1] - timesteps[t]) / denominator
-        #     ###temp = maxNoteVal
-        #
-        #     # compute maximum note length until next bar
-        #     if not ACROSS_BARS:
-        #         maxToNextBar = 1 - ((timesteps[t] % denominator) / denominator)
-        #         maxNoteVal = min([maxNoteVal, maxToNextBar])
-        #
-        #     ###print(timesteps[t], "min(", temp, maxToNextBar, ") =", maxNoteVal)
-        #
-        #     # calculate possible note values at current time step
-        #     possNoteValues = [v for v in task_parameters.noteValues if v <= maxNoteVal]
-        #     # if list is empty, increment time step by 1 and try again
-        #     if not possNoteValues:
-        #         print(t, timesteps[t], maxNoteVal)
-        #         timesteps[t] = timesteps[t] + 1
-        #         continue
-        #
-        #     # introduce some randomness, so large values are more equally likely getting picked
-        #     if random.random() > 0.4:
-        #         duration = random.choice(possNoteValues)
-        #     else:
-        #         duration = max(possNoteValues)
-        #     pitch = random.choice(pitches)
-        #
-        #     data[hand].append(TaskNote(timesteps[t], pitch, duration * denominator))
-        #
-        #     if duration == 1 / 8:
-        #         ## if the duration is 1/8, add a note right after to differentiate it more from 1/4
-        #         pitch = random.choice(pitches)
-        #         data[hand].append(TaskNote(timesteps[t] + 0.5, pitch, duration * denominator))
-        #
-        #     t += 1
-        #
 
     hands = list()
     if task_parameters.left:
@@ -246,5 +172,4 @@ def _generate_task_v1(task_parameters):
     # data = sorted(data, key=lambda n: n.start)
     # return Task(time_sig=timeSig, noOfBars=bars, data=data)
     return TaskData(time_signature=task_parameters.timeSignature, number_of_bars=bars, 
-                    bpm=float(task_parameters.bpm), note_range = task_parameters.note_range,
-                notes_left=data["left"], notes_right=data["right"])
+                    bpm=float(task_parameters.bpm), notes_left=data["left"], notes_right=data["right"])                            #  note_range = task_parameters.note_range,
