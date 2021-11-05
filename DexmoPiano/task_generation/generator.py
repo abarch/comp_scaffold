@@ -146,12 +146,16 @@ def _generate_task_v1(task_parameters):
 
     # play with both hands alternating, instead of together at the same time
     if task_parameters.alternating:
-        if task_parameters.left and task_parameters.right: #only if task with both hands as well
+        if task_parameters.left and task_parameters.right: #only alternating if task actually involves both hands
             for hand in ["left", "right"]:
                 if hand == "left":
+                    # positions that notes can be in for the left hand (always 4 positions for 1 bar)
                     note_starts = [8,9,10,11,16,17,18,19,24,25,26,27]
                 else:
+                    # positions that notes can be in for the right hand (always 4 positions for 1 bar)
                     note_starts = [4,5,6,7,12,13,14,15,20,21,22,23]
+
+                # remove all notes that are in bars/positions, which should be empty
                 remove = []
                 for task in data[hand]:
                     if task.start not in note_starts:

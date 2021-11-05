@@ -8,8 +8,14 @@ import pandas as pd
 
 def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString):
     """
-    Prints the error (observations) for the hmm into the file.
-    Prints note specific errors into another file.
+    Prints the error (observations) for the hmm into the *_error.csv file.
+    Prints note specific errors into the *_notes.csv file.
+
+    @param errorVecLeft: the error values for the left hand
+    @param errorVecRight: the error values for the right hand
+    @param task_data: the task_data, meaning information about the target piece to be played
+    @param taskParameters: the parameters, that describe the current complexity level
+    @param note_errorString: an already formated string which entails the error values (as in the errorVecs)
     """
 
     date = datetime.today().strftime('%Y-%m-%d')
@@ -36,6 +42,7 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
     nf_writer.writerow("\n")
     nf.close()
 
+    # create dictionary with error values
     dic_error = {}
     dic_error['practice_mode'] = task_data.practice_mode
     dic_error['complexityLevel'] = str(complexityLevel)
@@ -51,17 +58,13 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
         dic_error['n_extra_notes'+hand] = error.n_extra_notes
         dic_error['Summed'+hand] = error.pitch + error.note_hold_time + error.timing + error.n_missing_notes + error.n_extra_notes
 
-    print("5", errorVecRight)
-    print("dic", dic_error)
+    # write dictionary into a csv file
     ds = pd.Series(dic_error)
-    print("ds", ds)
-
     df = pd.DataFrame(columns=ds.index)
     df = df.append(ds, ignore_index=True)
-    print("df", df)
     df.to_csv(error_file, mode='a', header=False, index=False)
 
-    #thresholds(df_error)
+    #returns pandas Series of error values
     return ds
 
 def get_number(string, value):

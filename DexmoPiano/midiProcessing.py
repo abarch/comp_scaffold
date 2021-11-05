@@ -201,6 +201,7 @@ def generateMidi(task, outFiles):
                        time=start,
                        duration=duration,
                        volume=VOLUME)
+            # notes are added to mf
 
     # add 3 extra notes per hand for proper fingering numbers
     for t in range(3):
@@ -263,6 +264,7 @@ def generateMidi(task, outFiles):
         
         sf = converter.parse(outFiles[0])
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, c_to_g=c_to_g)
+        sf, measures, bpm = only_write_xml(outFiles[0], outFiles[3], right, left)
 
  
 
@@ -353,6 +355,24 @@ def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left):
     pianoplayer.write_output(mxmlFile)
     return pianoplayer.get_score(), pianoplayer.get_measure_number(), pianoplayer.get_bpm()
 
+def only_write_xml(midiFile, mxmlFile, right, left):
+    """
+    Creates an xml file without finger numbers for the case that there are less than 7 notes.
+
+    @param midiFile: Input MIDI file.
+    @param mxmlFile: Output MusicXML file.
+    @param right: True for generating notes for the right hand.
+    @param left: True for generating notes for the left hand.
+    @return: From PianoPlayer: score file, measure number, bpm
+    """
+    pianoplayer = pianoplayer_interface.PianoplayerInterface(midiFile)
+    lbeam = 1
+    if left and not right and len(pianoplayer.get_score().parts) <= 1:
+        lbeam = 0
+    if len(pianoplayer.get_score().parts) <= 1 and right and left:
+        raise Exception("both hands selected but only one beam in score!")
+    pianoplayer.write_output(mxmlFile)
+    return pianoplayer.get_score(), pianoplayer.get_measure_number(), pianoplayer.get_bpm()
 
 def extract_number_of_notes(sf):
     """
