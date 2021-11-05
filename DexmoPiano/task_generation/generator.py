@@ -9,7 +9,7 @@ import numpy as np
 from task_generation.note_range_per_hand import NoteRangePerHand, get_pitchlist, transpose
 
 from collections import namedtuple
-from task_generation.task import TaskData
+
 
 TaskNote = namedtuple("TaskNote", "start pitch duration")
 
@@ -175,5 +175,6 @@ def _generate_task_v1(task_parameters):
 
     # data = sorted(data, key=lambda n: n.start)
     # return Task(time_sig=timeSig, noOfBars=bars, data=data)
-    return TaskData(time_signature=task_parameters.timeSignature, number_of_bars=bars, 
+    from task_generation.task import TaskData
+    return TaskData(parameters=task_parameters,  time_signature=task_parameters.timeSignature, number_of_bars=bars,
                     bpm=float(task_parameters.bpm), notes_left=data["left"], notes_right=data["right"])                            #  note_range = task_parameters.note_range,

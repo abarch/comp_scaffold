@@ -5,7 +5,8 @@ import dataclasses as dc
 from collections import defaultdict
 from dataclasses import dataclass, asdict, astuple
 from task_generation.practice_modes import apply_practice_mode
-from task_generation.note_range_per_hand import NoteRangePerHand
+# from task_generation.note_range_per_hand import NoteRangePerHand
+from task_generation.generator import TaskParameters
 
 @dataclass
 class MidiNoteEventContainer:
@@ -29,6 +30,7 @@ class MidiNoteEventContainer:
 
 @dataclass(frozen=True)
 class TaskData:
+    parameters: TaskParameters
     time_signature: tuple
     number_of_bars: int
     #note_range_left:  NoteRangePerHand
