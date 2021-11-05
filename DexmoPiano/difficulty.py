@@ -1,6 +1,7 @@
 from task_generation.generator import TaskParameters
 from task_generation.note_range_per_hand import NoteRangePerHand
 
+# FIXME: this needs to be refactored!
 
 def getTaskComplexity(previous=None):
     levels = []
