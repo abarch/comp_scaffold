@@ -73,7 +73,7 @@ def startTask():
                                    scheduler.current_task_data(), taskParameters,
                                    useVisualAttention=useVisualAttention.get())
     df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
-                                                  taskParameters, targetNotes, actualNotes)
+                                                  taskParameters, note_errorString)
     if difficultyScaling:
         next_level = difficulty.thresholds(df_error)
         print("Next Level", next_level)
@@ -224,7 +224,10 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
         #     if item.endswith('.xml'):
         #         os.remove(os.path.join(tempDir, item))
 
+        # new task is correctly created
         task = scheduler.current_task_data()
+
+        # new xml file is not correctly created -> bug must be in generateMidi
         midiProcessing.generateMidi(task,
                                     outFiles=inputFileStrs)
 
@@ -235,7 +238,6 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     get_ly()
 
     subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
-
     # clearFrame()
     load_notesheet(outputPngStr)
 
@@ -623,23 +625,6 @@ def load_taskButtons():
 
     l2 = tk.Label(root, text="0 will load BPM from MIDI")
     l2.place(x=10, y=610)
-
-    # hand checkboxes
-    global rightHand, leftHand, alternating
-    leftHand = tk.BooleanVar()
-    leftHand.set(True)
-    chk = tk.Checkbutton(root, text='left hand', var=leftHand)
-    chk.place(x=0, y=635)
-
-    rightHand = tk.BooleanVar()
-    rightHand.set(True)
-    chk = tk.Checkbutton(root, text='right hand', var=rightHand)
-    chk.place(x=75, y=635)
-
-    alternating = tk.BooleanVar()
-    alternating.set(True)
-    chk = tk.Checkbutton(root, text='alternating', var=alternating)
-    chk.place(x=75, y=635)
 
     global useVisualAttention
     useVisualAttention = tk.BooleanVar()

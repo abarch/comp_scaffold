@@ -38,6 +38,7 @@ def apply_practice_mode(task_data, practice_mode):
     
     if practice_mode == PracticeMode.SINGLE_NOTE:
         new_td = td.asdict()
+        # transform all notes to one pitch (62/50)
         new_td["notes_right"] = [TaskNote(start, 62, duration) 
                                  for start, pitch, duration in new_td["notes_right"]]
         new_td["notes_left"] = [TaskNote(start, 50, duration) 
