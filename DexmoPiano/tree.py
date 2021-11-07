@@ -50,6 +50,9 @@ def next_level(index):
 
 next_level(0)
 
+G = nx.grid_graph(4)
+for line in nx.generate_adjlist(G):
+    print(line)
 
 import matplotlib.pyplot as plt
 
