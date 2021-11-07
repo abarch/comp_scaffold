@@ -254,14 +254,16 @@ def generateMidi(task, outFiles):
                 return True
             elif note_range in [NoteRangePerHand.ONE_OCTAVE,
                                 NoteRangePerHand.C_DUR,
-                                NoteRangePerHand.A_MOLL,
+                                NoteRangePerHand.BLUES,
                                 NoteRangePerHand.ONE_OCTAVE_BLACK]:
                 return False
             
             raise ValueError(f"Please specify whether {repr(note_range)} allows for c_to_g dexmo mapping.")
         
-        c_to_g = c_to_g_map(task.note_range)
-        
+
+        c_to_g_l = c_to_g_map(task.parameters.note_range_left)
+        c_to_g_r = c_to_g_map(task.parameters.note_range_right)
+        c_to_g = (c_to_g_l and c_to_g_r)
         sf = converter.parse(outFiles[0])
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, c_to_g=c_to_g)
         sf, measures, bpm = only_write_xml(outFiles[0], outFiles[3], right, left)
