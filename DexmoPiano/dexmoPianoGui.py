@@ -180,6 +180,8 @@ def generateNextTask():
     elif inEnum(choice, PracticeMode):
         scheduler.queue_practice_mode(choice)
         loadUpTask()
+    elif choice == "X":
+        print("The window to generate a new task was closed without specifing a new task.")
     else:
         raise ValueError(f"Unexpected choice {repr(choice)}!")
 
