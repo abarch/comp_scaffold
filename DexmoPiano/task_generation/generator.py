@@ -169,7 +169,8 @@ def _generate_task_v1(task_parameters):
                         if bar % 2 != 0:
                             # the first position in a bar is calculated (start_pos)
                             start_pos = offset + bar * numerator
-                            note_starts.append([start_pos, start_pos+1, start_pos+2, start_pos+3])
+                            note_starts.extend([start_pos, start_pos+1, start_pos+2, start_pos+3])
+                    print("left", note_starts)
                 else:
                     # calculate positions in the score in which only the right hand should play and save those in list note_starts
                     note_starts = []
@@ -178,8 +179,8 @@ def _generate_task_v1(task_parameters):
                         if bar % 2 == 0:
                             # the first position in a bar is calculated (start_pos)
                             start_pos = offset + bar * numerator
-                            note_starts.append([start_pos, start_pos + 1, start_pos + 2, start_pos + 3])
-
+                            note_starts.extend([start_pos, start_pos + 1, start_pos + 2, start_pos + 3])
+                    print("right", note_starts)
                 # remove all notes that are in bars/positions, which should be empty
                 remove = []
                 for task in data[hand]:

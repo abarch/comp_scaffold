@@ -266,7 +266,7 @@ def generateMidi(task, outFiles):
         c_to_g = (c_to_g_l and c_to_g_r)
         sf = converter.parse(outFiles[0])
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, c_to_g=c_to_g)
-        sf, measures, bpm = only_write_xml(outFiles[0], outFiles[3], right, left)
+        only_write_xml(outFiles[0], outFiles[3], right, left)
 
  
 
