@@ -174,7 +174,7 @@ def choosePracticeMode(tk_root):
     l = tk.Label(new_window, text="Same piece, but practice mode:")
     l.pack(side = tk.TOP, padx=5, pady=1)
     
-    from DexmoPiano.task_generation.practice_modes import PracticeMode
+    from task_generation.practice_modes import PracticeMode
     for pm in PracticeMode:
         b = tk.Button(new_window, text=pm.name, command=set_option(pm),
                       padx=5, pady=5)
@@ -184,14 +184,11 @@ def choosePracticeMode(tk_root):
     
     tk_root.wait_window(new_window)
 
-    print("global_var_name", global_var_name)
-
     try:
         val = globals()[global_var_name]
         del globals()[global_var_name]
     except:
         val = "X"
-    print("retunr_val", val)
 
     return val
 
