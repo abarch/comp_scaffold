@@ -154,17 +154,33 @@ def _generate_task_v1(task_parameters):
     if task_parameters.right:
         hands.append("right")
 
+    # the first bar is empty -> offset of 4
+    offset = 4
+
     # play with both hands alternating, instead of together at the same time
     if task_parameters.alternating:
         if task_parameters.left and task_parameters.right: #only alternating if task actually involves both hands
             for hand in ["left", "right"]:
                 if hand == "left":
-                    # positions that notes can be in for the left hand (always 4 positions for 1 bar)
-                    note_starts = [8,9,10,11,16,17,18,19,24,25,26,27]
+                    # calculate positions in the score in which only the left hand should play and save those in list note_starts
+                    note_starts = []
+                    for bar in range(task_parameters.noOfBars-1):
+                        # if it's an uneven bar the left hand will play
+                        if bar % 2 != 0:
+                            # the first position in a bar is calculated (start_pos)
+                            start_pos = offset + bar * numerator
+                            note_starts.extend([start_pos, start_pos+1, start_pos+2, start_pos+3])
+                    print("left", note_starts)
                 else:
-                    # positions that notes can be in for the right hand (always 4 positions for 1 bar)
-                    note_starts = [4,5,6,7,12,13,14,15,20,21,22,23]
-
+                    # calculate positions in the score in which only the right hand should play and save those in list note_starts
+                    note_starts = []
+                    for bar in range(task_parameters.noOfBars - 1):
+                        # if it's an even bar the right hand will play
+                        if bar % 2 == 0:
+                            # the first position in a bar is calculated (start_pos)
+                            start_pos = offset + bar * numerator
+                            note_starts.extend([start_pos, start_pos + 1, start_pos + 2, start_pos + 3])
+                    print("right", note_starts)
                 # remove all notes that are in bars/positions, which should be empty
                 remove = []
                 for task in data[hand]:

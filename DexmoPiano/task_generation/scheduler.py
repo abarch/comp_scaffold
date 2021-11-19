@@ -183,9 +183,13 @@ def choosePracticeMode(tk_root):
         
     
     tk_root.wait_window(new_window)
-    
-    val = globals()[global_var_name]
-    del globals()[global_var_name]
+
+    try:
+        val = globals()[global_var_name]
+        del globals()[global_var_name]
+    except:
+        val = "X"
+
     return val
 
 
