@@ -168,7 +168,7 @@ def choosePracticeMode(tk_root):
     #b = tk.Button(new_window, text="TEST MOVEMENT 1", command=set_option("TEST_MOVEMENT_1"))
     #b.pack(side = tk.TOP, padx=5, pady=15)
 
-    b = tk.Button(new_window, text="Next Complexity Level", command=set_option("NEXT_LEVEL"))
+    b = tk.Button(new_window, text="Next node", command=set_option("NEXT_LEVEL"))
     b.pack(side=tk.TOP, padx=5, pady=15)
     
     l = tk.Label(new_window, text="Same piece, but practice mode:")

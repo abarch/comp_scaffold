@@ -17,6 +17,7 @@ import dexmoOutput
 import fileIO
 import midiProcessing
 import config, difficulty, hmm_data_acquisition
+
 from optionsWindow import optionsWindowClass
 import threadHandler
 
@@ -35,8 +36,8 @@ guidanceMode = "At every note"
 from task_generation.generator import TaskParameters
 
 taskParameters = TaskParameters()
-difficultyScaling = False
-global complex_index
+
+
 # maxNotePerBar = 2
 # numberOfBars = 7
 # bpm = 120
@@ -581,6 +582,7 @@ def load_taskButtons():
 
     @return: None
     """
+    global node_params
     global currentMidi, metronome
     global showScoreGuidance, showVerticalGuidance
     showScoreGuidance = tk.IntVar(value=1)
@@ -590,10 +592,10 @@ def load_taskButtons():
     showVerticalGuidanceCheck.place(x=1200, y=300, height=50, width=200)
     config.showVerticalGuidance = showVerticalGuidance.get()
 
-    global complex_index
-    complex_index = tk.StringVar()
-    complex_index.set("?")
-    tk.Label(root, textvariable=complex_index, font=("Courier", 40)).place(x=50, y=40)
+
+    node_params = tk.StringVar()
+    node_params.set("")
+    tk.Label(root, textvariable=node_params, font=("Courier", 12)).place(x=10, y=40)
     tk.Button(root, text='Start Task', command=startTask).place(x=10, y=90, height=50, width=150)
     tk.Button(root, text='Start Demo', command=startDemo).place(x=10, y=150, height=50, width=150)
 
@@ -613,7 +615,7 @@ def load_taskButtons():
 
     tk.Button(root, text='Generate new Task', command=generateNextTask).place(x=10, y=370, height=40, width=150)
     tk.Button(root, text='Specify next Task', command=specifyTask).place(x=10, y=415, height=40, width=150)
-    tk.Button(root, text='Difficulty Adjustment', command=dif_scaling).place(x=10, y=470, height=40, width=150)
+    tk.Button(root, text='Recommender', command=dif_scaling).place(x=10, y=470, height=40, width=150)
     tk.Button(root, text='Open Midi file', command=openfile).place(x=10, y=520, height=25, width=150)
 
     # Scalebar to change BPM in loaded MIDI File
@@ -638,17 +640,36 @@ def load_taskButtons():
     tk.Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
 
 
+difficultyScaling = False
+complex_index = 0
+nodes = None
+node_params = None
 def dif_scaling():
-    global taskParameters, difficultyScaling
+    global taskParameters, difficultyScaling,  taskSet, nodes, node_params
 
-    previous = taskParameters
+    start_with_level=0
+    node_params.set(str(start_with_level))
     difficultyScaling = True
-    parameters, index = difficulty.getTaskComplexity()
-    #TODO: How and where to show index of complexity level
-    taskParameters = parameters
-    scheduler.get_next_task(parameters)
+    taskSet, nodes= difficulty.getTasks()
+
+    taskParameters = taskSet[start_with_level]
+
+    scheduler.get_next_task(taskParameters)
+    print ("new task params", taskParameters)
     loadUpTask()
-    update_complexity_index(index)
+    update_complexity_index(start_with_level)
+#
+# def dif_scaling():
+#     global taskParameters, difficultyScaling
+#
+#     previous = taskParameters
+#     difficultyScaling = True
+#     parameters, index = difficulty.getTaskComplexity()
+#     #TODO: How and where to show index of complexity level
+#     taskParameters = parameters
+#     scheduler.get_next_task(parameters)
+#     loadUpTask()
+#     update_complexity_index(index)
 
 def get_threshold_info():
     global difficultyScaling
@@ -658,24 +679,28 @@ def get_threshold_info():
 
 
 def new_complexity_level():
-
-    global taskParameters
-
-    previous = taskParameters
+    global  taskSet, complex_index, nodes, node_params
     try:
-        new_parameters, index = difficulty.getTaskComplexity(previous)
+        print ("complex_index", complex_index)
+        #new_parameters, index = difficulty.getTaskComplexity(previous)
+        new_parameters = taskSet[complex_index+1]
         print("New complexity_level: ", repr(new_parameters))
-        taskParameters = new_parameters
         scheduler.get_next_task(new_parameters)
         loadUpTask()
-        update_complexity_index(index)
+        update_complexity_index(complex_index+1)
+        node_params.set(str(nodes[complex_index]))
+
+
     except TypeError:
         print("Error: To use the predefined complexity levels, please start the Dynamic Difficulty Adjustment!")
         complexity_error(root)
 
+
 def update_complexity_index(index):
     global complex_index
-    complex_index.set(index)
+    complex_index = index
+
+
 
 def updateGuidance():
     global showNotes1, showNotes2, showScoreGuidance, showVerticalGuidance, canvas, piano_img, hand_img

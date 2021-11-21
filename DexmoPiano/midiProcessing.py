@@ -246,19 +246,24 @@ def generateMidi(task, outFiles):
         def c_to_g_map(note_range):
             ## the add_fingernumbers function wants to know if the pitches 
             ## allow for a c_to_g mapping, for dexmo purposes.
-            
-            if note_range in [NoteRangePerHand.ONE_NOTE,
+
+            # FIXME: debug this
+            if note_range in [
+                                NoteRangePerHand.ONE_NOTE,
                               NoteRangePerHand.TWO_NOTES,
                               NoteRangePerHand.THREE_NOTES,
+                             NoteRangePerHand.FOUR_NOTES,
                               NoteRangePerHand.C_TO_G]:
                 return True
-            elif note_range in [NoteRangePerHand.ONE_OCTAVE,
+            elif note_range in [
+                                NoteRangePerHand.ONE_OCTAVE,
                                 NoteRangePerHand.C_DUR,
                                 NoteRangePerHand.BLUES,
                                 NoteRangePerHand.ONE_OCTAVE_BLACK]:
                 return False
-            
-            raise ValueError(f"Please specify whether {repr(note_range)} allows for c_to_g dexmo mapping.")
+
+            else:
+                raise ValueError(f"Please specify whether {repr(note_range)} allows for c_to_g dexmo mapping.")
         
 
         c_to_g_l = c_to_g_map(task.parameters.note_range_left)

@@ -9,6 +9,7 @@ class NoteRangePerHand(enum.Enum):
     ONE_NOTE = enum.auto()
     TWO_NOTES = enum.auto()
     THREE_NOTES = enum.auto()
+    FOUR_NOTES = enum.auto()
     C_TO_G = enum.auto()
     C_DUR= enum.auto()
     BLUES = enum.auto()
@@ -16,7 +17,7 @@ class NoteRangePerHand(enum.Enum):
     ONE_OCTAVE = enum.auto()
     
     
-noteRangePerHandDescription = ["One note (C)", "Two notes (C,D)", "Three Notes (E,F,G)",
+noteRangePerHandDescription = ["One note (C)", "Two notes (C,D)", "Three Notes (E,F,G)", "Four Notes (C, E, F,G)",
                                "Notes C-G (static finger mapping)",
                                "C-Dur", "Blues",
                                "One octave (only black keys)", "One octave"
@@ -38,6 +39,8 @@ def get_pitchlist(note_range):
         pitchesList = [0, 2]
     elif str(note_range) == str(NoteRangePerHand.THREE_NOTES):
         pitchesList = [4,5,7]
+    elif str(note_range) == str(NoteRangePerHand.FOUR_NOTES):
+        pitchesList= [0,4,5,7]
     elif str(note_range) == str(NoteRangePerHand.C_TO_G):
         pitchesList = [0, 2, 4, 5, 7]
     elif str(note_range) == str(NoteRangePerHand.C_DUR):
