@@ -71,7 +71,7 @@ def note_info_list_add_debug(note_info_list, mapping, anchor_map):
 def get_explanation(task_data, actual, mapping,
                     inject_explanation=True,
                     openface_data=None,
-                    plot=True,
+                    plot=False,
                     ):
     target = task_data.all_notes()
     print("task_data", task_data.__dict__)

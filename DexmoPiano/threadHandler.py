@@ -168,7 +168,7 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
             errorCalc.computeErrorEvo(task_data, actualTimes,
                                       openface_data=openface_data,
                                       inject_explanation=True,
-                                      plot=True)
+                                      plot=False)
         print("task data", task_data.__dict__)
         print("\n\n--- ERRORS ---")
         print("\nNOTE_ERRORS:")

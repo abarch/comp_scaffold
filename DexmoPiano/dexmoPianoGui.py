@@ -99,7 +99,7 @@ def startTask():
     add_error_plot()
 
     ## if there is a score with errors, show it in a new window
-    if not difficultyScaling:
+    if  True: # not difficultyScaling:
         score_with_error = Path(tempDir) / "output_with_errors.png"
 
         if score_with_error.exists():
