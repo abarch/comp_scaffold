@@ -681,15 +681,19 @@ def get_threshold_info():
 def new_complexity_level():
     global  taskSet, complex_index, nodes, node_params
     try:
-        print ("complex_index", complex_index)
-        #new_parameters, index = difficulty.getTaskComplexity(previous)
-        new_parameters = taskSet[complex_index+1]
-        print("New complexity_level: ", repr(new_parameters))
-        scheduler.get_next_task(new_parameters)
-        loadUpTask()
-        update_complexity_index(complex_index+1)
-        node_params.set(str(nodes[complex_index]))
-
+        if complex_index+1<len(nodes):
+            print ("complex_index", complex_index)
+            #new_parameters, index = difficulty.getTaskComplexity(previous)
+            new_parameters = taskSet[complex_index+1]
+            print("New complexity_level: ", repr(new_parameters))
+            scheduler.get_next_task(new_parameters)
+            loadUpTask()
+            update_complexity_index(complex_index+1)
+            node_params.set(str(nodes[complex_index]))
+        else:
+            #get back to the first exercise, preliminary hack..
+            print ("going back to the first complexity level")
+            update_complexity_index(0)
 
     except TypeError:
         print("Error: To use the predefined complexity levels, please start the Dynamic Difficulty Adjustment!")

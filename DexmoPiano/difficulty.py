@@ -7,6 +7,7 @@ import networkx  as nx
 
 # this generates the graph with max four notes in the left, four notes in the right hand and either   
 # 0 means 1 note, or one hand. "1" hand means either alternating or bimanual tasks
+# 4,4
 def exp_graph(dim=(2,4,4)):
     G = nx.grid_graph(dim)
     #G= nx.grid_graph(dim=(2,3,4,5))
