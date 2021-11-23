@@ -48,6 +48,7 @@ class TaskData:
     def asdict(self):
         _d = asdict(self)
         _d["midi"] = self.midi # the midi container gets turned into a dict!?
+        _d["parameters"]= self.parameters
         return _d
     
     def astuple(self):
@@ -82,6 +83,7 @@ class TaskData:
         # the midi data is kind of not related to the task itself, thus
         # shouldn't result in a different hash if different.
         del d["midi"]
+        del d["parameters"]
         return hash(tuple(d.items()))
     
 """

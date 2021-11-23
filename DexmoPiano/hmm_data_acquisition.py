@@ -28,7 +28,7 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
         hand = "left"
     else:
         hand = "both"
-    complexityLevel = (task_data.note_range_left, task_data.note_range_right,  taskParameters.noteValues, hand)
+    complexityLevel = (taskParameters.note_range_left, taskParameters.note_range_right,  taskParameters.noteValues, hand)
 
 
     #ef = open(error_file, 'a', newline='')

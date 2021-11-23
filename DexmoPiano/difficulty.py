@@ -98,14 +98,9 @@ def thresholds(df):
         elif df['n_extra_notes'+i] >= 0.1:
             print("Extra Notes Error")
             next_level = False
-    if df['Summed_left'] >= 2.1:
-        print("Summed Left Error")
-        next_level = False
-    elif df['Summed_right'] >= 2.1:
-        print("Summed Right Error")
-        next_level = False
-
-    return next_level
+    # FIXME: dont analyse the errors
+    #  return next_level
+    return True
 
 #getTaskComplexity()
 
