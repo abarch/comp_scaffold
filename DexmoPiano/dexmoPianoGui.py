@@ -672,10 +672,10 @@ def dif_scaling():
 #     update_complexity_index(index)
 
 def get_threshold_info():
-    global difficultyScaling
+    #global difficultyScaling
 
     threshold_info(root)
-    difficultyScaling = False
+    #difficultyScaling = False
 
 
 def new_complexity_level():

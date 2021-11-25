@@ -98,9 +98,10 @@ def thresholds(df):
         elif df['n_extra_notes'+i] >= 0.1:
             print("Extra Notes Error")
             next_level = False
-    # FIXME: dont analyse the errors
-    #  return next_level
-    return True
+
+    return next_level
+    # return true if one does not want to analyse the errors
+    #return True
 
 #getTaskComplexity()
 
