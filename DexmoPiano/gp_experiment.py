@@ -9,50 +9,59 @@ Error = namedtuple("Error", "pitch timing")
 
 BPM_BOUNDS = [50, 200]
 
+from practice_modes
+
+
 #### SIMPLIFIED ENUMS
 import enum
 
+#
+# class PracticeMode(enum.Enum):
+#     #IMP_PITCH = enum.auto()
+#     #IMP_TIMING = enum.auto()
+#     IMP_PITCH_LEFT = enum.auto()
+#     IMP_PITCH_RIGHT = enum.auto()
+#     IMP_PITCH_BOTH = enum.auto()
+#
+# class NoteRangePerHand(enum.Enum):
+#     EASY = 1
+#     MEDIUM = 2
+#     ADVANCED = 3
+#     CHALLENGING = 4
+#     HARD = 5
 
-class PracticeMode(enum.Enum):
-    IMP_PITCH = enum.auto()
-    IMP_TIMING = enum.auto()
-
-
-class NoteRangePerHand(enum.Enum):
-    EASY = 0.5
-    MEDIUM = 1.5
-    HARD = 3.0
 
 
 import dataclasses as dc
 from dataclasses import dataclass, astuple
 
 
-@dataclass
-class TaskParameters:
-    """
-    We need to redefine this to use the new, simplified NoteRangePerHand.
-
-
-    TODO: Should we include the parameters we are not using here?
-        maybe just clarify which one we are using in this simplified case
-    """
-
-    ## USED IN SIMPLIFIED CASE
-    bpm: float = 120
-    note_range: NoteRangePerHand = NoteRangePerHand.MEDIUM
-
-    ## UNUSED HERE, but used in real application
-    timeSignature: tuple = (4, 4)
-    noteValues: list = dc.field(default_factory=lambda: [1, 1 / 2, 1 / 4, 1 / 8])
-    maxNotesPerBar: int = 3
-    noOfBars: int = 7
-    note_range: NoteRangePerHand = NoteRangePerHand.MEDIUM
-    left: bool = False
-    right: bool = True
-
-    def astuple(self):
-        return astuple(self)
+# @dataclass
+# class TaskParameters:
+#     """
+#     We need to redefine this to use the new, simplified NoteRangePerHand.
+#
+#
+#     TODO: Should we include the parameters we are not using here?
+#         maybe just clarify which one we are using in this simplified case
+#     """
+#
+#     ## USED IN SIMPLIFIED CASE
+#     bpm: float = 120
+#     note_range_left: NoteRangePerHand = NoteRangePerHand.EASY
+#     note_range_right: NoteRangePerHand = NoteRangePerHand.MEDIUM
+#
+#     ## UNUSED HERE, but used in real application
+#     timeSignature: tuple = (4, 4)
+#     noteValues: list = dc.field(default_factory=lambda: [1, 1 / 2, 1 / 4, 1 / 8])
+#     maxNotesPerBar: int = 3
+#     noOfBars: int = 7
+#     note_range: NoteRangePerHand = NoteRangePerHand.MEDIUM
+#     left: bool = False
+#     right: bool = True
+#
+#     def astuple(self):
+#         return astuple(self)
 
 
 ## Mappings of categorical data to ints.

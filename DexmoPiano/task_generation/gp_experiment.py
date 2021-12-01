@@ -354,7 +354,7 @@ class GaussianProcess:
         #     savefig(filename)
         # else:
         
-    
+
     def get_policy(self, c):
         if not hasattr(self, "bayes_opt"):
             return np.round(np.random.random((200*200,1)))
