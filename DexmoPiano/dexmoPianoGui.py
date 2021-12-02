@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Main file for Piano with Dexmo project (2020)
 
 # from tkinter import *
@@ -29,6 +30,9 @@ outputLyStr = tempDir + 'output.ly'
 outputPngStr = tempDir + 'output.png'
 # outputLyStr = tempDir + 'output-midi.ly'
 # outputPngStr = tempDir + 'output-midi.png'
+windowsLilyPondPythonExe = "c:/Program Files (x86)/LilyPond/usr/bin/python.exe"
+windowsmusicxml2ly = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly.py"
+windowsmidi2ly = "c:/Program Files (x86)/LilyPond/usr/bin/midi2ly.py"
 
 GuidanceModeList = ["None", "At every note", "Individual"]
 guidanceMode = "At every note"
@@ -385,10 +389,21 @@ def get_ly():
     # or from midi without finger numbers, if to less notes are generated
     if xmlGenerated:
         delete_no_fingernumbers_warning()
-        subprocess.run(['musicxml2ly', inputFileStrs[3], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
+        if os.name == 'nt':
+            subprocess.run([windowsLilyPondPythonExe, windowsmusicxml2ly,
+                             inputFileStrs[3], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
+        else:
+            subprocess.run(['musicxml2ly',
+                             inputFileStrs[3], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
+
     else:
         add_no_fingernumbers_warning()
-        subprocess.run(['midi2ly', inputFileStrs[0], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
+        if os.name == 'nt':
+            subprocess.run([windowsLilyPondPythonExe, windowsmidi2ly,
+                            inputFileStrs[0], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
+        else:
+            subprocess.run(['midi2ly',
+                            inputFileStrs[0], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
 
 
 def showGuidanceNotesheet():
@@ -398,7 +413,13 @@ def showGuidanceNotesheet():
     @return: None
     """
     if (showGuidance.get()):  # output_md anzeigen
-        subprocess.run(['midi2ly', inputFileStrs[2], '--output=' + outputLyStr], stderr=subprocess.DEVNULL)
+        if os.name == 'nt':
+            subprocess.run([windowsLilyPondPythonExe, windowsmidi2ly,
+                            inputFileStrs[2], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
+        else:
+            subprocess.run(['midi2ly',
+                            inputFileStrs[2], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
+
     else:  # output xml oder midi
         get_ly()
 
