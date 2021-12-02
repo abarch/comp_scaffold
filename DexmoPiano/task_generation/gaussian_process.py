@@ -80,21 +80,25 @@ def enforce_categoricals(np_array):
     
     return np_array.astype(int)
 
+# imp left pitch, imp right pitch imp both (identity) analyse only pitch errors, hands are always both true
 class GaussianProcess:
-    domain =[{'name': 'complexity_level', 'type': 'discrete', 'domain': tuple(range(10))},
-              {'name': 'practice_mode', 'type': 'categorical', 'domain': (0,1,2,3)},
-              {'name': 'hands', 'type': 'categorical', 'domain': (0,1,2)},
+    domain =[ # {'name': 'complexity_level', 'type': 'discrete', 'domain': tuple(range(10))},
+              {'name': 'practice_mode', 'type': 'categorical', 'domain': (0,1)},
+              #{'name': 'hands', 'type': 'categorical', 'domain': (0,1,2)},
               {'name': 'bpm', 'type': 'discrete', 'domain': range(50, 201)},
-              
+             { 'name': 'notes_left', 'type': 'discrete', 'domain': range(0,5)},
+             {'name': 'notes_right', 'type': 'discrete', 'domain': range(0,5)}
              ]
              # only subset of task_parameters for easier testing for now
     space = GPyOpt.core.task.space.Design_space(domain)
         
-    def _params2domain(self, complexity_level, task_parameters, practice_mode):
+    def _params2domain(self,  task_parameters, practice_mode):
         #TODO normalize these here??
-        domain_x = [complexity_level,
+        domain_x = [ # complexity_level,
                     practicemode2int[practice_mode],
-                    hands2int(task_parameters.left, task_parameters.right),
+                    int(task_parameters.note_range_left),
+                    int(task_parameters.note_range_right),
+                    # hands2int(task_parameters.left, task_parameters.right),
                     int(task_parameters.bpm),
                     ]
         
@@ -105,8 +109,8 @@ class GaussianProcess:
         # domain_x = np.array([domain_x])
         print(domain_x.shape)
         space_rep = self.space.unzip_inputs(domain_x)
-        # print("DX", domain_x, domain_x.shape)
-        # print("SX", space_rep)
+        print("DX", domain_x, domain_x.shape)
+        print("SX", space_rep)
         return space_rep
     
     def __init__(self):
@@ -131,7 +135,7 @@ class GaussianProcess:
         ## somehow needed, otherwise the model is None
         return bayes_opt
     
-    def get_estimate(self, complexity_level, task_parameters, practice_mode):
+    def get_estimate(self, task_parameters, practice_mode):
         if self.data_X is None:
             print("(GP) DATA_X IS NONE, RETURNING RANDOM NUMBER")
             return random.random()
@@ -142,7 +146,7 @@ class GaussianProcess:
         bayes_opt = self._get_bayes_opt()
         
         
-        X = self._params2domain(complexity_level, task_parameters, practice_mode)
+        X = self._params2domain( task_parameters, practice_mode)
         X = self._domain2space(X)
         
         # print(bayes_opt.X, bayes_opt.X.shape)
@@ -156,14 +160,14 @@ class GaussianProcess:
         return mean[0]
         
         
-    def get_best_practice_mode(self, complexity_level, task_parameters):
+    def get_best_practice_mode(self,  task_parameters):
         all_practice_modes = list(PracticeMode)
-        return all_practice_modes[np.argmax([self.get_estimate(complexity_level, task_parameters, pm)
+        return all_practice_modes[np.argmax([self.get_estimate(task_parameters, pm)
                                              for pm in all_practice_modes])]
     
-    def add_data_point(self, complexity_level, task_parameters, practice_mode, 
+    def add_data_point(self,  task_parameters, practice_mode,
                        utility_measurement):
-        new_x =  self._params2domain(complexity_level, task_parameters, practice_mode) 
+        new_x =  self._params2domain(task_parameters, practice_mode)
         new_y = [ utility_measurement ]
         
         if self.data_X is None:
