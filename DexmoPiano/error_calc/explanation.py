@@ -335,7 +335,7 @@ def insert_lyrics_into_ly(note_list, task_infos):
     
     content.insert(idx+1, lyric_str)
     
-    modified_ly.write_text("\n".join(content))
+    modified_ly.write_text("\n".join(content), encoding='utf-8')
     
     import subprocess
     subprocess.run(['lilypond', '--png', '-o', modified_ly.parent, modified_ly], stderr=subprocess.DEVNULL)
