@@ -3,38 +3,17 @@ from music21 import converter
 
 import copy
 import os
-import random
+#import random
 import mido
+import settings
 
 import pianoplayer_interface
-from task_generation.note_range_per_hand import get_pitchlist, NoteRangePerHand
+from task_generation.note_range_per_hand import NoteRangePerHand  # ,get_pitchlist
 
 # some code taken from https://github.com/Michael-F-Ellis/tbon
 
-### CONSTANTS ###
-CHANNEL_PIANO = 0
-CHANNEL_METRO = 9
-CHANNEL_LH = 11
-CHANNEL_RH = 10
+# constants for MIDI moved to settings.py (to allow customization by machine)
 
-INSTRUM_PIANO = 0
-INSTRUM_DRUMS = 9
-INSTRUM_DEXMO = 0
-
-PITCH_METRO_HI = 76  # high wood block
-PITCH_METRO_LO = 77  # low wood block
-VOLUME = 100
-TIME_AT_START = 0  # start at the beginning
-
-INTRO_BARS = 1  # no. of empty first bars for metronome intro
-
-
-R_TRACK = 0  # right hand track
-L_TRACK = 1  # left hand track
-M_TRACK = 2  # metronome track
-RD_TRACK = 3  # right hand dexmo track
-LD_TRACK = 4  # left hand dexmo track
-TRACKS = 5
 
 # time signature (ex. 4/4 = (4, 4))
 # TODO: USE AS INPUT?
@@ -86,7 +65,7 @@ def set_time_signature(numerator, denominator, m_track, mf):
         metro_clocks = 24
 
     mf.addTimeSignature(track=m_track,
-                        time=TIME_AT_START,
+                        time=settings.TIME_AT_START,
                         numerator=numerator,
                         denominator=midiDenom,
                         clocks_per_tick=metro_clocks)
@@ -100,13 +79,13 @@ def set_tracks(mf, bpm):
     @param bpm: Tempo (beats per minute).
     @return: None
     """
-    mf.addTrackName(L_TRACK, TIME_AT_START, "Left Hand")
-    mf.addTrackName(LD_TRACK, TIME_AT_START, "Left Hand Dexmo")
-    mf.addTrackName(R_TRACK, TIME_AT_START, "Right Hand")
-    mf.addTrackName(RD_TRACK, TIME_AT_START, "Right Hand Dexmo")
-    mf.addTrackName(M_TRACK, TIME_AT_START, "Metronome")
+    mf.addTrackName(settings.L_TRACK, settings.TIME_AT_START, "Left Hand")
+    mf.addTrackName(settings.LD_TRACK, settings.TIME_AT_START, "Left Hand Dexmo")
+    mf.addTrackName(settings.R_TRACK, settings.TIME_AT_START, "Right Hand")
+    mf.addTrackName(settings.RD_TRACK, settings.TIME_AT_START, "Right Hand Dexmo")
+    mf.addTrackName(settings.M_TRACK, settings.TIME_AT_START, "Metronome")
 
-    mf.addTempo(R_TRACK, TIME_AT_START, bpm)  # in file format 1, track doesn't matter
+    mf.addTempo(settings.R_TRACK, settings.TIME_AT_START, bpm)  # in file format 1, track doesn't matter
 
 
 def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, custom_bpm=0):
@@ -127,15 +106,15 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, cu
     if custom_bpm > 0:
         bpm = custom_bpm
 
-    mf = MIDIFile(numTracks=TRACKS)
+    mf = MIDIFile(numTracks=settings.TRACKS)
 
     set_tracks(mf, bpm)
 
     # set time signature
-    set_time_signature(sf.parts[0].timeSignature.numerator, sf.parts[0].timeSignature.denominator, R_TRACK, mf)
+    set_time_signature(sf.parts[0].timeSignature.numerator, sf.parts[0].timeSignature.denominator, settings.R_TRACK, mf)
 
     print("number of measures extracted from midi: ", measures)
-    add_metronome(measures + INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], False, mf)
+    add_metronome(measures + settings.INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], False, mf)
     count, left_count = extract_number_of_notes(sf)
     c_to_g = False
     if ((len(sf.parts) <= 1) and count < 10) or (
@@ -164,43 +143,43 @@ def generateMidi(task, outFiles):
     right = len(task.notes_right) > 0
     left  = len(task.notes_left)  > 0
 
-    mf = MIDIFile(numTracks=TRACKS)
+    mf = MIDIFile(numTracks=settings.TRACKS)
 
     set_tracks(mf, task.bpm)
     
     if right:
-        mf.addProgramChange(R_TRACK, CHANNEL_PIANO, TIME_AT_START, INSTRUM_PIANO)
+        mf.addProgramChange(settings.R_TRACK, settings.CHANNEL_PIANO, settings.TIME_AT_START, settings.INSTRUM_PIANO)
     if left:
-        mf.addProgramChange(L_TRACK, CHANNEL_PIANO, TIME_AT_START, INSTRUM_PIANO)
+        mf.addProgramChange(settings.L_TRACK, settings.CHANNEL_PIANO, settings.TIME_AT_START, settings.INSTRUM_PIANO)
 
 
     numerator, denominator = task.time_signature
-    set_time_signature(numerator, denominator, R_TRACK, mf)
+    set_time_signature(numerator, denominator, settings.R_TRACK, mf)
     
     count_notes_left = 0
     count_notes_right = 0
     lastPitch = [None, None]
 
-    for handTrack, notes in [(L_TRACK, task.notes_left),
-                             (R_TRACK, task.notes_right)]:
+    for handTrack, notes in [(settings.L_TRACK, task.notes_left),
+                             (settings.R_TRACK, task.notes_right)]:
         for  (start, pitch, duration) in notes:
             # choose right/left hand, split at C4 (MIDI: pitch 60)
             if left and ((not right) or (pitch < 60)):
-                handTrack = L_TRACK
+                handTrack = settings.L_TRACK
                 count_notes_left += 1
                 lastPitch[0] = (handTrack, pitch)
             else:
-                handTrack = R_TRACK
+                handTrack = settings.R_TRACK
                 count_notes_right += 1
                 lastPitch[1] = (handTrack, pitch)
     
             # print("original note pitches: " + str(pitch))
             mf.addNote(track=handTrack,
-                       channel=CHANNEL_PIANO,
+                       channel=settings.CHANNEL_PIANO,
                        pitch=pitch,
                        time=start,
                        duration=duration,
-                       volume=VOLUME)
+                       volume=settings.VOLUME)
             # notes are added to mf
 
     # add 3 extra notes per hand for proper fingering numbers
@@ -210,11 +189,11 @@ def generateMidi(task, outFiles):
         for hSide in range(2):
             if lastPitch[hSide]:
                 mf.addNote(track=lastPitch[hSide][0],
-                           channel=CHANNEL_PIANO,
+                           channel=settings.CHANNEL_PIANO,
                            pitch=lastPitch[hSide][1],
                            time=tempTime,
                            duration=1,
-                           volume=VOLUME)
+                           volume=settings.VOLUME)
 
     # write 1st MIDI file (piano only)
     write_midi(outFiles[0], mf)
@@ -315,23 +294,23 @@ def add_metronome(bars, numerator, outFile, writeFile, mf):
     @return: None
     """
 
-    mf.addProgramChange(M_TRACK, CHANNEL_METRO, TIME_AT_START, INSTRUM_DRUMS)
+    mf.addProgramChange(settings.M_TRACK, settings.CHANNEL_METRO, settings.TIME_AT_START, settings.INSTRUM_DRUMS)
 
     for t in range(bars * numerator):
 
         # decide if downbeat or 'other' note
         if (t % numerator) == 0:
             # first beat in bar
-            pitch = PITCH_METRO_HI
+            pitch = settings.PITCH_METRO_HI
         else:
-            pitch = PITCH_METRO_LO
+            pitch = settings.PITCH_METRO_LO
 
-        mf.addNote(track=M_TRACK,
-                   channel=CHANNEL_METRO,
+        mf.addNote(track=settings.M_TRACK,
+                   channel=settings.CHANNEL_METRO,
                    pitch=pitch,
                    time=t,
                    duration=1,
-                   volume=VOLUME)
+                   volume=settings.VOLUME)
 
     if writeFile:
         # write 2nd MIDI file (with metronome)
@@ -410,24 +389,24 @@ def add_fingernumbers(outFile, sf, with_note, right, left, mf, c_to_g):
     @return: None
     """
     if right:
-        mf.addProgramChange(RD_TRACK, CHANNEL_RH, TIME_AT_START, INSTRUM_DEXMO)
+        mf.addProgramChange(settings.RD_TRACK, settings.CHANNEL_RH, settings.TIME_AT_START, settings.INSTRUM_DEXMO)
     if left:
-        mf.addProgramChange(LD_TRACK, CHANNEL_LH, TIME_AT_START, INSTRUM_DEXMO)
+        mf.addProgramChange(settings.LD_TRACK, settings.CHANNEL_LH, settings.TIME_AT_START, settings.INSTRUM_DEXMO)
 
     for note in sf.parts[0].notesAndRests:
         if right:
             if with_note:
-                add_note_to_midi(note, R_TRACK, CHANNEL_PIANO, mf)
-            add_dexmo_note_to_midi(note, RD_TRACK, CHANNEL_RH, mf, c_to_g)
+                add_note_to_midi(note, settings.R_TRACK, settings.CHANNEL_PIANO, mf)
+            add_dexmo_note_to_midi(note, settings.RD_TRACK, settings.CHANNEL_RH, mf, c_to_g)
         elif len(sf.parts) < 2:
             if with_note:
-                add_note_to_midi(note, L_TRACK, CHANNEL_PIANO, mf)
-            add_dexmo_note_to_midi(note, LD_TRACK, CHANNEL_LH, mf, c_to_g)
+                add_note_to_midi(note, settings.L_TRACK, settings.CHANNEL_PIANO, mf)
+            add_dexmo_note_to_midi(note, settings.LD_TRACK, settings.CHANNEL_LH, mf, c_to_g)
     if left and len(sf.parts) >= 2:
         for note in sf.parts[1].notesAndRests:
             if with_note:
-                add_note_to_midi(note, L_TRACK, CHANNEL_PIANO, mf)
-            add_dexmo_note_to_midi(note, LD_TRACK, CHANNEL_LH, mf, c_to_g)
+                add_note_to_midi(note, settings.L_TRACK, settings.CHANNEL_PIANO, mf)
+            add_dexmo_note_to_midi(note, settings.LD_TRACK, settings.CHANNEL_LH, mf, c_to_g)
 
     # write 3rd MIDI file (with dexmo notes)
     write_midi(outFile, mf)
@@ -457,7 +436,7 @@ def add_dexmo_note_to_midi(note, track, channel, mf, c_to_g):
                        pitch=pitch,
                        time=note.offset,
                        duration=note.duration.quarterLength,
-                       volume=VOLUME)
+                       volume=settings.VOLUME)
 
 
 def add_note_to_midi(note, track, channel, mf):
@@ -478,7 +457,7 @@ def add_note_to_midi(note, track, channel, mf):
                    pitch=int(note.pitch.ps),
                    time=note.offset,
                    duration=note.duration.quarterLength,
-                   volume=VOLUME)
+                   volume=settings.VOLUME)
 
 
 def convert_note_to_dexmo_note(note):
