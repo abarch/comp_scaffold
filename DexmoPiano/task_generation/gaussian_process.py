@@ -3,7 +3,7 @@
 
 from task_generation.generator import TaskParameters
 
-SIMPLIFIED_TEST_ENUMS = False
+SIMPLIFIED_TEST_ENUMS = True
 
 if SIMPLIFIED_TEST_ENUMS == False:
     from task_generation.practice_modes import PracticeMode
@@ -12,8 +12,10 @@ if SIMPLIFIED_TEST_ENUMS == False:
 else:
     import enum
     class PracticeMode(enum.Enum):
-        IMP_PITCH = enum.auto()
-        IMP_TIMING = enum.auto()
+        IDENTITY = enum.auto()
+        RIGHT_HAND = enum.auto()
+        LEFT_HAND = enum.auto()
+
         
     class NoteRangePerHand(enum.Enum):
         EASY = enum.auto()
