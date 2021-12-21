@@ -12,11 +12,11 @@ stdscr.nodelay(1) # set getch() non-blocking
 
         
 # FIXME: this needs to be adapted 
-midi_interface = 'DEXMO_R MIDI 1'
+midi_interface =  'Arduino Leonardo MIDI 1' #  'DEXMO_R MIDI 1'
 
 # abstract in python of the MIDI_HAPTIC_DEFINITION
 # define channel of the device here
-CHAN = 9
+CHAN =  11 # 9
 # choosing action on the index here
 MHP_ACT_IND = 36
 # various action modes
