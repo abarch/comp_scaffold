@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from task_generation.generator import TaskParameters
-from task_generation.note_range_per_hand import NoteRange
+from task_generation.note_range_per_hand import NoteRangePerHand
 
 import time
 import numpy as np
@@ -9,15 +9,16 @@ from collections import namedtuple
 
 Error = namedtuple("Error", "pitch timing")
 
-BPM_BOUNDS = [50,200]
-
+BPM_BOUNDS = [50,70]
+NOTE_RANGE = list(NoteRangePerHand)[1:5]
+print (NOTE_RANGE)
 #### SIMPLIFIED ENUMS
 import enum
 
 class PracticeMode(enum.Enum):
-    IDENTITY = enum.auto()
-    RIGHT_HAND = enum.auto()
-    LEFT_HAND = enum.auto()
+    IDENTITY = 0
+    RIGHT_HAND = 1
+    LEFT_HAND = 2
 
 # class NoteRangePerHand(enum.Enum):
 #     EASY = 0.5
@@ -110,11 +111,20 @@ class GaussianProcess:
         # normalisation factor
         self.bpm_norm_fac = bpm_norm_fac
 
-        self.note_range=range(len(list(NoteRange))+1)
+
+        self.note_number = len(NOTE_RANGE)
+        self.note_range=range(1,self.note_number+1)
+
+
+
+        # FIXME: just debug
+        #print ("note_number ", self.note_number,  "note range ", self.note_range)
+
+
         self.domain =[
 
             {'name': 'practice_mode', 'type': 'discrete', 'domain': tuple(i*1000 for i , _ in enumerate(PracticeMode))},
-            {'name': 'note_range_right', 'type': 'categorical', 'domain': self.note_range},
+            {'name': 'note_range_right', 'type': 'categorical', 'domain':  range(6)}, # self.note_range}, # hier ist die 5 das Problem.  irgendwo wird 5 generiert  # self.note_range},
             {'name': 'bpm', 'type': 'continuous', 'domain': 
                  (self._norm_bpm(BPM_BOUNDS[0]),self._norm_bpm(BPM_BOUNDS[1]))},
                  
@@ -133,16 +143,16 @@ class GaussianProcess:
                     self._norm_bpm(task_parameters.bpm),
                     ]
         
-        print ("converted params ", task_parameters, practice_mode, " to domain" ,  domain_x)
+        #print ("converted params ", task_parameters, practice_mode, " to domain" ,  domain_x)
         return np.array([domain_x])
         
     def _domain2space(self, domain_x):
         ## Converts the domain variables into the GPs input space
         ## does one-hot encoding
-        print("domain_x ", domain_x)
+        #print("domain_x ", domain_x)
 
         space_rep = self.space.unzip_inputs(domain_x)
-        print ("space_rep ", space_rep)
+        #print ("space_rep ", space_rep)
         return space_rep
     
         
@@ -173,7 +183,8 @@ class GaussianProcess:
             maximize=True,
             kernel=kernel,
         )
-        
+
+        #print (X)
         self.bayes_opt.model.max_iters = 0
         self.bayes_opt._update_model() 
         
@@ -187,7 +198,7 @@ class GaussianProcess:
         
         
         
-
+    # if you have a practice mode and a task parameter tupel , then it will tell you, how useful it is.  At the moemnt it just outputs the mean value
     def get_estimate(self,  task_parameters, practice_mode,
                      add_variance=False):
         if not hasattr(self, "bayes_opt"):
@@ -207,7 +218,7 @@ class GaussianProcess:
             r += np.sqrt(var[0])
         return r
         
-    
+    # if you have a task parameter tupel, this thing will give you the practice mode that is the best w.r.t the current model
     def get_best_practice_mode(self,  task_parameters):
         all_practice_modes = list(PracticeMode)
         if random.random() > 0.05:
@@ -248,7 +259,7 @@ class GaussianProcess:
         data_dict = defaultdict(GPPlotData)
         for i, practice_mode in enumerate(PracticeMode):
             # insert plot data into the data_dict
-            self._get_plot_data(data_dict, c, practice_mode, bayes_opt)
+            self._get_plot_data(data_dict, practice_mode, bayes_opt)
             
         return np.argmax([d.mean for d in [
             data_dict[PracticeMode.LEFT_HAND], data_dict[PracticeMode.RIGHT_HAND], data_dict[PracticeMode.IDENTITY]]], axis=0)
@@ -256,7 +267,7 @@ class GaussianProcess:
     
     def _get_plot_data(self, data_dict, practice_mode, bayes_opt, for_plot=False):
         #c=0
-        bounds = [[0, len(self.note_range)], (self._norm_bpm(BPM_BOUNDS[0]),self._norm_bpm(BPM_BOUNDS[1]))]
+        bounds = [(self.note_range[0], self.note_range[-1]), (self._norm_bpm(BPM_BOUNDS[0]),self._norm_bpm(BPM_BOUNDS[1]))]
         
         acquisition_function = bayes_opt.acquisition.acquisition_function
         model = bayes_opt.model
@@ -264,14 +275,14 @@ class GaussianProcess:
         if not for_plot:
             X1 = np.array([i for i in self.note_range])
             X1_axis = X1
-            reshape_dim = len(self.note_range)*150
+            reshape_dim = len(self.note_range)*50*self.note_number
         else:
-            X1_axis = np.linspace(bounds[0][0], bounds[0][1], 150, endpoint=False)
+            X1_axis = np.linspace(bounds[0][0], bounds[0][1], 50*self.note_number, endpoint=False)
 
-            X1 = np.array([0]*50 +[1]*50 + [2]*50 )
-            reshape_dim = 150*150
+            X1 = np.array( [1]*50 +[2]*50 + [3]*50 + [4] *50  )
+            reshape_dim = 50*self.note_number*50*self.note_number
             
-        X2 = np.linspace(bounds[1][0], bounds[1][1], 150)
+        X2 = np.linspace(bounds[1][0], bounds[1][1], 50*self.note_number)
         
         x1, x2 = np.meshgrid(X1, X2)
         X = np.hstack((
@@ -281,9 +292,9 @@ class GaussianProcess:
             x1.reshape(reshape_dim,1),
              x2.reshape(reshape_dim,1)))
 
-        print ("domain before breaking", X)
+        #print ("domain before breaking", X)
         X_spaced = self._domain2space(X)
-        print ("spaced", X_spaced)
+        #print ("spaced", X_spaced)
          
         acqu = acquisition_function(X_spaced)
         
@@ -307,29 +318,30 @@ class GaussianProcess:
     
     def _plot_single_practice_mode(self, gp_plot_data, subplotf,
                                    plot_mean=True,
-                                   plot_std=True,
-                                   plot_acq=True):
+                                   plot_std=False,
+                                   plot_acq=False):
         label_x = "NoteRange"
         label_y = "BPM"
 
         X_TICKS = ([i for i in self.note_range], [str(i) for i in self.note_range])
-        print ("X_TICKS", X_TICKS)
+        #print ("X_TICKS", X_TICKS)
         #X_TICKS = ([0.5,1.5,2.5], ["0", "1", "2"])
         
-        bounds = [[0, len(self.note_range)], (self._norm_bpm(BPM_BOUNDS[0]),self._norm_bpm(BPM_BOUNDS[1]))]
+        bounds = [(self.note_range[0], self.note_range[-1]), (self._norm_bpm(BPM_BOUNDS[0]),self._norm_bpm(BPM_BOUNDS[1]))]
         
         ## Derived from GPyOpt/plotting/plots_bo.py
         X1 = gp_plot_data.X1
         X2 = gp_plot_data.X2
         
         def inflate_array(a):
-            return a.reshape((150,150))
+            return a.reshape((50*self.note_number,50*self.note_number))
         
         subplot_count = 0
         
         if plot_mean:
             subplot_count += 1
             subplotf(subplot_count)
+            print ("gp_plot_data.mean!!!!!!!", gp_plot_data.mean )
             plt.contourf(X1, X2, inflate_array(gp_plot_data.mean),100,
                          vmin=gp_plot_data.mean_min,
                          vmax=gp_plot_data.mean_max,)
@@ -339,6 +351,7 @@ class GaussianProcess:
             plt.title('Posterior mean')
             plt.axis((bounds[0][0],bounds[0][1],bounds[1][0],bounds[1][1]))
             plt.xticks(*X_TICKS)
+            #plt.show()
         ##
         
         if plot_std:
@@ -372,7 +385,7 @@ class GaussianProcess:
     
     def plot_mutiple(self, practice_modes,
                                    plot_mean=True,
-                                   plot_std=True,
+                                   plot_std=False,
                                    plot_acq=False):
         bayes_opt = self._get_bayes_opt()
         
@@ -380,24 +393,27 @@ class GaussianProcess:
         n_cols = sum([plot_mean, plot_std, plot_acq])
         
         data_dict = defaultdict(GPPlotData)
+
         for i, practice_mode in enumerate(practice_modes):
             self._get_plot_data(data_dict, practice_mode, bayes_opt,
                                 for_plot=True)
-            
+
         mean_max, std_max, acq_max = np.max([d.apply_to_arrays(np.max) for d in 
                                              data_dict.values()], axis=0)
+        # print (mean_max)
         
         mean_min, std_min, acq_min = np.min([d.apply_to_arrays(np.min) for d in 
                                              data_dict.values()], axis=0)
         
         for pd in data_dict.values():
+
             pd.mean_max = mean_max
             pd.mean_min = mean_min
             pd.std_max = std_max
             pd.std_min = std_min
             pd.acq_max = acq_max
             pd.acq_min = acq_min
-        
+        print (data_dict)
         
         
         fig = plt.figure(figsize=(n_cols*3.34,5*n_rows))
@@ -418,14 +434,16 @@ class GaussianProcess:
         
         
         fig.tight_layout()
-        plt.savefig("detailed_noise05.png")
         plt.show()
+        #plt.savefig("detailed_noise05.png")
+
         
         some_pd = list(data_dict.values())[0]
         
         argmax_plot_data = GPPlotData(X1=some_pd.X1, X2=some_pd.X2)
         argmax_plot_data.mean = np.argmax([d.mean for d in 
                                              data_dict.values()], axis=0)
+        print ("argmax ",  argmax_plot_data.mean)
         
         argmax_plot_data.std = np.argmax([d.std for d in 
                                              data_dict.values()], axis=0)
@@ -453,7 +471,7 @@ def gen_tasks(num_tasks=None, seed=546354):
     
     for i in range(num_tasks):
         bpm = rng.integers(*BPM_BOUNDS) 
-        note_range_right = rng.choice(NoteRange)
+        note_range_right = rng.choice(NOTE_RANGE)
     
         yield TaskParameters(bpm=bpm, note_range_right=note_range_right)
 
@@ -470,21 +488,21 @@ if __name__ == "__main__":
 
 
     import random
-    for i, tp in enumerate(gen_tasks(10)):
+    for i, tp in enumerate(gen_tasks(40)):
         print("ADD DATA")
-        #tp.bpm = 60 + random.randrange(-20,20,2)
-        #for j, nr in enumerate(NoteRangePerHand):
-        #    tp.note_range_right=nr
+        #print ("new screwy task parameters ", tp)
+
         GP.add_data_point(tp,
                              PracticeMode.RIGHT_HAND,
-                          10-i)
+                          random.randrange(-20,20,1))
         GP.add_data_point(tp,
                           PracticeMode.LEFT_HAND,
-                          12-i)
+                          random.randrange(50,100,1))
         GP.add_data_point(tp,
                           PracticeMode.IDENTITY,
-                          8 - i)
+                          random.randrange(160,200,1))
         GP.update_model()
+        print(" best practice mode", GP.get_best_practice_mode(tp))
     # GP.add_data_point(c, tp,
     #                       PracticeMode.SLOWER,
     #                       3)
@@ -492,7 +510,7 @@ if __name__ == "__main__":
     # GP.add_data_point(c, tp, PracticeMode.IDENTITY, 5)
     # GP.add_data_point(c, tp, PracticeMode.SLOWER, 2)
 
-    print(" best practice mode", GP.get_best_practice_mode(tp))
+
 
 
     # GP.plot_single(c=c, practice_mode=PracticeMode.IDENTITY)

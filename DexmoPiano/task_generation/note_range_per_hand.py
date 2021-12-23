@@ -6,12 +6,12 @@ import enum
 
 
 class NoteRangePerHand(enum.Enum):
-    UNKOWN = enum.auto()
+    UNKOWN = 0
     
-    ONE_NOTE = enum.auto()
-    TWO_NOTES = enum.auto()
-    THREE_NOTES = enum.auto()
-    FOUR_NOTES = enum.auto()
+    ONE_NOTE = 1
+    TWO_NOTES = 2
+    THREE_NOTES = 3
+    FOUR_NOTES = 4
     C_TO_G = enum.auto()
     C_DUR= enum.auto()
     BLUES = enum.auto()
@@ -20,10 +20,10 @@ class NoteRangePerHand(enum.Enum):
 
 
 class NoteRange(enum.Enum):
-    ONE_NOTE = enum.auto()
-    TWO_NOTES = enum.auto()
-    THREE_NOTES = enum.auto()
-    FOUR_NOTES = enum.auto()
+    ONE_NOTE = 0
+    TWO_NOTES = 1
+    THREE_NOTES = 2
+    FOUR_NOTES = 3
 
     
 noteRangePerHandDescription = ["One note (C)", "Two notes (C,D)", "Three Notes (E,F,G)", "Four Notes (C, E, F,G)",
