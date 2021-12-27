@@ -2,15 +2,22 @@
 # -*- coding: utf-8 -*-
 from task_generation.generator import TaskParameters
 from task_generation.note_range_per_hand import NoteRangePerHand
-
+from task_generation.practice_modes import PracticeMode
 import time
 import numpy as np
 from collections import namedtuple
 
-#Error = namedtuple("Error", "pitch timing")
+
 
 BPM_BOUNDS = [50,150]
+
+# tell us how many different types of different note ranges we want to use in our exp.
 NOTE_RANGE = list(NoteRangePerHand)[1:5]
+
+# parameter that tell us how many practice modes out of the existing list we want to take
+PRACTICE_RANGE = 3
+PRACTICE_MODES = list(PracticeMode)[0:PRACTICE_RANGE]
+
 # parameter for the stretching of plots
 LINSPACE =30
 
@@ -18,22 +25,12 @@ assert (NOTE_RANGE[0].value==1)
 assert (NOTE_RANGE[-1].value==4)
 
 
-#### SIMPLIFIED ENUMS
-import enum
-
-class PracticeMode(enum.Enum):
-    IDENTITY = 0
-    RIGHT_HAND = 1
-    LEFT_HAND = 2
-
-
-
-
 ## Mappings of categorical data to ints.
 ### The pracice modes will be mapped onto a single dimension, placed far away
 ### from each other
-practicemode2int = {pm: i*1000 for i, pm in enumerate(PracticeMode)}
-int2practicemode = {i*1000: pm for i, pm in enumerate(PracticeMode)}
+
+practicemode2int = {pm: i*1000 for i, pm in zip(range(PRACTICE_RANGE), PRACTICE_MODES)}
+int2practicemode = {i*1000: pm for i, pm in zip(range(PRACTICE_RANGE), PRACTICE_MODES)}
 
 
 import matplotlib.pyplot as plt
@@ -90,7 +87,7 @@ class GaussianProcess:
 
         self.domain =[
 
-            {'name': 'practice_mode', 'type': 'discrete', 'domain': tuple(i*1000 for i , _ in enumerate(PracticeMode))},
+            {'name': 'practice_mode', 'type': 'discrete', 'domain': tuple(i*1000 for i  in range(PRACTICE_RANGE))},
             {'name': 'note_range_right', 'type': 'categorical', 'domain':  range(0,5)}, # self.note_range}, # hier ist die 5 das Problem.  irgendwo wird 5 generiert  # self.note_range},
             {'name': 'bpm', 'type': 'continuous', 'domain': 
                  (self._norm_bpm(BPM_BOUNDS[0]),self._norm_bpm(BPM_BOUNDS[1]))},
@@ -191,7 +188,7 @@ class GaussianProcess:
     # if you have a task parameter tupel, this thing will give you the practice mode that is the best w.r.t the current model
     # Important that the actually best practice mode is being selected only when random.random>0.05 (so that means - in most cases!)
     def get_best_practice_mode(self,  task_parameters):
-        all_practice_modes = list(PracticeMode)
+        all_practice_modes = PRACTICE_MODES
         if random.random() > 0.05:
             max_i = np.argmax([self.get_estimate( task_parameters, pm)
                                              for pm in all_practice_modes])
@@ -222,7 +219,7 @@ class GaussianProcess:
             self.data_X = np.vstack((self.data_X, new_x[0]))
             self.data_Y = np.vstack((self.data_Y, new_y[0]))
 
-    #fixme ? probably 150 is the number of BPM parameters
+
     def get_policy(self):
         # in case the policy the model does not exist, provide a random policy
         if not hasattr(self, "bayes_opt"):
@@ -232,7 +229,7 @@ class GaussianProcess:
         bayes_opt = self._get_bayes_opt()
         
         data_dict = defaultdict(GPPlotData)
-        for i, practice_mode in enumerate(PracticeMode):
+        for i, practice_mode in zip(range(PRACTICE_RANGE), PRACTICE_MODES):
             # insert plot data into the data_dict, given a practice mode
             self._get_plot_data(data_dict, practice_mode, bayes_opt)
 
@@ -433,13 +430,18 @@ class GaussianProcess:
         plt.show()
         #plt.savefig("detailed_noise05.png")
 
-        
+
         some_pd = list(data_dict.values())[0]
-        
+        #what happens here is we take a look at all (means,stds, ..) and compare which
+        # practice modes has the highest. then we plot for each grid element - the number
+        # of the practice that should be used accordidng to the policy
+
+
+
         argmax_plot_data = GPPlotData(X1=some_pd.X1, X2=some_pd.X2)
         argmax_plot_data.mean = np.argmax([d.mean for d in 
                                              data_dict.values()], axis=0)
-        print ("argmax ",  argmax_plot_data.mean)
+        # print ("argmax ",  argmax_plot_data.mean)
         
         argmax_plot_data.std = np.argmax([d.std for d in 
                                              data_dict.values()], axis=0)
@@ -484,7 +486,7 @@ if __name__ == "__main__":
 
 
     import random
-    for i, tp in enumerate(gen_tasks(40)):
+    for i, tp in enumerate(gen_tasks(20)):
         print("ADD DATA")
         #print ("new screwy task parameters ", tp)
 

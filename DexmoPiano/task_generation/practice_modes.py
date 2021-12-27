@@ -5,9 +5,9 @@ import enum
 
 
 class PracticeMode(enum.Enum):
-    IDENTITY    = enum.auto()
-    RIGHT_HAND = enum.auto()
-    LEFT_HAND = enum.auto()
+    IDENTITY    = 0
+    RIGHT_HAND = 1
+    LEFT_HAND = 2
     SINGLE_NOTE = enum.auto()
     SLOWER      = enum.auto()
 
