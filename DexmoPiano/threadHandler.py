@@ -164,6 +164,10 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
     imp.reload(errorCalc)
 
     try:
+        if len(actualTimes) == 0:  # i.e. they did not play
+            print("No notes were played!!!")
+            return targetTimes, actualTimes, 99, 99, 99, task_data, 'No notes were played'
+
         output_note_list, errorVec, errorVecLeft, errorVecRight = \
             errorCalc.computeErrorEvo(task_data, actualTimes,
                                       openface_data=openface_data,

@@ -311,6 +311,7 @@ def add_metronome(bars, numerator, outFile, writeFile, mf):
                    time=t,
                    duration=1,
                    volume=settings.VOLUME)
+        print("met channel: ",settings.CHANNEL_METRO)
 
     if writeFile:
         # write 2nd MIDI file (with metronome)

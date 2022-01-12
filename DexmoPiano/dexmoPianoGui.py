@@ -72,13 +72,17 @@ def startTask():
     timestr = getCurrentTimestamp()
 
     # use MIDI file with metronome staff
+
+    config.participant_id = id_textbox.get("1.0",'end-1c')
+    config.freetext = freetext.get("1.0",'end-1c')
+
     print("actual taskParameter in startTask:", taskParameters)
     targetNotes, actualNotes, errorVal, errorVecLeft, errorVecRight, task_data, note_errorString = \
         threadHandler.startThreads(inputFileStrs[2], guidanceMode,
                                    scheduler.current_task_data(), taskParameters,
                                    useVisualAttention=useVisualAttention.get())
     df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
-                                                  taskParameters, note_errorString)
+                                                  taskParameters, note_errorString, config.participant_id, config.freetext)
     if difficultyScaling:
         next_level = difficulty.thresholds(df_error)
         print("Next Level", next_level)
@@ -606,6 +610,8 @@ def load_taskButtons():
     global node_params
     global currentMidi, metronome
     global showScoreGuidance, showVerticalGuidance
+    global id_textbox, freetext
+
     showScoreGuidance = tk.IntVar(value=1)
     showVerticalGuidance = tk.IntVar(value=1)
     showVerticalGuidanceCheck = tk.Checkbutton(root, text='Show vertical guidance', variable=showVerticalGuidance,
@@ -660,6 +666,13 @@ def load_taskButtons():
     ## Back to Menu
     tk.Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
 
+    id_textbox = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1, state=tk.NORMAL)
+    id_textbox.place(x=1050, y=480, height=25, width=150)
+    id_textbox.insert(tk.INSERT, "Enter ID")
+
+    freetext = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1)
+    freetext.place(x=1050, y=520, height=60, width=150)
+    freetext.insert(tk.INSERT, "Free text")
 
 difficultyScaling = False
 complex_index = 0
@@ -945,7 +958,7 @@ subprocess.run(['mkdir', '-p', tempDir], stderr=subprocess.DEVNULL)
 root = tk.Tk()
 root.title("Piano with Dexmo")
 
-deleteOldFiles()
+#deleteOldFiles()
 
 # initialize keyboard input thread
 threadHandler.initInputThread()

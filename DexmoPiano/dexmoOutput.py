@@ -139,6 +139,7 @@ def play_demo(midiFile, guidanceMode):
             if metronome == True:
                 if msg.channel == 0 or msg.channel == 9:
                     soundPort.send(msg)
+                    #print(msg.channel)
             elif msg.channel == 0 : # only piano sound
                 soundPort.send(msg)
 
@@ -188,9 +189,15 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode, showVertic
             if not msg.is_meta:
                 # do not play all notes at once
                 time.sleep(msg.time)
-
-                if msg.channel == 9 and metronome == True:
-                    soundPort.send(msg)  # sound only from metronome track
+# for Nord 4: since Metronome and piano are both on channel 0, then metronome is defined by pitch < 48.
+                if (msg.type == 'note_on') or (msg.type == 'note_off'):
+                    if msg.note < 48 and metronome == True:
+                        soundPort.send(msg)  # sound only from metronome track
+                        #print(msg.note)
+# Code not for Nord: metronome is on channel 9
+#                if msg.channel == 9 and metronome == True:
+#                    soundPort.send(msg)  # sound only from metronome track
+#                    print(msg.channel)
 
                 if msg.channel == 0:  # haptic feeback for notes in Piano track
 

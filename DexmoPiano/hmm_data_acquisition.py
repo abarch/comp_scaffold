@@ -6,7 +6,7 @@ from datetime import datetime
 import pandas as pd
 
 
-def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString):
+def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString, user_id, free_text):
     """
     Prints the error (observations) for the hmm into the *_error.csv file.
     Prints note specific errors into the *_notes.csv file.
@@ -19,6 +19,7 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
     """
 
     date = datetime.today().strftime('%Y-%m-%d')
+    time = datetime.today().strftime('%H:%M:%S')
     error_file = f"./hmm_data/{date}_error.csv"
     notes_file = f"./hmm_data/{date}_notes.csv"
 
@@ -44,6 +45,10 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
 
     # create dictionary with error values
     dic_error = {}
+    dic_error['date'] = date
+    dic_error['time'] = time
+    dic_error['user_id'] = user_id
+    dic_error['free_text'] = free_text
     dic_error['practice_mode'] = task_data.practice_mode
     dic_error['complexityLevel'] = str(complexityLevel)
     for hand in ['_right', '_left']:
