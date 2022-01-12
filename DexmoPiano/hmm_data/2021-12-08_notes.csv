@@ -1,0 +1,222 @@
+NoteExpected(),"NoteExpected(Pitch:		+5 [67 - 62]
+             Hold Time:		-0.51 [0.69 - 1.20]
+             Rel On Time:	-1.75 [0.65 - 2.40])","NoteExpected(Pitch:		+4 [64 - 60]
+             Hold Time:		-0.15 [0.45 - 0.60]
+             Rel On Time:	-0.61 [0.59 - 1.20])","NoteExpected(Pitch:		+2 [64 - 62]
+             Hold Time:		-0.11 [0.49 - 0.60])",NoteExpected(Hold Time:		-0.12 [0.48 - 0.60]),"NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=9.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)",NoteExpected(Pitch:		+3 [65 - 62]),"NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=10.20, note_on_time_relative_target=0.60, note_hold_time_target=1.20)",NoteExpected(Pitch:		+2 [64 - 62]),NoteExpected(Pitch:		+2 [62 - 60]),NoteExpected(Hold Time:		-0.12 [0.48 - 0.60]),NoteExpected(Pitch:		-3 [59 - 62]),"NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=12.60, note_on_time_relative_target=0.60, note_hold_time_target=1.20)",NoteExpected(),NoteExpected(),NoteExpected(Pitch:		-7 [55 - 62]),NoteExpected(),"NoteExpected(Pitch:		+7 [67 - 60]
+             Hold Time:		-0.13 [0.47 - 0.60])","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=17.40, note_on_time_relative_target=1.20, note_hold_time_target=0.60)","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=18.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)"
+"
+"
+"NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=4.80, note_on_time_relative_target=2.40, note_hold_time_target=1.20)",NoteExpected(Hold Time:		+0.42 [1.02 - 0.60]),NoteExpected(Pitch:		+5 [67 - 62]),"NoteExpected(Pitch:		+5 [65 - 60]
+             Hold Time:		-0.46 [0.14 - 0.60])",NoteExpected(Pitch:		+3 [65 - 62]),NoteExpected(Pitch:		+5 [67 - 62]),NoteExpected(Pitch:		+7 [69 - 62]),NoteExpected(Pitch:		+5 [65 - 60]),"NoteExpected(Pitch:		+7 [67 - 60]
+             Rel On Time:	-0.10 [0.50 - 0.60])","NoteExpected(Pitch:		+2 [64 - 62]
+             Hold Time:		-0.12 [0.48 - 0.60])","NoteExpected(Pitch:		+5 [65 - 60]
+             Hold Time:		-0.69 [0.51 - 1.20]
+             Rel On Time:	+0.36 [0.96 - 0.60])","NoteExpected(Pitch:		-1 [61 - 62]
+             Rel On Time:	+0.32 [0.92 - 0.60])","NoteExpected(Pitch:		+4 [64 - 60]
+             Hold Time:		-0.11 [0.49 - 0.60]
+             Rel On Time:	-0.12 [0.48 - 0.60])","NoteExpected(Pitch:		-1 [59 - 60]
+             Hold Time:		-0.12 [0.48 - 0.60]
+             Rel On Time:	-1.68 [-0.47 - 1.20])","NoteExpected(Pitch:		+2 [62 - 60]
+             Hold Time:		-0.13 [0.47 - 0.60])","NoteExpected(Hold Time:		-0.19 [0.41 - 0.60]
+             Rel On Time:	+0.38 [0.98 - 0.60])","NoteExpected(Pitch:		-5 [55 - 60]
+             Rel On Time:	-0.20 [0.40 - 0.60])","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=12.00, note_on_time_relative_target=1.80, note_hold_time_target=0.60)","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=12.60, note_on_time_relative_target=0.60, note_hold_time_target=1.20)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=15.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)"
+"
+"
+"NoteExpected(Pitch:		-14 [48 - 62]
+             Hold Time:		-0.22 [0.98 - 1.20]
+             Rel On Time:	-3.11 [-0.71 - 2.40])","NoteExtra(pitch=55, velocity=13, note_on_time=6.77, note_on_time_relative=-999, note_hold_time=0.41)","NoteExtra(pitch=55, velocity=13, note_on_time=6.77, note_on_time_relative=-999, note_hold_time=0.41)",NoteExpected(Hold Time:		-0.47 [0.13 - 0.60]),"NoteExtra(pitch=64, velocity=20, note_on_time=7.21, note_on_time_relative=-999, note_hold_time=0.26)","NoteExtra(pitch=64, velocity=20, note_on_time=7.21, note_on_time_relative=-999, note_hold_time=0.26)","NoteExpected(Pitch:		+7 [67 - 60]
+             Hold Time:		-0.41 [0.19 - 0.60]
+             Rel On Time:	-0.18 [1.02 - 1.20])","NoteExpected(Pitch:		+10 [72 - 62]
+             Hold Time:		-0.39 [0.21 - 0.60]
+             Rel On Time:	-0.39 [0.21 - 0.60])","NoteExtra(pitch=24, velocity=67, note_on_time=8.13, note_on_time_relative=-999, note_hold_time=0.09)","NoteExtra(pitch=24, velocity=67, note_on_time=8.13, note_on_time_relative=-999, note_hold_time=0.09)","NoteExpected(Pitch:		-26 [36 - 62]
+             Hold Time:		-0.54 [0.06 - 0.60]
+             Rel On Time:	+0.28 [0.88 - 0.60])","NoteExpected(Pitch:		-26 [36 - 62]
+             Hold Time:		-0.51 [0.09 - 0.60]
+             Rel On Time:	-0.28 [0.32 - 0.60])","NoteExtra(pitch=21, velocity=73, note_on_time=9.99, note_on_time_relative=-999, note_hold_time=0.09)","NoteExtra(pitch=21, velocity=73, note_on_time=9.99, note_on_time_relative=-999, note_hold_time=0.09)","NoteExpected(Pitch:		-36 [26 - 62]
+             Hold Time:		-0.50 [0.10 - 0.60]
+             Rel On Time:	+0.95 [1.54 - 0.60])","NoteExpected(Pitch:		-31 [29 - 60]
+             Hold Time:		-0.51 [0.09 - 0.60]
+             Rel On Time:	-0.34 [0.26 - 0.60])","NoteExpected(Pitch:		-27 [33 - 60]
+             Hold Time:		-0.50 [0.10 - 0.60]
+             Rel On Time:	-0.33 [0.27 - 0.60])","NoteExtra(pitch=35, velocity=99, note_on_time=11.06, note_on_time_relative=-999, note_hold_time=0.12)","NoteExtra(pitch=35, velocity=99, note_on_time=11.06, note_on_time_relative=-999, note_hold_time=0.12)","NoteExpected(Pitch:		-24 [36 - 60]
+             Hold Time:		-1.09 [0.11 - 1.20]
+             Rel On Time:	-0.10 [0.50 - 0.60])","NoteExtra(pitch=30, velocity=101, note_on_time=12.71, note_on_time_relative=-999, note_hold_time=0.08)","NoteExtra(pitch=30, velocity=101, note_on_time=12.71, note_on_time_relative=-999, note_hold_time=0.08)","NoteExpected(Pitch:		-30 [30 - 60]
+             Hold Time:		-0.52 [0.08 - 0.60]
+             Rel On Time:	-0.17 [1.62 - 1.80])","NoteExtra(pitch=25, velocity=107, note_on_time=13.23, note_on_time_relative=-999, note_hold_time=0.16)","NoteExtra(pitch=25, velocity=107, note_on_time=13.23, note_on_time_relative=-999, note_hold_time=0.16)","NoteExtra(pitch=30, velocity=105, note_on_time=13.78, note_on_time_relative=-999, note_hold_time=0.08)","NoteExtra(pitch=30, velocity=105, note_on_time=13.78, note_on_time_relative=-999, note_hold_time=0.08)","NoteExpected(Pitch:		-30 [30 - 60]
+             Hold Time:		-1.11 [0.09 - 1.20]
+             Rel On Time:	+0.47 [1.07 - 0.60])","NoteExtra(pitch=25, velocity=105, note_on_time=14.27, note_on_time_relative=-999, note_hold_time=0.35)","NoteExtra(pitch=25, velocity=105, note_on_time=14.27, note_on_time_relative=-999, note_hold_time=0.35)","NoteExtra(pitch=30, velocity=66, note_on_time=14.83, note_on_time_relative=-999, note_hold_time=0.04)","NoteExtra(pitch=30, velocity=66, note_on_time=14.83, note_on_time_relative=-999, note_hold_time=0.04)","NoteExpected(Pitch:		-32 [30 - 62]
+             Hold Time:		-0.48 [0.12 - 0.60]
+             Rel On Time:	-0.15 [1.05 - 1.20])","NoteExtra(pitch=25, velocity=97, note_on_time=15.27, note_on_time_relative=-999, note_hold_time=0.26)","NoteExtra(pitch=25, velocity=97, note_on_time=15.27, note_on_time_relative=-999, note_hold_time=0.26)","NoteExpected(Pitch:		-28 [34 - 62]
+             Hold Time:		-0.52 [0.08 - 0.60]
+             Rel On Time:	-0.14 [0.46 - 0.60])","NoteExtra(pitch=30, velocity=71, note_on_time=15.78, note_on_time_relative=-999, note_hold_time=0.09)","NoteExtra(pitch=30, velocity=71, note_on_time=15.78, note_on_time_relative=-999, note_hold_time=0.09)","NoteExtra(pitch=30, velocity=92, note_on_time=16.02, note_on_time_relative=-999, note_hold_time=0.10)","NoteExtra(pitch=30, velocity=92, note_on_time=16.02, note_on_time_relative=-999, note_hold_time=0.10)","NoteExtra(pitch=25, velocity=100, note_on_time=16.27, note_on_time_relative=-999, note_hold_time=0.20)","NoteExtra(pitch=25, velocity=100, note_on_time=16.27, note_on_time_relative=-999, note_hold_time=0.20)","NoteExpected(Pitch:		-30 [30 - 60]
+             Hold Time:		-0.51 [0.09 - 0.60]
+             Rel On Time:	+0.41 [1.01 - 0.60])","NoteExtra(pitch=34, velocity=76, note_on_time=16.79, note_on_time_relative=-999, note_hold_time=0.10)","NoteExtra(pitch=34, velocity=76, note_on_time=16.79, note_on_time_relative=-999, note_hold_time=0.10)","NoteExpected(Pitch:		-32 [30 - 62]
+             Hold Time:		-0.51 [0.09 - 0.60]
+             Rel On Time:	-0.10 [0.50 - 0.60])","NoteExpected(Pitch:		-35 [25 - 60]
+             Hold Time:		-0.37 [0.23 - 0.60]
+             Rel On Time:	-0.36 [0.24 - 0.60])","NoteExtra(pitch=30, velocity=78, note_on_time=17.55, note_on_time_relative=-999, note_hold_time=0.07)","NoteExtra(pitch=30, velocity=78, note_on_time=17.55, note_on_time_relative=-999, note_hold_time=0.07)","NoteExpected(Pitch:		-26 [34 - 60]
+             Hold Time:		-0.51 [0.09 - 0.60]
+             Rel On Time:	-0.67 [0.53 - 1.20])","NoteExtra(pitch=30, velocity=81, note_on_time=18.03, note_on_time_relative=-999, note_hold_time=0.09)","NoteExtra(pitch=30, velocity=81, note_on_time=18.03, note_on_time_relative=-999, note_hold_time=0.09)","NoteExtra(pitch=25, velocity=107, note_on_time=18.29, note_on_time_relative=-999, note_hold_time=0.26)","NoteExtra(pitch=25, velocity=107, note_on_time=18.29, note_on_time_relative=-999, note_hold_time=0.26)","NoteExtra(pitch=30, velocity=73, note_on_time=18.54, note_on_time_relative=-999, note_hold_time=0.08)","NoteExtra(pitch=30, velocity=73, note_on_time=18.54, note_on_time_relative=-999, note_hold_time=0.08)","NoteExpected(Pitch:		-26 [34 - 60]
+             Hold Time:		-0.50 [0.10 - 0.60]
+             Rel On Time:	+0.40 [1.00 - 0.60])","NoteExpected(Pitch:		-30 [30 - 60]
+             Hold Time:		-0.51 [0.09 - 0.60]
+             Rel On Time:	-0.35 [0.25 - 0.60])"
+"
+"
+"NoteMissing(pitch_target=64, velocity_target=100, note_on_time_target=2.40, note_on_time_relative_target=0, note_hold_time_target=0.60)","NoteExpected(Pitch:		+12 [64 - 52]
+             Hold Time:		-0.52 [0.68 - 1.20])","NoteMissing(pitch_target=64, velocity_target=100, note_on_time_target=3.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)",NoteExpected(Hold Time:		+0.32 [0.92 - 0.60]),NoteExpected(Hold Time:		-0.23 [0.37 - 0.60]),"NoteMissing(pitch_target=57, velocity_target=100, note_on_time_target=4.80, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteExpected(Pitch:		-3 [64 - 67]
+             Hold Time:		-0.21 [0.38 - 0.60])","NoteMissing(pitch_target=64, velocity_target=100, note_on_time_target=5.40, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteExpected(Pitch:		+12 [67 - 55]
+             Hold Time:		-0.12 [0.48 - 0.60])","NoteMissing(pitch_target=55, velocity_target=100, note_on_time_target=6.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteExpected(Pitch:		+2 [64 - 62]
+             Hold Time:		-0.12 [0.48 - 0.60])","NoteMissing(pitch_target=53, velocity_target=100, note_on_time_target=6.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)",NoteExpected(Pitch:		-5 [62 - 67]),"NoteMissing(pitch_target=48, velocity_target=100, note_on_time_target=7.20, note_on_time_relative_target=0.60, note_hold_time_target=1.20)","NoteExpected(Pitch:		+3 [67 - 64]
+             Hold Time:		-0.13 [0.47 - 0.60])","NoteExpected(Pitch:		-3 [62 - 65]
+             Rel On Time:	-0.10 [0.50 - 0.60])",NoteExpected(Pitch:		+15 [65 - 50]),NoteExpected(Rel On Time:	+0.48 [1.08 - 0.60]),"NoteMissing(pitch_target=59, velocity_target=100, note_on_time_target=9.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)",NoteExpected(Hold Time:		-0.17 [0.43 - 0.60]),"NoteMissing(pitch_target=57, velocity_target=100, note_on_time_target=9.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=64, velocity_target=100, note_on_time_target=9.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteExpected(Pitch:		+5 [64 - 59]
+             Hold Time:		+0.66 [1.26 - 0.60])","NoteMissing(pitch_target=53, velocity_target=100, note_on_time_target=10.20, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=55, velocity_target=100, note_on_time_target=11.40, note_on_time_relative_target=0.60, note_hold_time_target=0.60)",NoteExpected(Hold Time:		-0.31 [0.89 - 1.20]),"NoteMissing(pitch_target=53, velocity_target=100, note_on_time_target=12.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=52, velocity_target=100, note_on_time_target=12.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteExpected(Pitch:		+8 [60 - 52]
+             Hold Time:		+0.15 [0.75 - 0.60])","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=13.20, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=50, velocity_target=100, note_on_time_target=13.80, note_on_time_relative_target=0.60, note_hold_time_target=0.60)",NoteExpected(),"NoteMissing(pitch_target=53, velocity_target=100, note_on_time_target=14.40, note_on_time_relative_target=0.60, note_hold_time_target=0.60)",NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]),"NoteExpected(Pitch:		+5 [64 - 59]
+             Rel On Time:	+0.45 [1.05 - 0.60])","NoteExpected(Pitch:		+10 [60 - 50]
+             Hold Time:		-0.27 [0.33 - 0.60]
+             Rel On Time:	-2.13 [-0.93 - 1.20])","NoteMissing(pitch_target=50, velocity_target=100, note_on_time_target=15.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=64, velocity_target=100, note_on_time_target=15.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=50, velocity_target=100, note_on_time_target=16.20, note_on_time_relative_target=0.60, note_hold_time_target=0.60)",NoteExpected(Hold Time:		-0.37 [0.23 - 0.60]),NoteExpected(Hold Time:		-0.38 [0.22 - 0.60]),"NoteExpected(Pitch:		+10 [60 - 50]
+             Hold Time:		-0.31 [0.29 - 0.60]
+             Rel On Time:	-0.12 [0.48 - 0.60])","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=17.40, note_on_time_relative_target=1.20, note_hold_time_target=0.60)","NoteMissing(pitch_target=50, velocity_target=100, note_on_time_target=18.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=18.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)"
+"
+"
+N,o, ,n,o,t,e,s, ,w,e,r,e, ,p,l,a,y,e,d
+"
+"
+"NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=4.20, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=4.80, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=5.40, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteExpected(Pitch:		-10 [50 - 60]
+             Hold Time:		-0.43 [0.17 - 0.60])","NoteExpected(Pitch:		-8 [52 - 60]
+             Hold Time:		-0.42 [0.18 - 0.60]
+             Rel On Time:	-0.60 [0.00 - 0.60])","NoteExpected(Pitch:		-10 [52 - 62]
+             Hold Time:		-0.35 [0.25 - 0.60]
+             Rel On Time:	-0.13 [0.47 - 0.60])","NoteExpected(Pitch:		-7 [53 - 60]
+             Hold Time:		-0.43 [0.17 - 0.60])","NoteExpected(Pitch:		-9 [53 - 62]
+             Hold Time:		-0.44 [0.16 - 0.60]
+             Rel On Time:	-0.21 [0.39 - 0.60])","NoteExpected(Pitch:		-12 [50 - 62]
+             Hold Time:		-0.42 [0.18 - 0.60]
+             Rel On Time:	-0.26 [0.34 - 0.60])","NoteExpected(Pitch:		-12 [50 - 62]
+             Hold Time:		-0.45 [0.15 - 0.60]
+             Rel On Time:	-0.21 [0.39 - 0.60])","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=8.40, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteExpected(Pitch:		-12 [48 - 60]
+             Hold Time:		-0.46 [0.14 - 0.60])","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=9.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteExpected(Pitch:		-12 [48 - 60]
+             Hold Time:		-0.39 [0.21 - 0.60]
+             Rel On Time:	-0.20 [0.40 - 0.60])","NoteExpected(Pitch:		-15 [47 - 62]
+             Hold Time:		-0.32 [0.28 - 0.60])","NoteExpected(Pitch:		-13 [47 - 60]
+             Hold Time:		-0.40 [0.20 - 0.60]
+             Rel On Time:	-0.13 [0.46 - 0.60])","NoteExpected(Pitch:		-17 [45 - 62]
+             Hold Time:		-0.32 [0.28 - 0.60])","NoteExpected(Pitch:		-17 [45 - 62]
+             Hold Time:		-0.41 [0.19 - 0.60])","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=12.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteExpected(Pitch:		-17 [43 - 60]
+             Hold Time:		-0.40 [0.20 - 0.60])","NoteExpected(Pitch:		-19 [43 - 62]
+             Hold Time:		-0.41 [0.19 - 0.60])","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=12.60, note_on_time_relative_target=0.60, note_hold_time_target=1.20)","NoteExpected(Pitch:		-17 [43 - 60]
+             Hold Time:		-0.38 [0.22 - 0.60])","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=16.20, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=17.40, note_on_time_relative_target=1.20, note_hold_time_target=0.60)","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=18.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)"
+"
+"
+"NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=2.40, note_on_time_relative_target=0, note_hold_time_target=0.60)","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=4.80, note_on_time_relative_target=2.40, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=5.40, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=6.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=7.80, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=8.40, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=9.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=9.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=10.20, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=10.80, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=12.60, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=13.20, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=13.80, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=14.40, note_on_time_relative_target=0.60, note_hold_time_target=1.20)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=15.60, note_on_time_relative_target=1.20, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=16.20, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteExpected(Pitch:		-7 [53 - 60]
+             Hold Time:		-0.45 [0.15 - 0.60])","NoteExpected(Pitch:		-3 [57 - 60]
+             Hold Time:		-0.44 [0.16 - 0.60]
+             Rel On Time:	-0.24 [0.36 - 0.60])","NoteExpected(Pitch:		-1 [59 - 60]
+             Hold Time:		-0.34 [0.26 - 0.60])","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=17.40, note_on_time_relative_target=1.20, note_hold_time_target=0.60)","NoteExpected(Hold Time:		-0.39 [0.21 - 0.60]
+             Rel On Time:	-0.12 [0.48 - 0.60])","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=18.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)",NoteExpected()
+"
+"
+N,o, ,n,o,t,e,s, ,w,e,r,e, ,p,l,a,y,e,d
+"
+"
+"NoteExpected(Pitch:		+12 [72 - 60]
+             Hold Time:		-0.26 [0.94 - 1.20])","NoteExpected(Pitch:		+12 [74 - 62]
+             Hold Time:		-0.31 [0.29 - 0.60]
+             Rel On Time:	-0.11 [1.09 - 1.20])",NoteExpected(Hold Time:		-0.11 [0.49 - 0.60]),"NoteExpected(Pitch:		-2 [60 - 62]
+             Hold Time:		-0.22 [0.38 - 0.60])","NoteExpected(Pitch:		-2 [60 - 62]
+             Hold Time:		-0.25 [0.35 - 0.60])","NoteMissing(pitch_target=60, velocity_target=100, note_on_time_target=6.00, note_on_time_relative_target=0.60, note_hold_time_target=0.60)",NoteExpected(Hold Time:		-0.30 [0.29 - 0.60]),NoteExpected(Hold Time:		-0.22 [0.38 - 0.60]),NoteExpected(Hold Time:		-0.49 [0.71 - 1.20]),NoteExpected(Hold Time:		-0.21 [0.39 - 0.60]),NoteExpected(Hold Time:		-0.27 [0.33 - 0.60]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]),NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]),NoteExpected(Hold Time:		-0.12 [0.48 - 0.60]),NoteExpected(Hold Time:		-0.20 [0.40 - 0.60]),NoteExpected(Hold Time:		-0.19 [0.41 - 0.60]),NoteExpected(Hold Time:		-0.15 [0.45 - 0.60]),NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60])
+"
+"
+NoteExpected(Hold Time:		-0.24 [0.96 - 1.20]),NoteExpected(Hold Time:		-0.15 [0.45 - 0.60]),NoteExpected(Hold Time:		-0.17 [0.42 - 0.60]),NoteExpected(Hold Time:		-0.24 [0.36 - 0.60]),NoteExpected(Hold Time:		-0.19 [0.41 - 0.60]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]),NoteExpected(Hold Time:		-0.19 [0.41 - 0.60]),NoteExpected(Hold Time:		-0.11 [1.09 - 1.20]),"NoteExpected(Hold Time:		-0.20 [0.40 - 0.60]
+             Rel On Time:	+0.11 [1.91 - 1.80])",NoteExpected(Hold Time:		-0.21 [0.38 - 0.60]),NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]),NoteExpected(Hold Time:		-0.27 [0.33 - 0.60]),NoteExpected(Hold Time:		-0.23 [0.37 - 0.60]),NoteExpected(Hold Time:		-0.27 [0.33 - 0.60]),NoteExpected(Hold Time:		-0.16 [0.44 - 0.60]),NoteExpected(Hold Time:		-0.27 [0.33 - 0.60]),NoteExpected(Hold Time:		-0.12 [0.48 - 0.60]),NoteExpected(Hold Time:		-0.11 [0.49 - 0.60]),NoteExpected(Hold Time:		-0.23 [0.38 - 0.60]),NoteExpected(Hold Time:		-0.22 [0.38 - 0.60]),NoteExpected()
+"
+"
+N,o, ,n,o,t,e,s, ,w,e,r,e, ,p,l,a,y,e,d
+"
+"
+N,o, ,n,o,t,e,s, ,w,e,r,e, ,p,l,a,y,e,d
+"
+"
+N,o, ,n,o,t,e,s, ,w,e,r,e, ,p,l,a,y,e,d
+"
+"
+N,o, ,n,o,t,e,s, ,w,e,r,e, ,p,l,a,y,e,d
+"
+"
+N,o, ,n,o,t,e,s, ,w,e,r,e, ,p,l,a,y,e,d
+"
+"
+NoteExpected(Hold Time:		-0.87 [0.33 - 1.20]),"NoteExtra(pitch=60, velocity=67, note_on_time=3.08, note_on_time_relative=-999, note_hold_time=0.46)","NoteExtra(pitch=60, velocity=67, note_on_time=3.08, note_on_time_relative=-999, note_hold_time=0.46)","NoteExpected(Hold Time:		-0.21 [0.39 - 0.60]
+             Rel On Time:	-0.62 [1.78 - 2.40])",NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(),NoteExpected(Hold Time:		-0.53 [0.07 - 0.60]),"NoteExpected(Hold Time:		-1.11 [0.09 - 1.20]
+             Rel On Time:	-0.28 [0.32 - 0.60])","NoteExpected(Hold Time:		-1.12 [0.08 - 1.20]
+             Rel On Time:	-1.51 [0.89 - 2.40])",NoteExpected(Hold Time:		-0.38 [0.22 - 0.60]),"NoteExpected(Hold Time:		-0.52 [0.08 - 0.60]
+             Rel On Time:	-0.63 [0.57 - 1.20])","NoteExpected(Pitch:		+2 [64 - 62]
+             Hold Time:		-0.33 [0.27 - 0.60]
+             Rel On Time:	-1.17 [0.03 - 1.20])","NoteExpected(Hold Time:		-0.48 [0.12 - 0.60]
+             Rel On Time:	-0.89 [-0.29 - 0.60])",NoteExpected(Hold Time:		-0.39 [0.21 - 0.60]),"NoteExtra(pitch=67, velocity=46, note_on_time=10.97, note_on_time_relative=-999, note_hold_time=0.17)","NoteExtra(pitch=67, velocity=46, note_on_time=10.97, note_on_time_relative=-999, note_hold_time=0.17)","NoteExpected(Pitch:		+2 [64 - 62]
+             Hold Time:		-0.46 [0.14 - 0.60]
+             Rel On Time:	-0.61 [-0.01 - 0.60])","NoteExpected(Pitch:		-2 [60 - 62]
+             Hold Time:		-0.48 [0.12 - 0.60]
+             Rel On Time:	+0.93 [1.53 - 0.60])","NoteExpected(Pitch:		-2 [60 - 62]
+             Hold Time:		-0.45 [0.15 - 0.60])","NoteExpected(Pitch:		-2 [60 - 62]
+             Hold Time:		-0.39 [0.21 - 0.60]
+             Rel On Time:	+3.06 [4.26 - 1.20])","NoteExpected(Hold Time:		-0.38 [0.23 - 0.60]
+             Rel On Time:	+1.42 [2.02 - 0.60])","NoteExpected(Hold Time:		-0.34 [0.26 - 0.60]
+             Rel On Time:	-0.21 [0.39 - 0.60])"
+"
+"
+NoteExpected(),NoteExpected(Hold Time:		-0.29 [0.31 - 0.60]),NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]),NoteExpected(Hold Time:		-0.16 [0.44 - 0.60]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(Hold Time:		+0.14 [1.34 - 1.20]),NoteExpected(Hold Time:		-0.71 [0.49 - 1.20]),NoteExpected(Hold Time:		-0.24 [0.36 - 0.60]),"NoteExpected(Pitch:		-2 [60 - 62]
+             Rel On Time:	+0.20 [1.40 - 1.20])",NoteExpected(Hold Time:		-0.21 [0.39 - 0.60]),NoteExpected(Hold Time:		-0.31 [0.29 - 0.60]),NoteExpected(Hold Time:		-0.24 [0.36 - 0.60]),NoteExpected(Hold Time:		-0.27 [0.33 - 0.60]),NoteExpected(Hold Time:		-0.32 [0.28 - 0.60]),NoteExpected(Hold Time:		-0.18 [0.42 - 0.60]),NoteExpected(Hold Time:		-0.29 [0.32 - 0.60]),NoteExpected(Hold Time:		-0.27 [0.33 - 0.60]),NoteExpected(Hold Time:		-0.12 [0.48 - 0.60])
+"
+"
+"NoteExpected(Pitch:		-2 [60 - 62]
+             Hold Time:		+0.36 [1.56 - 1.20])",NoteExpected(Hold Time:		-0.21 [0.39 - 0.60]),"NoteExpected(Pitch:		-2 [60 - 62]
+             Hold Time:		-0.18 [0.42 - 0.60])",NoteExpected(Pitch:		+2 [62 - 60]),NoteExpected(Hold Time:		-0.17 [0.43 - 0.60]),NoteExpected(Hold Time:		+1.07 [1.67 - 0.60]),"NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=7.80, note_on_time_relative_target=0.60, note_hold_time_target=0.60)","NoteMissing(pitch_target=62, velocity_target=100, note_on_time_target=8.40, note_on_time_relative_target=0.60, note_hold_time_target=0.60)",NoteExpected(Hold Time:		+0.69 [1.29 - 0.60]),"NoteExpected(Pitch:		+2 [62 - 60]
+             Rel On Time:	+0.67 [1.27 - 0.60])","NoteExpected(Pitch:		+2 [62 - 60]
+             Hold Time:		+0.34 [0.94 - 0.60]
+             Rel On Time:	+0.54 [1.14 - 0.60])","NoteExpected(Hold Time:		-0.16 [0.44 - 0.60]
+             Rel On Time:	+0.66 [1.26 - 0.60])","NoteExpected(Pitch:		-2 [60 - 62]
+             Hold Time:		-0.21 [0.39 - 0.60])",NoteExpected(Hold Time:		-0.22 [0.38 - 0.60]),"NoteExpected(Pitch:		+2 [62 - 60]
+             Hold Time:		-0.82 [0.38 - 1.20])","NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]
+             Rel On Time:	-0.62 [0.58 - 1.20])","NoteExpected(Pitch:		+2 [62 - 60]
+             Hold Time:		-0.76 [0.44 - 1.20])","NoteExpected(Pitch:		+2 [62 - 60]
+             Hold Time:		-0.22 [0.38 - 0.60]
+             Rel On Time:	-1.76 [1.24 - 3.00])","NoteExpected(Pitch:		+2 [62 - 60]
+             Hold Time:		-0.22 [0.38 - 0.60])","NoteExpected(Pitch:		+2 [62 - 60]
+             Hold Time:		-0.17 [0.43 - 0.60])"
+"
+"
+NoteExpected(Hold Time:		-0.33 [0.87 - 1.20]),NoteExpected(Hold Time:		+0.58 [1.18 - 0.60]),"NoteExpected(Hold Time:		-0.53 [0.07 - 0.60]
+             Rel On Time:	+0.22 [1.42 - 1.20])","NoteExpected(Hold Time:		-0.31 [0.29 - 0.60]
+             Rel On Time:	-0.13 [0.47 - 0.60])",NoteExpected(Hold Time:		-0.33 [0.27 - 0.60]),NoteExpected(Hold Time:		-0.34 [0.26 - 0.60]),NoteExpected(Hold Time:		-0.17 [1.02 - 1.20]),NoteExpected(Hold Time:		-0.28 [0.32 - 0.60]),NoteExpected(Hold Time:		-0.14 [1.06 - 1.20]),NoteExpected(Hold Time:		-0.24 [0.36 - 0.60]),NoteExpected(Hold Time:		-0.28 [0.32 - 0.60]),NoteExpected(Hold Time:		-0.32 [0.28 - 0.60]),NoteExpected(Hold Time:		-0.32 [0.28 - 0.60]),NoteExpected(Hold Time:		-0.30 [0.30 - 0.60]),NoteExpected(Hold Time:		-0.27 [0.33 - 0.60]),NoteExpected(Hold Time:		-0.32 [0.28 - 0.60]),NoteExpected(Hold Time:		-0.33 [0.27 - 0.60]),NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]),NoteExpected(Hold Time:		-0.31 [0.29 - 0.60]),NoteExpected(Hold Time:		-0.30 [0.30 - 0.60]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60])
+"
+"
+"NoteExpected(Pitch:		-12 [50 - 62]
+             Hold Time:		-0.83 [0.37 - 1.20])","NoteExpected(Hold Time:		-0.23 [0.37 - 0.60]
+             Rel On Time:	+0.61 [1.81 - 1.20])","NoteExpected(Hold Time:		-0.20 [0.40 - 0.60]
+             Rel On Time:	-0.60 [0.60 - 1.20])",NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(Hold Time:		-0.30 [0.30 - 0.60]),NoteExpected(Hold Time:		-0.29 [0.31 - 0.60]),NoteExpected(Hold Time:		-0.14 [1.06 - 1.20]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(Hold Time:		-0.13 [1.07 - 1.20]),NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]),NoteExpected(Hold Time:		-0.27 [0.33 - 0.60]),NoteExpected(Hold Time:		-0.24 [0.36 - 0.60]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(Hold Time:		-0.26 [0.34 - 0.60]),NoteExpected(Hold Time:		-0.31 [0.29 - 0.60]),NoteExpected(Hold Time:		-0.18 [0.42 - 0.60]),NoteExpected(Hold Time:		-0.24 [0.36 - 0.60]),NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]),NoteExpected(Hold Time:		-0.12 [0.48 - 0.60])
+"
+"
+NoteExpected(Hold Time:		-0.22 [0.98 - 1.20]),NoteExpected(Hold Time:		+0.18 [0.78 - 0.60]),NoteExpected(),NoteExpected(Hold Time:		-0.23 [0.37 - 0.60]),NoteExpected(Hold Time:		-0.20 [0.40 - 0.60]),NoteExpected(Hold Time:		-0.19 [0.41 - 0.60]),NoteExpected(Hold Time:		-0.29 [0.91 - 1.20]),"NoteExpected(Hold Time:		+0.20 [0.80 - 0.60]
+             Rel On Time:	-0.60 [1.20 - 1.80])",NoteExpected(Rel On Time:	+0.59 [1.19 - 0.60]),NoteExpected(Hold Time:		-0.18 [0.42 - 0.60]),NoteExpected(Hold Time:		-0.20 [0.40 - 0.60]),NoteExpected(Hold Time:		-0.19 [0.41 - 0.60]),NoteExpected(Hold Time:		-0.17 [0.43 - 0.60]),NoteExpected(Hold Time:		-0.19 [0.41 - 0.60]),NoteExpected(Hold Time:		-0.16 [0.44 - 0.60]),NoteExpected(Hold Time:		-0.17 [0.43 - 0.60]),NoteExpected(Hold Time:		-0.24 [0.36 - 0.60]),NoteExpected(),NoteExpected(Hold Time:		-0.11 [0.50 - 0.60]),NoteExpected(Hold Time:		-0.16 [0.44 - 0.60]),NoteExpected()
+"
+"
+NoteExpected(Hold Time:		-0.25 [0.95 - 1.20]),NoteExpected(Hold Time:		-0.22 [0.38 - 0.60]),"NoteExpected(Hold Time:		-0.25 [0.35 - 0.60]
+             Rel On Time:	-0.59 [0.61 - 1.20])","NoteExpected(Pitch:		+2 [62 - 60]
+             Hold Time:		-0.20 [0.40 - 0.60])",NoteExpected(Hold Time:		-0.22 [0.38 - 0.60]),NoteExpected(Hold Time:		-0.28 [0.32 - 0.60]),"NoteExpected(Hold Time:		-0.27 [0.33 - 0.60]
+             Rel On Time:	-2.39 [-0.59 - 1.80])","NoteExpected(Hold Time:		+0.23 [1.43 - 1.20]
+             Rel On Time:	+0.59 [1.19 - 0.60])","NoteExpected(Hold Time:		-0.89 [0.31 - 1.20]
+             Rel On Time:	+1.82 [2.42 - 0.60])","NoteExpected(Pitch:		-2 [60 - 62]
+             Hold Time:		+0.66 [1.26 - 0.60]
+             Rel On Time:	-1.18 [0.62 - 1.80])","NoteExpected(Hold Time:		-0.18 [0.42 - 0.60]
+             Rel On Time:	+1.22 [1.82 - 0.60])",NoteExpected(Hold Time:		-0.18 [0.42 - 0.60]),NoteExpected(Hold Time:		-0.11 [0.49 - 0.60]),NoteExpected(Hold Time:		-0.11 [0.49 - 0.60]),NoteExpected(Hold Time:		-0.16 [0.44 - 0.60]),NoteExpected(Hold Time:		-0.11 [0.49 - 0.60]),NoteExpected(),NoteExpected(Hold Time:		-0.15 [0.45 - 0.60]),NoteExpected(Rel On Time:	-0.61 [0.59 - 1.20]),NoteExpected(Rel On Time:	+0.56 [1.16 - 0.60]),NoteExpected()
+"
+"
+NoteExpected(Hold Time:		-0.17 [1.03 - 1.20]),NoteExpected(Hold Time:		+0.35 [0.95 - 0.60]),NoteExpected(Hold Time:		-0.49 [0.11 - 0.60]),"NoteExpected(Pitch:		+2 [62 - 60]
+             Hold Time:		-0.45 [0.15 - 0.60]
+             Rel On Time:	-0.27 [0.33 - 0.60])","NoteExpected(Hold Time:		-0.46 [0.14 - 0.60]
+             Rel On Time:	-0.29 [0.31 - 0.60])","NoteExtra(pitch=60, velocity=75, note_on_time=5.83, note_on_time_relative=-999, note_hold_time=0.11)","NoteExtra(pitch=60, velocity=75, note_on_time=5.83, note_on_time_relative=-999, note_hold_time=0.11)","NoteExtra(pitch=60, velocity=74, note_on_time=6.13, note_on_time_relative=-999, note_hold_time=0.11)","NoteExtra(pitch=60, velocity=74, note_on_time=6.13, note_on_time_relative=-999, note_hold_time=0.11)","NoteExpected(Hold Time:		-0.51 [0.09 - 0.60]
+             Rel On Time:	+0.33 [0.93 - 0.60])","NoteExtra(pitch=60, velocity=73, note_on_time=6.72, note_on_time_relative=-999, note_hold_time=0.11)","NoteExtra(pitch=60, velocity=73, note_on_time=6.72, note_on_time_relative=-999, note_hold_time=0.11)","NoteExtra(pitch=60, velocity=64, note_on_time=7.01, note_on_time_relative=-999, note_hold_time=0.13)","NoteExtra(pitch=60, velocity=64, note_on_time=7.01, note_on_time_relative=-999, note_hold_time=0.13)",NoteExpected(Rel On Time:	+0.29 [0.89 - 0.60]),NoteExpected(Hold Time:		-0.21 [0.39 - 0.60]),NoteExpected(Hold Time:		+0.11 [1.31 - 1.20]),NoteExpected(Hold Time:		-0.16 [0.44 - 0.60]),NoteExpected(Hold Time:		-0.13 [0.47 - 0.60]),NoteExpected(),NoteExpected(Hold Time:		-0.17 [0.43 - 0.60]),NoteExpected(Hold Time:		-0.17 [0.43 - 0.60]),NoteExpected(Hold Time:		-0.15 [0.45 - 0.60]),NoteExpected(Hold Time:		-0.12 [0.47 - 0.60]),NoteExpected(Hold Time:		-0.22 [0.38 - 0.60]),NoteExpected(),NoteExpected(Hold Time:		-0.14 [0.46 - 0.60]),NoteExpected(Hold Time:		-0.13 [0.47 - 0.60]),NoteExpected()
+"
+"
