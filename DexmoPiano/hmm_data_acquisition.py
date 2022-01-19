@@ -51,6 +51,7 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
     dic_error['free_text'] = free_text
     dic_error['practice_mode'] = task_data.practice_mode
     dic_error['bpm'] = taskParameters.bpm
+    dic_error['number_of_bars'] = taskParameters.noOfBars
     dic_error['complexityLevel'] = str(complexityLevel)
     for hand in ['_right', '_left']:
         if hand == '_right':
