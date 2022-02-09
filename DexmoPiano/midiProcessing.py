@@ -111,10 +111,10 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, cu
     set_tracks(mf, bpm)
 
     # set time signature
-    set_time_signature(sf.parts[0].timeSignature.numerator, sf.parts[0].timeSignature.denominator, settings.R_TRACK, mf)
-
+    #set_time_signature(sf.parts[0].timeSignature.numerator, sf.parts[0].timeSignature.denominator, settings.R_TRACK, mf)
+    set_time_signature(4, 4, settings.R_TRACK, mf)
     print("number of measures extracted from midi: ", measures)
-    add_metronome(measures + settings.INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], False, mf)
+    add_metronome(measures + settings.INTRO_BARS, 4, outFiles[1], False, mf)
     count, left_count = extract_number_of_notes(sf)
     c_to_g = False
     if ((len(sf.parts) <= 1) and count < 10) or (
