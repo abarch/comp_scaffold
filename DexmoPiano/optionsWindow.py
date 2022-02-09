@@ -89,9 +89,13 @@ class optionsWindowClass():
         l4 = tk.Label(self.specifyWindow, text=" Beats per minute:")
         l4.grid(row=7,columnspan=4, sticky=tk.W, pady=(20,0))
 
-        bpmscale = tk.Scale(self.specifyWindow, from_=10, to=200, orient=tk.HORIZONTAL)
-        bpmscale.grid(row=8, columnspan=4,sticky=tk.W,)
-        bpmscale.set(self.taskParameters.bpm)
+        #bpmscale = tk.Scale(self.specifyWindow, from_=10, to=400, orient=tk.HORIZONTAL)
+        #bpmscale.grid(row=8, columnspan=4,sticky=tk.W,pady=(20,0) )
+        #bpmscale.set(self.taskParameters.bpm)
+
+        bpm_textbox = tk.Text(self.specifyWindow, bg="white", fg="black", relief=tk.GROOVE, bd=1,height=1, width=10, state=tk.NORMAL)
+        bpm_textbox.grid(row=8, columnspan=4,sticky=tk.W, pady=(20,0))
+        bpm_textbox.insert(tk.INSERT, self.taskParameters.bpm)
 
     # NOTEPITCHES checkboxes
         l5 = tk.Label(self.specifyWindow, text=" Right:")
@@ -141,7 +145,8 @@ class optionsWindowClass():
         l8.grid(row=16, columnspan=4, sticky=tk.W)
 
         saveButton = tk.Button(self.specifyWindow, text='Save and quit',
-                            command=lambda: self.save_settings(saveBPM=bpmscale.get(), saveBarNumber=numberBars.get(),
+                            command=lambda: self.save_settings(saveBPM=bpm_textbox.get("1.0",'end-1c') ,#saveBPM=bpmscale.get(),
+                                                               saveBarNumber=numberBars.get(),
                                                                saveNotesPerBar=maxNoteNumber.get(),
                                                                saveRightHand=rightHand.get(), saveLeftHand=leftHand.get(),
                                                                saveAlternating=alternating.get()))
