@@ -6,6 +6,7 @@ import os
 #import random
 import mido
 import settings
+import shutil
 
 import pianoplayer_interface
 from task_generation.note_range_per_hand import NoteRangePerHand  # ,get_pitchlist
@@ -106,6 +107,8 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, cu
     if custom_bpm > 0:
         bpm = custom_bpm
 
+    temp_mido_file = mido.MidiFile(outFiles[0])
+
     mf = MIDIFile(numTracks=settings.TRACKS)
 
     set_tracks(mf, bpm)
@@ -122,6 +125,14 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, cu
         c_to_g = True
     # print("c to g is ", c_to_g, " left is ", left, " right is ", right, " count is ", count, " left count is ", left_count)
     add_fingernumbers(outFiles[2], sf, True, right, left, mf, c_to_g)  # c_to_g false?
+
+    ### METRONOME ###
+    try:
+        basename, ext = os.path.splitext(midi_file)
+        shutil.copy(basename+'-m.mid', outFiles[1])
+    except:
+        print("didn't find metronome file")
+    #add_metronome(measures,4, outFiles[1], True, mf)
 
 
 def generateMidi(task, outFiles):
