@@ -189,7 +189,8 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
         print("ERROR LEFT: ", errorVecLeft)
         print("ERROR RIGHT:", errorVecRight)
 
-        return targetTimes, actualTimes, sum(errorVec), errorVecLeft, errorVecRight, task_data, note_errorString
+        # sum(errorVec[:7]): since errorVec[7] is the number of notes it is excluded from the sum
+        return targetTimes, actualTimes, sum(errorVec[:7]), errorVecLeft, errorVecRight, task_data, note_errorString
     except:
         import traceback
         traceback.print_exc()
