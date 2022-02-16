@@ -164,7 +164,7 @@ def get_explanation(task_data, actual, mapping,
             number = num_notes
 
         errors.append( Error(pitch=error_pitch / number,
-                             note_hold_time=error_note_hold_time / task_data.number_of_bars * task_data.time_signature[0], # how to get on number of bars and signature(?)
+                             note_hold_time=error_note_hold_time / (task_data.number_of_bars * task_data.time_signature[0]), # how to get on number of bars and signature(?)
                              timing=error_timing / number,
                              n_missing_notes=notes_missing / number,
                              t_missing_notes=notes_missing_t / number,
