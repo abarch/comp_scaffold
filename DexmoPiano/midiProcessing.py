@@ -116,7 +116,9 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, cu
     # set time signature
     #set_time_signature(sf.parts[0].timeSignature.numerator, sf.parts[0].timeSignature.denominator, settings.R_TRACK, mf)
     set_time_signature(4, 4, settings.R_TRACK, mf)
+
     print("number of measures extracted from midi: ", measures)
+    #add_metronome(measures + settings.INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], False, mf)
     add_metronome(measures + settings.INTRO_BARS, 4, outFiles[1], False, mf)
     count, left_count = extract_number_of_notes(sf)
     c_to_g = False
@@ -127,11 +129,14 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, cu
     add_fingernumbers(outFiles[2], sf, True, right, left, mf, c_to_g)  # c_to_g false?
 
     ### METRONOME ###
+    # When loading a midi file, for example 20220101-120000.mid, then the files 20220101-120000-m.mid and 20220101-120000-md.mid are copied to output-m.mid and output-md.mid.
+    # These files are automatically created when generating a task. This was done so that "play demo" will work after loading a midi file.
     try:
         basename, ext = os.path.splitext(midi_file)
-        shutil.copy(basename+'-m.mid', outFiles[1])
+        shutil.copy(basename + '-m.mid', outFiles[1])
+        shutil.copy(basename+'-md.mid', outFiles[2])
     except:
-        print("didn't find metronome file")
+        print("didn't find metronome and/or dexmo files")
     #add_metronome(measures,4, outFiles[1], True, mf)
 
 

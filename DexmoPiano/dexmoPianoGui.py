@@ -34,7 +34,6 @@ windowsLilyPondPythonExe = "c:/Program Files (x86)/LilyPond/usr/bin/python.exe"
 windowsmusicxml2ly = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly.py"
 windowsmidi2ly = "c:/Program Files (x86)/LilyPond/usr/bin/midi2ly.py"
 
-
 GuidanceModeList = ["None", "At every note", "Individual"]
 guidanceMode = "At every note"
 
@@ -134,7 +133,7 @@ def startDemo():
     @return: None
     """
     # use MIDI file with metronome staff
-    dexmoOutput.play_demo(inputFileStrs[1], guidanceMode)
+    dexmoOutput.play_demo(inputFileStrs[2], guidanceMode)
 
 
 def saveMidiAndXML(targetNotes):
@@ -151,8 +150,9 @@ def saveMidiAndXML(targetNotes):
     # MIDI
     print("\nMIDI SAVED:", timestr)  ###TODO: Delete
     currentMidi = timestr
-    shutil.move(inputFileStrs[0], outputDir + timestr + '.mid')
-    shutil.move(inputFileStrs[1], outputDir + timestr + '-m.mid')
+    shutil.copy(inputFileStrs[0], outputDir + timestr + '.mid')
+    shutil.copy(inputFileStrs[1], outputDir + timestr + '-m.mid')
+    shutil.copy(inputFileStrs[2], outputDir + timestr + '-md.mid')
 
     # XML
     # currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup]
@@ -224,6 +224,8 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
         try:
+            #midiProcessing.generate_metronome_and_fingers_for_midi(leftHand.get(), rightHand.get(), inputFileStrs,
+            #                                                       chosenMidiFile, custom_bpm=midiBPM.get())
             midiProcessing.generate_metronome_and_fingers_for_midi(False, True, inputFileStrs,
                                                                    chosenMidiFile, custom_bpm=midiBPM.get())
         except:
