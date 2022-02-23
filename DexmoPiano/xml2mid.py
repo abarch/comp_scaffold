@@ -34,11 +34,15 @@ def xml2mid(xmlfilename, midfilename):
     for trial in trials:
         notes = trial.find("notes").text
         notesArray = json.loads(notes)
-        startsongtime = notesArray[0][2]
+        #startsongtime = notesArray[0][2]
+        startsongtime = notesArray[0]['note_on_time']
         for m in notesArray:
-            note = m[0]
-            starttime = m[2] - startsongtime
-            endtime = m[3] - startsongtime
+            #note = m[0]
+            note = m['pitch']
+            #starttime = m[2] - startsongtime
+            starttime = m['note_on_time'] - startsongtime
+            #endtime = m[3] - startsongtime
+            endtime = m['note_off_time'] - startsongtime
             duration = endtime - starttime
             mymidi.addNote(track, channel, note, starttime, duration, volume)
 
