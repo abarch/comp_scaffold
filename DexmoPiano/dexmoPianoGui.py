@@ -91,7 +91,7 @@ def startTask():
         else:
             get_threshold_info()
 
-    scheduler.register_error(errorVal)
+#    scheduler.register_error(errorVal)
 
     if not midiSaved:
         saveMidiAndXML(targetNotes)
@@ -225,9 +225,13 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
         chosenMidiFile = userSelectedLocation
         try:
             #midiProcessing.generate_metronome_and_fingers_for_midi(leftHand.get(), rightHand.get(), inputFileStrs,
-            #                                                       chosenMidiFile, custom_bpm=midiBPM.get())
+            #                                                       chosenMidiFile, custom_bpm=midiBPM.get("1.0",'end-1c'))
             midiProcessing.generate_metronome_and_fingers_for_midi(False, True, inputFileStrs,
-                                                                   chosenMidiFile, custom_bpm=midiBPM.get())
+                                                                   chosenMidiFile, custom_bpm=int(midiBPM.get("1.0",'end-1c')))
+            config.fromFile = True
+            config.LoadedFileName = userSelectedLocation
+            config.customBPM = int(midiBPM.get("1.0",'end-1c'))
+
         except:
             add_both_hands_warning()
             return
@@ -240,6 +244,9 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
         #         os.remove(os.path.join(tempDir, item))
 
         # new task is correctly created
+        config.fromFile = False
+        config.fileName = ""
+
         task = scheduler.current_task_data()
 
         # new xml file is not correctly created -> bug must be in generateMidi
@@ -654,9 +661,15 @@ def load_taskButtons():
     l = tk.Label(root, text=" BPM for loaded MIDI File:")
     l.place(x=10, y=550)
 
-    midiBPM = tk.Scale(root, from_=0, to=250, length=150, orient=tk.HORIZONTAL)
-    midiBPM.place(x=10, y=570)
-    midiBPM.set(0)
+ #   midiBPM = tk.Scale(root, from_=0, to=250, length=150, orient=tk.HORIZONTAL)
+ #   midiBPM.place(x=10, y=570)
+ #   midiBPM.set(0)
+
+    midiBPM = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1, height=1, width=10,
+                          state=tk.NORMAL)
+    midiBPM.place(x=10, y=580)
+    midiBPM.insert(tk.INSERT, 0)
+
 
     l2 = tk.Label(root, text="0 will load BPM from MIDI")
     l2.place(x=10, y=610)
