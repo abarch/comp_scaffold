@@ -132,9 +132,29 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, cu
     # When loading a midi file, for example 20220101-120000.mid, then the files 20220101-120000-m.mid and 20220101-120000-md.mid are copied to output-m.mid and output-md.mid.
     # These files are automatically created when generating a task. This was done so that "play demo" will work after loading a midi file.
     try:
+        # copy the saved outFiles to output/temp/ folder.
+        # these files are saved when the user plays the task.
         basename, ext = os.path.splitext(midi_file)
+        shutil.copy(basename+'.mid', outFiles[0])
         shutil.copy(basename + '-m.mid', outFiles[1])
         shutil.copy(basename+'-md.mid', outFiles[2])
+
+        # change tempo to custom tempo
+        temp_mido_file0 = mido.MidiFile(outFiles[0])
+        temp_mido_file0.tracks[0][1].tempo = int(60000000 / custom_bpm)  # tempo is in MicroTempo units.
+        temp_mido_file0.save(outFiles[0])
+
+        temp_mido_file1 = mido.MidiFile(outFiles[1])
+        temp_mido_file1.tracks[0][1].tempo = int(60000000/custom_bpm) # tempo is in MicroTempo units.
+        temp_mido_file1.save(outFiles[1])
+
+        temp_mido_file2 = mido.MidiFile(outFiles[2])
+        temp_mido_file2.tracks[0][1].tempo = int(60000000 / custom_bpm)  # tempo is in MicroTempo units.
+        temp_mido_file2.save(outFiles[2])
+
+        # remove XML which has the previous tempo.
+        os.remove(outFiles[3]) # removes the XML file
+
     except:
         print("didn't find metronome and/or dexmo files")
     #add_metronome(measures,4, outFiles[1], True, mf)
