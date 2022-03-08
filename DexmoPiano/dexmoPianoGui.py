@@ -488,6 +488,8 @@ def add_error_plot():
             axis.axvline(x=i + 0.5, color="black")
             axis.text(i + 0.5, 4.05, "new task", rotation=45, fontsize=8)
 
+    axis.axhline(y=0.2, color="red", linestyle="--")
+
     axis.set_xticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     # axis.set_xticks(xvalues)
     axis.set_yticks([0, 1, 2, 3])
