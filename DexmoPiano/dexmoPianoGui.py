@@ -164,7 +164,7 @@ def getCurrentTimestamp():
     Receives and formats the current time and date.
     @return: Current timestamp (YearMonthDay-HourMinuteSecond).
     """
-    return time.strftime("%Y%m%d-%H%M%S")
+    return time.strftime("%Y_%m_%d-%H_%M_%S")
 
 
 def generateNextTask():
