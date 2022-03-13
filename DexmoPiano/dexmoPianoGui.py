@@ -110,17 +110,19 @@ def startTask():
     if  True: # not difficultyScaling:
         score_with_error = Path(tempDir) / "output_with_errors.png"
 
-        if score_with_error.exists():
-            new_window = tk.Toplevel(root)
-            new_window.geometry("835x1181")
-            background = Image.open(score_with_error)
-            background = background.convert("RGBA")
+        # Remove display of score with errors for tempo experiment
 
-            img = ImageTk.PhotoImage(background)
-
-            panel = tk.Label(new_window, image=img)
-            panel.image = img
-            panel.place(x=0, y=0, width=835, height=1181)
+        # if score_with_error.exists():
+        #     new_window = tk.Toplevel(root)
+        #     new_window.geometry("835x1181")
+        #     background = Image.open(score_with_error)
+        #     background = background.convert("RGBA")
+        #
+        #     img = ImageTk.PhotoImage(background)
+        #
+        #     panel = tk.Label(new_window, image=img)
+        #     panel.image = img
+        #     panel.place(x=0, y=0, width=835, height=1181)
 
     refresh_buttons()
 
