@@ -458,7 +458,8 @@ def setupVisualNotes():
 # program starts here
 
 # create file output folder if it does not already exist
-subprocess.run(['mkdir', '-p', config.tempDir], stderr=subprocess.DEVNULL)
+if not os.path.isdir(config.tempDir):
+	os.mkdir(config.tempDir)
 # Create a window and title
 songlist = 'defaultsongs.csv'
 if len(sys.argv) > 1:  # i.e., no arguments
