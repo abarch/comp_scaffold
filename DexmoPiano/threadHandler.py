@@ -248,7 +248,7 @@ def recordingFinished():
     # COMPUTE ERROR (naive example)
     global errorDiff
 
-    timeSums, errorDiff = errorCalc.computeError(targetTimes, actualTimes)
+    timeSums, errorDiff = errorCalc.computeErrorOld(targetTimes, actualTimes)
     print("\n\n--- ERRORS ---")
     print("\nTARGET TIME:", timeSums[0])
     print("\nACTUAl TIME:", timeSums[1])

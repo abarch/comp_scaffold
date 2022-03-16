@@ -15,7 +15,10 @@ import sys
 import csv
 import glob
 from visualNotes import VisualNotes
+import serial
+import serial.tools.list_ports
 
+midiFileLocation = ''
 midiInputPort = ''
 midiOutputPort = ''
 midiPopupMenu = 0
@@ -98,6 +101,11 @@ def nextTaskAlone(mode, userSelectedTask=False, userSelectedLocation=config.inpu
 
     # Turn on the stop button
     config.stopButton["state"] = "active"
+	# Turn off the other buttons
+    config.waitButton["state"] = "disabled"
+    config.playButton["state"] = "disabled"
+    config.playAfterButton["state"] = "disabled"
+    config.playAloneButton["state"] = "disabled"
 
     # force a redraw
     root.update()
@@ -105,7 +113,7 @@ def nextTaskAlone(mode, userSelectedTask=False, userSelectedLocation=config.inpu
     bpm = int(bpmSelected.get())
 
     # If the bpm has changed since the midi file was generated, regenerate
-    if bpm != generatedBpm:
+    if songName and (bpm != generatedBpm):
         makesongsly.make_song(songName, bpm)
 
     que = queue.Queue()
@@ -141,12 +149,29 @@ def nextTaskAlone(mode, userSelectedTask=False, userSelectedLocation=config.inpu
         target=lambda q, arg1, arg2, arg3, arg4: q.put(threadHandler.startRecordThread(arg1, arg2, arg3, arg4)),
         args=(que, midiFileLocation, guidance, duration, root))
     recThread.start()
+	
+    if COMport.get() != 'None':
+        sendTriggerCOM("1")
+	
+
+def sendTriggerCOM(message):
+    global serialPort
+    serialPort.write(bytes(message + '\r\n', encoding='utf8'))
+    print('Sent trigger ' + message + ' on COM port ' + COMport.get())
 
 
 def stopRecording():
     # config.waitThread.event.set()
     threadHandler.recordingFinished()
     config.stopButton["state"] = "disabled"
+    config.waitButton["state"] = "active"
+    config.playButton["state"] = "active"
+    config.playAfterButton["state"] = "active"
+    config.playAloneButton["state"] = "active"
+	
+    if COMport.get() != 'None':
+        sendTriggerCOM("0")
+
 
 def load_songlist(filename):
     global songNames, songFiles
@@ -244,28 +269,28 @@ def load_Startmenu():
     global bpmSelected, waitButton, playButton, playAfterButton, playAloneButton, connectButton
     global showScoreGuidance, showVerticalGuidance, showNotes1, showNotes2, canvas, piano_img, hand_img
     global id_textbox, freetext
-    global midiInputPort, midiOutputPort
+    global midiInputPort, midiOutputPort, COMport
     global alien1
 
     canvas = Canvas(root, width=800, height=800, bg='white')
     #canvas.pack()
     canvas.place(x=260, y=20)
 
-    waitButton = Button(root, text='Wait for Note', command=lambda: nextTaskAlone('wait'))
-    waitButton.place(x=1120, y=500, height=50, width=150)
-    waitButton["state"] = "disabled"
+    config.waitButton = Button(root, text='Wait for Note', command=lambda: nextTaskAlone('wait'))
+    config.waitButton.place(x=1120, y=500, height=50, width=150)
+    config.waitButton["state"] = "disabled"
 
-    playButton = Button(root, text='Play Together', command=lambda: nextTask(1))
-    playButton.place(x=1280, y=500, height=50, width=150)
-    playButton["state"] = "disabled"
+    config.playButton = Button(root, text='Play Together', command=lambda: nextTask(1))
+    config.playButton.place(x=1280, y=500, height=50, width=150)
+    config.playButton["state"] = "disabled"
 
-    playAfterButton = Button(root, text='Play After', command=lambda: nextTask(0))
-    playAfterButton.place(x=1120, y=560, height=50, width=150)
-    playAfterButton["state"] = "disabled"
+    config.playAfterButton = Button(root, text='Play After', command=lambda: nextTask(0))
+    config.playAfterButton.place(x=1120, y=560, height=50, width=150)
+    config.playAfterButton["state"] = "disabled"
 
-    playAloneButton = Button(root, text='Play Alone', command=lambda: nextTaskAlone('cont'))
-    playAloneButton.place(x=1280, y=560, height=50, width=150)
-    playAloneButton["state"] = "disabled"
+    config.playAloneButton = Button(root, text='Play Alone', command=lambda: nextTaskAlone('cont'))
+    config.playAloneButton.place(x=1280, y=560, height=50, width=150)
+    config.playAloneButton["state"] = "disabled"
 
     config.stopButton = Button(root, text='Stop recording', command=stopRecording)
     config.stopButton.place(x=1120, y=620, height=50, width=150)
@@ -340,6 +365,15 @@ def load_Startmenu():
 
     Button(root, wraplength=200, text='Blank score', fg='red', command=loadBlank).place(x=30, y=60, height=40, width=200)
 
+    ports = serial.tools.list_ports.comports()
+    COMports = []
+    COMports.append('None')
+    for port, desc, hwid in sorted(ports):
+        COMports.append(port)
+    COMport = StringVar(root)
+    COMport.set(COMports[0])
+    COMportMenu = OptionMenu(root, COMport, *COMports).place(x=30, y=770, height=20, width=230)
+	
     midiInputPort, inputs_midi = getMidiInputs()
     midiOutputPort, outputs_midi = getMidiOutputs()
 
@@ -373,21 +407,31 @@ def updateGuidance():
 
 
 def connectToMidi():
-    global songName, midiConnected, waitButton, playButton, playAfterButton, playAloneButton
+    global songName, midiConnected, waitButton, playButton, playAfterButton, playAloneButton, COMport, serialPort
     print("Connect to midi input: " + midiInputPort.get())
     result_input = threadHandler.set_inport(midiInputPort.get())
 
     print("Connect to midi output: " + midiOutputPort.get())
     result_output = threadHandler.set_outport(midiOutputPort.get())
 
+    # Also connect to serial port
+    thisCOMport = COMport.get()
+    if thisCOMport=='None':
+        print('No COM port selected so not connecting')
+    else:
+        serialPort = serial.Serial(
+			port=thisCOMport, baudrate=9600, bytesize=8, timeout=2, stopbits=serial.STOPBITS_ONE
+        )
+        print('Connected to ' + thisCOMport)
+
     if result_input and result_output:
         midiConnected = 1
 
-    if songName and midiConnected:
-        waitButton["state"] = "normal"
-        playButton["state"] = "normal"
-        playAfterButton["state"] = "normal"
-        playAloneButton["state"] = "normal"
+    if midiConnected:
+        config.waitButton["state"] = "normal"
+        config.playButton["state"] = "normal"
+        config.playAfterButton["state"] = "normal"
+        config.playAloneButton["state"] = "normal"
 
 
 def refreshMidi():
@@ -397,7 +441,6 @@ def refreshMidi():
 
     midiOutputPort, outputs_midi = getMidiOutputs()
     MidiOutputPopupMenu = OptionMenu(root, midiOutputPort, *outputs_midi).place(x=30, y=750, height=20, width=200)
-
 
 def getMidiInputs():
     global midiInputPopupMenu
@@ -451,10 +494,10 @@ def loadSong(thisSongFile, thisSongName):
     songFile = thisSongFile
 
     if songName and midiConnected:
-        waitButton["state"] = "normal"
-        playButton["state"] = "normal"
-        playAfterButton["state"] = "normal"
-        playAloneButton["state"] = "normal"
+        config.waitButton["state"] = "normal"
+        config.playButton["state"] = "normal"
+        config.playAfterButton["state"] = "normal"
+        config.playAloneButton["state"] = "normal"
 
 
 # loads notesheet for actual task
