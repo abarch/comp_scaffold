@@ -156,7 +156,7 @@ def nextTaskAlone(mode, userSelectedTask=False, userSelectedLocation=config.inpu
 
 def sendTriggerCOM(message):
     global serialPort
-    serialPort.write(bytes(message + '\r\n', encoding='utf8'))
+    serialPort.write(bytes(message, encoding='utf8'))
     print('Sent trigger ' + message + ' on COM port ' + COMport.get())
 
 
