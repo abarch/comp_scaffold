@@ -13,6 +13,7 @@ import subprocess
 import shutil
 import time
 import os
+import pickle
 
 import dexmoOutput
 import fileIO
@@ -31,8 +32,11 @@ outputPngStr = tempDir + 'output.png'
 # outputLyStr = tempDir + 'output-midi.ly'
 # outputPngStr = tempDir + 'output-midi.png'
 windowsLilyPondPythonExe = "c:/Program Files (x86)/LilyPond/usr/bin/python.exe"
-windowsmusicxml2ly = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly.py"
-windowsmidi2ly = "c:/Program Files (x86)/LilyPond/usr/bin/midi2ly.py"
+#windowsmusicxml2ly = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly.py"
+windowsmusicxml2ly = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly"
+
+#windowsmidi2ly = "c:/Program Files (x86)/LilyPond/usr/bin/midi2ly.py"
+windowsmidi2ly = "c:/Program Files (x86)/LilyPond/usr/bin/midi2ly"
 
 GuidanceModeList = ["None", "At every note", "Individual"]
 guidanceMode = "At every note"
@@ -94,7 +98,7 @@ def startTask():
 #    scheduler.register_error(errorVal)
 
     if not midiSaved:
-        saveMidiAndXML(targetNotes)
+        saveMidiAndXML(targetNotes, scheduler.current_task_data(), taskParameters)
         midiSaved = True
 
     # create entry containing actual notes in XML
@@ -138,11 +142,13 @@ def startDemo():
     dexmoOutput.play_demo(inputFileStrs[2], guidanceMode)
 
 
-def saveMidiAndXML(targetNotes):
+def saveMidiAndXML(targetNotes, taskData, taskParameters):
     """
     Saves the MIDI and the XML file to the globally defined output folder.
 
     @param targetNotes: List of notes to be played by the user.
+    @param taskData: a class with all task data.
+    @param taskParameters: a list of the parameters that generated the task.
     @return: None
     """
     global currentMidi
@@ -155,6 +161,11 @@ def saveMidiAndXML(targetNotes):
     shutil.copy(inputFileStrs[0], outputDir + timestr + '.mid')
     shutil.copy(inputFileStrs[1], outputDir + timestr + '-m.mid')
     shutil.copy(inputFileStrs[2], outputDir + timestr + '-md.mid')
+
+    # save taskData and task Parameters to pickle file
+    data_to_save = [taskData, taskParameters]
+    with open(outputDir + timestr + '-data.task', 'wb') as f:
+        pickle.dump(data_to_save, f)
 
     # XML
     # currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup]
@@ -219,7 +230,7 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     @param userSelectedLocation: Location of the user-selected MIDI file (if chosen).
     @return: None
     """
-    global midiSaved, currentMidi
+    global midiSaved, currentMidi, taskParameters
     delete_warning()
 
     # load saved midi
@@ -228,11 +239,13 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
         try:
             #midiProcessing.generate_metronome_and_fingers_for_midi(leftHand.get(), rightHand.get(), inputFileStrs,
             #                                                       chosenMidiFile, custom_bpm=midiBPM.get("1.0",'end-1c'))
-            midiProcessing.generate_metronome_and_fingers_for_midi(False, True, inputFileStrs,
+            taskData, taskParameters = midiProcessing.generate_metronome_and_fingers_for_midi(False, True, inputFileStrs,
                                                                    chosenMidiFile, custom_bpm=int(midiBPM.get("1.0",'end-1c')))
             config.fromFile = True
             config.LoadedFileName = userSelectedLocation
             config.customBPM = int(midiBPM.get("1.0",'end-1c'))
+            print("data with new bpm:",taskData, taskParameters)
+            scheduler.add_task_from_file(taskData, taskParameters)
 
         except:
             add_both_hands_warning()
