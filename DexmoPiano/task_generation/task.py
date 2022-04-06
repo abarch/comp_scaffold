@@ -28,7 +28,7 @@ class MidiNoteEventContainer:
         except:
             return "MidiNoteEventContainer"
 
-@dataclass(frozen=True)
+@dataclass(frozen=False) #Maor: it was changed to False so the bpm could be changed.
 class TaskData:
     parameters: TaskParameters
     time_signature: tuple

@@ -13,6 +13,8 @@ import subprocess
 import shutil
 import time
 import os
+import pickle
+import mido
 
 import dexmoOutput
 import fileIO
@@ -31,8 +33,11 @@ outputPngStr = tempDir + 'output.png'
 # outputLyStr = tempDir + 'output-midi.ly'
 # outputPngStr = tempDir + 'output-midi.png'
 windowsLilyPondPythonExe = "c:/Program Files (x86)/LilyPond/usr/bin/python.exe"
-windowsmusicxml2ly = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly.py"
-windowsmidi2ly = "c:/Program Files (x86)/LilyPond/usr/bin/midi2ly.py"
+#windowsmusicxml2ly = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly.py"
+windowsmusicxml2ly = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly"
+
+#windowsmidi2ly = "c:/Program Files (x86)/LilyPond/usr/bin/midi2ly.py"
+windowsmidi2ly = "c:/Program Files (x86)/LilyPond/usr/bin/midi2ly"
 
 GuidanceModeList = ["None", "At every note", "Individual"]
 guidanceMode = "At every note"
@@ -94,7 +99,7 @@ def startTask():
 #    scheduler.register_error(errorVal)
 
     if not midiSaved:
-        saveMidiAndXML(targetNotes)
+        saveMidiAndXML(targetNotes, scheduler.current_task_data(), taskParameters)
         midiSaved = True
 
     # create entry containing actual notes in XML
@@ -138,11 +143,13 @@ def startDemo():
     dexmoOutput.play_demo(inputFileStrs[2], guidanceMode)
 
 
-def saveMidiAndXML(targetNotes):
+def saveMidiAndXML(targetNotes, taskData, taskParameters):
     """
     Saves the MIDI and the XML file to the globally defined output folder.
 
     @param targetNotes: List of notes to be played by the user.
+    @param taskData: a class with all task data.
+    @param taskParameters: a list of the parameters that generated the task.
     @return: None
     """
     global currentMidi
@@ -155,6 +162,11 @@ def saveMidiAndXML(targetNotes):
     shutil.copy(inputFileStrs[0], outputDir + timestr + '.mid')
     shutil.copy(inputFileStrs[1], outputDir + timestr + '-m.mid')
     shutil.copy(inputFileStrs[2], outputDir + timestr + '-md.mid')
+
+    # save taskData and task Parameters to pickle file
+    data_to_save = [taskData, taskParameters]
+    with open(outputDir + timestr + '-data.task', 'wb') as f:
+        pickle.dump(data_to_save, f)
 
     # XML
     # currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup]
@@ -219,21 +231,20 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     @param userSelectedLocation: Location of the user-selected MIDI file (if chosen).
     @return: None
     """
-    global midiSaved, currentMidi
+    global midiSaved, currentMidi, taskParameters, leftHand, rightHand
     delete_warning()
 
     # load saved midi
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
         try:
-            #midiProcessing.generate_metronome_and_fingers_for_midi(leftHand.get(), rightHand.get(), inputFileStrs,
+            midiProcessing.generate_metronome_and_fingers_for_midi(taskParameters.left, taskParameters.right, inputFileStrs,
+                                                                   chosenMidiFile,
+                                                                   custom_bpm=int(midiBPM.get("1.0", 'end-1c')))
+            #midiProcessing.generate_metronome_and_fingers_for_midi(False, True, inputFileStrs,
             #                                                       chosenMidiFile, custom_bpm=midiBPM.get("1.0",'end-1c'))
-            midiProcessing.generate_metronome_and_fingers_for_midi(False, True, inputFileStrs,
-                                                                   chosenMidiFile, custom_bpm=int(midiBPM.get("1.0",'end-1c')))
-            config.fromFile = True
-            config.LoadedFileName = userSelectedLocation
-            config.customBPM = int(midiBPM.get("1.0",'end-1c'))
-
+            #taskData, taskParameters = midiProcessing.generate_metronome_and_fingers_for_midi(taskParameters.left, taskParameters.right, inputFileStrs,
+            #                                                       chosenMidiFile, custom_bpm=int(midiBPM.get("1.0",'end-1c')))
         except:
             add_both_hands_warning()
             return
@@ -267,7 +278,7 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
 
     check_dexmo_connected(mainWindow=True)
     refresh_buttons()
-    # load_taskButtons()
+    load_taskButtons()
 
     # if task is changed remember trial to show in visualisation
     if errors:
@@ -665,6 +676,8 @@ def load_taskButtons():
     l = tk.Label(root, text=" BPM for loaded MIDI File:")
     l.place(x=10, y=550)
 
+    tk.Button(root, text='Open saved MIDI File', command=openSavedFile).place(x=10, y=635, height=25, width=150)
+
  #   midiBPM = tk.Scale(root, from_=0, to=250, length=150, orient=tk.HORIZONTAL)
  #   midiBPM.place(x=10, y=570)
  #   midiBPM.set(0)
@@ -839,6 +852,98 @@ def openfile():
     loadUpTask(userSelectedTask=True,
                userSelectedLocation=filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")]))
 
+# open midi file that was automatically created when task was played.
+def openSavedFile():
+    """
+    Opens user-selected MIDI file via a file dialog.
+
+    @return: None
+    """
+    #loadUpTask(userSelectedTask=True,
+    #           userSelectedLocation=filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")]))
+    global midiSaved, currentMidi, taskParameters
+    delete_warning()
+
+    # load saved midi
+    midi_file = filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")])
+#    chosenMidiFile = userSelectedLocation
+    try:
+        # midiProcessing.generate_metronome_and_fingers_for_midi(leftHand.get(), rightHand.get(), inputFileStrs,
+        #                                                       chosenMidiFile, custom_bpm=midiBPM.get("1.0",'end-1c'))
+        #taskData, taskParameters = midiProcessing.generate_metronome_and_fingers_for_midi(False, True,
+        #                                                                                  inputFileStrs,
+        #                                                                                  chosenMidiFile,
+        #                                                                                  custom_bpm=int(
+        #                                                                                      midiBPM.get("1.0",
+        #                                                                                                  'end-1c')))
+
+        # copy the saved outFiles to output/temp/ folder.
+        # these files are saved when the user plays the task.
+        basename, ext = os.path.splitext(midi_file)
+        shutil.copy(basename + '.mid', inputFileStrs[0])
+        shutil.copy(basename + '-m.mid', inputFileStrs[1])
+        shutil.copy(basename + '-md.mid', inputFileStrs[2])
+
+        # read the task data from file. This file is created when the user plays the task.
+        with open(basename + '-data.task', 'rb') as f:
+            task_data_from_file = pickle.load(f)
+        print("loaded data: ", task_data_from_file)
+        [taskData, taskParameters] = task_data_from_file
+
+    except:
+        print("didn't find metronome and/or dexmo files")
+
+    custom_bpm = int(midiBPM.get("1.0",'end-1c'))
+    if custom_bpm > 0:
+        # change tempo to custom tempo
+        temp_mido_file0 = mido.MidiFile(inputFileStrs[0])
+        temp_mido_file0.tracks[0][1].tempo = int(60000000 / custom_bpm)  # tempo is in MicroTempo units.
+        temp_mido_file0.save(inputFileStrs[0])
+
+        temp_mido_file1 = mido.MidiFile(inputFileStrs[1])
+        temp_mido_file1.tracks[0][1].tempo = int(60000000/custom_bpm) # tempo is in MicroTempo units.
+        temp_mido_file1.save(inputFileStrs[1])
+
+        temp_mido_file2 = mido.MidiFile(inputFileStrs[2])
+        temp_mido_file2.tracks[0][1].tempo = int(60000000 / custom_bpm)  # tempo is in MicroTempo units.
+        temp_mido_file2.save(inputFileStrs[2])
+
+        taskData.bpm = custom_bpm
+        taskParameters.bpm = custom_bpm
+
+        # upadte midi events to taskData. The midi events changed due to the change of bpm.
+        temp_mido_file = mido.MidiFile(inputFileStrs[0]) # outFile[0] (output.mid) is already updated with the custom bpm.
+        mid_left = midiProcessing._midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
+        mid_right = midiProcessing._midi_messages_to_note_events(temp_mido_file.tracks[1], temp_mido_file)
+        taskData.midi.register_midi_events(mid_left, mid_right)
+
+    # remove XML which has the previous tempo.
+    try:
+        os.remove(inputFileStrs[3]) # removes the XML file
+    except:
+        print("xml file was not found")
+
+    config.fromFile = True
+    config.LoadedFileName = midi_file
+    config.customBPM = int(midiBPM.get("1.0", 'end-1c'))
+    print("data with new bpm:", taskData, taskParameters)
+    scheduler.add_task_from_file(taskData, taskParameters)
+
+    get_ly()
+
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    # clearFrame()
+    load_notesheet(outputPngStr)
+
+    check_dexmo_connected(mainWindow=True)
+    refresh_buttons()
+    load_taskButtons()
+
+    # if task is changed remember trial to show in visualisation
+    if errors:
+        changetask.append(len(errors))
+
+    add_error_plot()
 
 def firstTask():
     """

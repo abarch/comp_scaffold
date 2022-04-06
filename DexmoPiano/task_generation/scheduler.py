@@ -129,6 +129,14 @@ class Scheduler:
         
         else:
             self._current_target_task().register_error(error)
+
+    # add new task to queue from task_data and task_parameters
+    def add_task_from_file(self, task_data, task_parameters):
+        self.current_target_task = TargetTask(task_data, task_parameters)
+        self.task_queue.append(self.current_target_task)
+        self.task_queue_index = len(self.task_queue) - 1
+        return self.current_task_data()
+
     
 # def getTimeSortedMidiFiles():
 #     """
@@ -221,3 +229,5 @@ def complexity_error(tk_root):
 
     b = tk.Button(new_window, text="Okay", command=close)
     b.pack(side=tk.TOP, padx=5, pady=15)
+
+
