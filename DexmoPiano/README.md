@@ -6,7 +6,7 @@ If there are any questions/problems feel free to contact Nina.
 
 
 ## Required software/packages
-* Python 3.9
+* Python 3.9.5
 * python-rtmidi v1.4.1 (via PIP3, needs Debian/Ubuntu package *libjack-dev*)
 * LilyPond [v2.18.2](http://lilypond.org/download/binaries/) (available in ubuntu bionic packages)
 * python3-tk v3.6.9-1\~18.04 (available in ubuntu bionic packages)
