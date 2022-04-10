@@ -10,13 +10,24 @@ stdscr = curses.initscr()
 curses.noecho()
 stdscr.nodelay(1) # set getch() non-blocking
 
+# choose either one channel or the other
+# <<<<<<< HEAD
 
-# FIXME: this needs to be adapted
-midi_interface = 'DEXMO_R MIDI 1'
+# # FIXME: this needs to be adapted
+# midi_interface = 'DEXMO_R MIDI 1'
 
-# abstract in python of the MIDI_HAPTIC_DEFINITION
-# define channel of the device here
-CHAN = 10
+# # abstract in python of the MIDI_HAPTIC_DEFINITION
+# # define channel of the device here
+# CHAN = 10
+# =======
+        
+# # FIXME: this needs to be adapted 
+# midi_interface =  'Arduino Leonardo MIDI 1' #  'DEXMO_R MIDI 1'
+
+# # abstract in python of the MIDI_HAPTIC_DEFINITION
+# # define channel of the device here
+# CHAN =  11 # 9
+# >>>>>>> 7158ba1277b1a9c14db2d8842fc6c8b6d91089b5
 # choosing action on the index here
 MHP_ACT_IND = 36
 # various action modes
