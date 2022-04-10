@@ -94,6 +94,19 @@ def nextTask(finishAfterSong, userSelectedTask=False, userSelectedLocation=confi
     # run the thread
     recPlayThread.start()
 
+# wait until an external trigger (via a Serial port) is received
+def nextTaskExternalTrigger():
+    # Turn off the other buttons
+    config.waitButton["state"] = "disabled"
+    config.playButton["state"] = "disabled"
+    config.playAfterButton["state"] = "disabled"
+    config.playAloneButton["state"] = "disabled"
+    config.playOnExternalTriggerButton["state"] = "disabled"
+
+    # wait for a trigger, then call nextTaskAlone
+    waitForTriggerCOM()
+    print('Trigger received, starting MIDI recording')
+    nextTaskAlone('cont')
 
 # don't play the song - wait until the stop button is pressed
 def nextTaskAlone(mode, userSelectedTask=False, userSelectedLocation=config.inputFileStrs[0]):
@@ -106,6 +119,8 @@ def nextTaskAlone(mode, userSelectedTask=False, userSelectedLocation=config.inpu
     config.playButton["state"] = "disabled"
     config.playAfterButton["state"] = "disabled"
     config.playAloneButton["state"] = "disabled"
+    config.playOnExternalTriggerButton["state"] = "disabled"
+
 
     # force a redraw
     root.update()
@@ -159,6 +174,15 @@ def sendTriggerCOM(message):
     serialPort.write(bytes(message, encoding='utf8'))
     print('Sent trigger ' + message + ' on COM port ' + COMport.get())
 
+# This will freeze the program until the serial trigger is received (after clearing the buffer)
+def waitForTriggerCOM():
+    while(serialPort.in_waiting > 0):
+        serialPort.read(serialPort.in_waiting)
+    while(1):
+        if(serialPort.in_waiting > 0):
+            data = serialPort.read(1)
+            print('Received' + str(data))
+            break
 
 def stopRecording():
     # config.waitThread.event.set()
@@ -168,6 +192,8 @@ def stopRecording():
     config.playButton["state"] = "active"
     config.playAfterButton["state"] = "active"
     config.playAloneButton["state"] = "active"
+    config.playOnExternalTriggerButton["state"] = "active"
+
 	
     if COMport.get() != 'None':
         sendTriggerCOM("0")
@@ -266,7 +292,7 @@ def animation_test():
 
 # load start menu with button for first task and exit button
 def load_Startmenu():
-    global bpmSelected, waitButton, playButton, playAfterButton, playAloneButton, connectButton
+    global bpmSelected, connectButton
     global showScoreGuidance, showVerticalGuidance, showNotes1, showNotes2, canvas, piano_img, hand_img
     global id_textbox, freetext
     global midiInputPort, midiOutputPort, COMport
@@ -291,6 +317,10 @@ def load_Startmenu():
     config.playAloneButton = Button(root, text='Play Alone', command=lambda: nextTaskAlone('cont'))
     config.playAloneButton.place(x=1280, y=560, height=50, width=150)
     config.playAloneButton["state"] = "disabled"
+
+    config.playOnExternalTriggerButton = Button(root, text='Play on External Trigger', command=lambda: nextTaskExternalTrigger())
+    config.playOnExternalTriggerButton.place(x=1280, y=620, height=50, width=150)
+    config.playOnExternalTriggerButton["state"] = "disabled"
 
     config.stopButton = Button(root, text='Stop recording', command=stopRecording)
     config.stopButton.place(x=1120, y=620, height=50, width=150)
@@ -407,7 +437,7 @@ def updateGuidance():
 
 
 def connectToMidi():
-    global songName, midiConnected, waitButton, playButton, playAfterButton, playAloneButton, COMport, serialPort
+    global songName, midiConnected, COMport, serialPort
     print("Connect to midi input: " + midiInputPort.get())
     result_input = threadHandler.set_inport(midiInputPort.get())
 
@@ -432,6 +462,7 @@ def connectToMidi():
         config.playButton["state"] = "normal"
         config.playAfterButton["state"] = "normal"
         config.playAloneButton["state"] = "normal"
+        config.playOnExternalTriggerButton["state"] = "normal"
 
 
 def refreshMidi():
@@ -477,7 +508,7 @@ def loadBlank():
 
 # Load a song (generate the midi file and the sheet music)
 def loadSong(thisSongFile, thisSongName):
-    global midiFileLocation, songName, songFile, generatedBpm, waitButton, playButton, playAfterButton, playAloneButton
+    global midiFileLocation, songName, songFile, generatedBpm
     bpm = int(bpmSelected.get())
     print("Loading " + thisSongFile + ", bpm = " + str(bpm))
     # Set free text to name of song
@@ -498,6 +529,7 @@ def loadSong(thisSongFile, thisSongName):
         config.playButton["state"] = "normal"
         config.playAfterButton["state"] = "normal"
         config.playAloneButton["state"] = "normal"
+        config.playOnExternalTriggerButton["state"] = "normal"
 
 
 # loads notesheet for actual task
