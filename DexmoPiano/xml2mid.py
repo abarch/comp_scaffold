@@ -35,6 +35,8 @@ def xml2mid(xmlfilename, midfilename):
         notes = trial.find("notes").text
         notesArray = json.loads(notes)
         #startsongtime = notesArray[0][2]
+        if len(notesArray)==0: # i.e., it is empty
+            continue
         startsongtime = notesArray[0]['note_on_time']
         for m in notesArray:
             #note = m[0]
