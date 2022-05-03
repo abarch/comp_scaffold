@@ -700,13 +700,21 @@ def load_taskButtons():
     ## Back to Menu
     tk.Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50, width=150)
 
+    try:
+        current_participant_id = id_textbox.get("1.0", 'end-1c')
+        current_freetext = freetext.get("1.0", 'end-1c')
+    except:
+        current_participant_id = "Enter ID"
+        current_freetext = "Free text"
     id_textbox = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1, state=tk.NORMAL)
     id_textbox.place(x=1050, y=480, height=25, width=150)
-    id_textbox.insert(tk.INSERT, "Enter ID")
+    #id_textbox.insert(tk.INSERT, "Enter ID")
+    id_textbox.insert(tk.INSERT, current_participant_id)
 
     freetext = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1)
     freetext.place(x=1050, y=520, height=60, width=150)
-    freetext.insert(tk.INSERT, "Free text")
+    #freetext.insert(tk.INSERT, "Free text")
+    freetext.insert(tk.INSERT, current_freetext)
 
 difficultyScaling = False
 complex_index = 0
