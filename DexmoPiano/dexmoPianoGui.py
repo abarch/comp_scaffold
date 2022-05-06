@@ -214,7 +214,7 @@ def load_up_task(task_is_selected_by_user: bool = False, midi_file: str = OUTPUT
     @return: None
     """
     global midi_saved, task_parameters
-    delete_warning()
+    remove_both_hands_warning()
 
     # load saved midi
     if task_is_selected_by_user:
@@ -229,7 +229,7 @@ def load_up_task(task_is_selected_by_user: bool = False, midi_file: str = OUTPUT
 
         # TODO: refactor to not use catch all
         except:
-            add_both_hands_warning()
+            show_both_hands_warning()
             return
 
     # generate new midi
@@ -508,7 +508,7 @@ def remove_finger_numbers_warning():
     num_notes_warning_label.place(x=1030, y=770, width=250, height=100)
 
 
-def add_both_hands_warning():
+def show_both_hands_warning():
     """
     Creates a warning in case that a user-selected MIDI file has only one track/staff
     but both hands are currently selected.
@@ -522,7 +522,7 @@ def add_both_hands_warning():
     hand_warning_label.place(x=10, y=660, width=150, height=70)
 
 
-def delete_warning():
+def remove_both_hands_warning():
     """
     Removes the warning created by add_both_hands_warning().
 
@@ -761,7 +761,7 @@ def open_saved_midi_file():
     """
 
     global midi_saved, task_parameters
-    delete_warning()
+    remove_both_hands_warning()
 
     # load saved midi
     midi_file = filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")])
