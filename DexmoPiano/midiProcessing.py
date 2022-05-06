@@ -109,77 +109,17 @@ def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, cu
     if custom_bpm > 0:
         bpm = custom_bpm
 
-    #config.customBPM = bpm
-    #temp_mido_file = mido.MidiFile(outFiles[0])
-
     mf = MIDIFile(numTracks=settings.TRACKS)
 
     set_tracks(mf, bpm)
 
-    # set time signature
-
-#    set_time_signature(sf.parts[0].timeSignature.numerator, sf.parts[0].timeSignature.denominator, settings.R_TRACK, mf)
-    set_time_signature(4, 4, settings.R_TRACK, mf)
-
-    #print("number of measures extracted from midi: ", measures)
-    #add_metronome(measures + settings.INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], False, mf)
     add_metronome(measures + settings.INTRO_BARS, 4, outFiles[1], False, mf)
     count, left_count = extract_number_of_notes(sf)
     c_to_g = False
     if ((len(sf.parts) <= 1) and count < 10) or (
             (len(sf.parts) >= 2) and (count < 10 or left_count < 10)):
         c_to_g = True
-    # print("c to g is ", c_to_g, " left is ", left, " right is ", right, " count is ", count, " left count is ", left_count)
     add_fingernumbers(outFiles[2], sf, True, right, left, mf, c_to_g)  # c_to_g false?
-
-    ### METRONOME ###
-    # When loading a midi file, for example 20220101-120000.mid, then the files 20220101-120000-m.mid and 20220101-120000-md.mid are copied to output-m.mid and output-md.mid.
-    # These files are automatically created when generating a task. This was done so that "play demo" will work after loading a midi file.
-    # try:
-    #     # copy the saved outFiles to output/temp/ folder.
-    #     # these files are saved when the user plays the task.
-    #     basename, ext = os.path.splitext(midi_file)
-    #     shutil.copy(basename+'.mid', outFiles[0])
-    #     shutil.copy(basename + '-m.mid', outFiles[1])
-    #     shutil.copy(basename+'-md.mid', outFiles[2])
-    #
-    #     # read the task data from file. This file is created when the user plays the task.
-    #     with open(basename + '-data.task', 'rb') as f:
-    #         task_data_from_file = pickle.load(f)
-    #     print("loaded data: ", task_data_from_file)
-    #     [taskData, taskParameters] = task_data_from_file
-    #
-    #     if custom_bpm > 0:
-    #         # change tempo to custom tempo
-    #         temp_mido_file0 = mido.MidiFile(outFiles[0])
-    #         temp_mido_file0.tracks[0][1].tempo = int(60000000 / custom_bpm)  # tempo is in MicroTempo units.
-    #         temp_mido_file0.save(outFiles[0])
-    #
-    #         temp_mido_file1 = mido.MidiFile(outFiles[1])
-    #         temp_mido_file1.tracks[0][1].tempo = int(60000000/custom_bpm) # tempo is in MicroTempo units.
-    #         temp_mido_file1.save(outFiles[1])
-    #
-    #         temp_mido_file2 = mido.MidiFile(outFiles[2])
-    #         temp_mido_file2.tracks[0][1].tempo = int(60000000 / custom_bpm)  # tempo is in MicroTempo units.
-    #         temp_mido_file2.save(outFiles[2])
-    #
-    #         taskData.bpm = custom_bpm
-    #         taskParameters.bpm = custom_bpm
-    #
-    #         # upadte midi events to taskData. The midi events changed due to the change of bpm.
-    #         temp_mido_file = mido.MidiFile(outFiles[0]) # outFile[0] (output.mid) is already updated with the custom bpm.
-    #         mid_left = _midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
-    #         mid_right = _midi_messages_to_note_events(temp_mido_file.tracks[1], temp_mido_file)
-    #         taskData.midi.register_midi_events(mid_left, mid_right)
-    #
-    #     # remove XML which has the previous tempo.
-    #     os.remove(outFiles[3]) # removes the XML file
-    #
-    #     return taskData, taskParameters
-    #
-    # except:
-    #     print("didn't find metronome and/or dexmo files")
-    #add_metronome(measures,4, outFiles[1], True, mf)
 
 
 def generateMidi(task, outFiles):

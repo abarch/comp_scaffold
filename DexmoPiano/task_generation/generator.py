@@ -2,20 +2,18 @@
 # -*- coding: utf-8 -*-
 import collections
 import random
-from dataclasses import dataclass, astuple, asdict
 import dataclasses as dc
 
-import numpy as np
+from dataclasses import dataclass, astuple
 from task_generation.note_range_per_hand import NoteRangePerHand, get_pitchlist, transpose
-
 from collections import namedtuple
-
+from collections.abc import Iterable
 
 TaskNote = namedtuple("TaskNote", "start pitch duration")
 
-
 INTRO_BARS = 1  # no. of empty first bars for metronome intro
 ACROSS_BARS = False  # allow notes to reach across two bars
+
 
 @dataclass
 class TaskParameters:
@@ -28,23 +26,24 @@ class TaskParameters:
     @param alternating: if true play left/right alternating instead of simultaneously
     @param twoHandsTup: Tuple of booleans, True if left/right hand is active.
     """
-    timeSignature: tuple    = (4,4)
-    noteValues: list        = dc.field(default_factory= lambda: [1 / 2, 1 / 4] )
-    maxNotesPerBar: int       = 3
-    noOfBars: int           = 7
+    timeSignature: tuple = (4, 4)
+    noteValues: list = dc.field(default_factory=lambda: [1 / 2, 1 / 4])
+    maxNotesPerBar: int = 3
+    noOfBars: int = 7
     note_range_right: NoteRangePerHand = NoteRangePerHand.TWO_NOTES
-    #FIXME: debug
+    # FIXME: debug
     note_range_left: NoteRangePerHand = NoteRangePerHand.ONE_NOTE
-    left: bool              = False
-    right: bool             = True
-    alternating: bool     = True
-    bpm: float              = 100
-    
+    left: bool = False
+    right: bool = True
+    alternating: bool = True
+    bpm: float = 100
+
     def astuple(self):
         return astuple(self)
-    
+
+
 def flatten(x):
-    if isinstance(x, collections.Iterable):
+    if isinstance(x, Iterable):
         return [a for i in x for a in flatten(i)]
     else:
         return [x]
@@ -53,15 +52,14 @@ def flatten(x):
 def generate_task(task_parameters):
     return _generate_task_v1(task_parameters)
 
-def _generate_task_v1(task_parameters): 
+
+def _generate_task_v1(task_parameters):
     ### EXERCISE GENERATION ###
     numerator, denominator = task_parameters.timeSignature
 
     # adjust no. of bars (in case of intro bars)
     bars = task_parameters.noOfBars + INTRO_BARS
 
-
-        
     data = dict(left=[], right=[])
 
     def getpitches(note_range, base):
@@ -69,8 +67,8 @@ def _generate_task_v1(task_parameters):
         tnl = transpose(nl, base)
         return tnl
 
-    def get_timesteps(hand,  note_range,base):
-        pitches = getpitches (note_range, base)
+    def get_timesteps(hand, note_range, base):
+        pitches = getpitches(note_range, base)
         print("pitchlist", pitches)
         ### CHOOSE TIME_AT_STARTSTEPS ###
 
@@ -82,7 +80,8 @@ def _generate_task_v1(task_parameters):
         print("stepRange", stepRange)
         for bar in range(task_parameters.noOfBars - 1):  # last bar is for extra notes
             # determine no. of notes in this bar
-            noOfNotes = random.choice(range(1, task_parameters.maxNotesPerBar+4)) #add a lot to maxNotesPerBar to get less pauses
+            noOfNotes = random.choice(range(1,
+                                            task_parameters.maxNotesPerBar + 4))  # add a lot to maxNotesPerBar to get less pauses
             noOfNotes = min(noOfNotes, len(stepRange))
 
             # shift step numbers
@@ -90,8 +89,8 @@ def _generate_task_v1(task_parameters):
             steps = [temp + shift for temp in stepRange]
             print("steps", steps)
 
-            new_steps = [steps[0]] #add note at beginning of every bar so there are less pauses
-            new_steps.append(random.sample(steps[1:], noOfNotes-1))
+            new_steps = [steps[0]]  # add note at beginning of every bar so there are less pauses
+            new_steps.append(random.sample(steps[1:], noOfNotes - 1))
             flat_steps = [a for i in new_steps for a in flatten(i)]
             timesteps.append(flat_steps)
 
@@ -141,12 +140,11 @@ def _generate_task_v1(task_parameters):
 
             t += 1
 
-    #for hand in hands:
+    # for hand in hands:
     if task_parameters.left:
-        get_timesteps("left", task_parameters.note_range_left, 48) #C3)
+        get_timesteps("left", task_parameters.note_range_left, 48)  # C3)
     if task_parameters.right:
         get_timesteps("right", task_parameters.note_range_right, 60)
-
 
     hands = list()
     if task_parameters.left:
@@ -159,17 +157,18 @@ def _generate_task_v1(task_parameters):
 
     # play with both hands alternating, instead of together at the same time
     if task_parameters.alternating:
-        if task_parameters.left and task_parameters.right: #only alternating if task actually involves both hands
+        if task_parameters.left and task_parameters.right:  # only alternating if task actually involves both hands
             for hand in ["left", "right"]:
                 if hand == "left":
                     # calculate positions in the score in which only the left hand should play and save those in list note_starts
                     note_starts = []
-                    for bar in range(task_parameters.noOfBars-1):
+                    for bar in range(task_parameters.noOfBars - 1):
                         # if it's an uneven bar the left hand will play
                         if bar % 2 != 0:
                             # the first position in a bar is calculated (start_pos)
                             start_pos = offset + bar * numerator
-                            note_starts.extend([start_pos, start_pos+1, start_pos+2, start_pos+3])
+                            note_starts.extend(
+                                [start_pos, start_pos + 1, start_pos + 2, start_pos + 3])
                     print("left", note_starts)
                 else:
                     # calculate positions in the score in which only the right hand should play and save those in list note_starts
@@ -179,7 +178,8 @@ def _generate_task_v1(task_parameters):
                         if bar % 2 == 0:
                             # the first position in a bar is calculated (start_pos)
                             start_pos = offset + bar * numerator
-                            note_starts.extend([start_pos, start_pos + 1, start_pos + 2, start_pos + 3])
+                            note_starts.extend(
+                                [start_pos, start_pos + 1, start_pos + 2, start_pos + 3])
                     print("right", note_starts)
                 # remove all notes that are in bars/positions, which should be empty
                 remove = []
@@ -192,5 +192,7 @@ def _generate_task_v1(task_parameters):
     # data = sorted(data, key=lambda n: n.start)
     # return Task(time_sig=timeSig, noOfBars=bars, data=data)
     from task_generation.task import TaskData
-    return TaskData(parameters=task_parameters,  time_signature=task_parameters.timeSignature, number_of_bars=bars,
-                    bpm=float(task_parameters.bpm), notes_left=data["left"], notes_right=data["right"])                            #  note_range = task_parameters.note_range,
+    return TaskData(parameters=task_parameters, time_signature=task_parameters.timeSignature,
+                    number_of_bars=bars,
+                    bpm=float(task_parameters.bpm), notes_left=data["left"],
+                    notes_right=data["right"])  # note_range = task_parameters.note_range,

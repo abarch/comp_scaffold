@@ -7,14 +7,14 @@ outputDir = './output/'
 tempDir = './output/temp/'
 inputFileStrs = [tempDir + 'output.mid', tempDir + 'output-m.mid', tempDir + 'output-md.mid', tempDir + 'output.xml']
 
-currentMidi = "midi_test"
+current_midi = "midi_test"
 
 str_date = ""
 playing_start_time = 0
-guidanceMode = ""
+guidance_mode = ""
 timestr = ""
 participant_id = ""
-freetext = ""
+free_text = ""
 
 stopButton = ""
 

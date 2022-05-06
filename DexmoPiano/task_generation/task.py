@@ -116,7 +116,6 @@ class TargetTask():
         self.errordict = defaultdict(list)
 
     def from_midi(midi_file):
-        #return NotImplementedError()
         return TargetTask(from_midi=True)
 
     def from_task_parameters(task_parameters):

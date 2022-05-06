@@ -35,7 +35,7 @@ songName = ''  # which song to play
 songFile = ''  # filename of current song
 generatedBpm: int = 0  # bpm to play the song back at
 
-midiSaved = False  # Indicates if the output file was already created
+midi_saved = False  # Indicates if the output file was already created
 
 
 # delete saved midis and XMLs from last programm run
@@ -57,7 +57,7 @@ def getCurrentTimestamp():
 # generate new midiFile and note sheet and display it
 # dont generate new task if user opened a midi file
 def nextTask(finishAfterSong, userSelectedTask=False, userSelectedLocation=config.inputFileStrs[0]):
-    global midiFileLocation, midiSaved, alien1, generatedBpm, bpmSelected, songFile
+    global midiFileLocation, midi_saved, alien1, generatedBpm, bpmSelected, songFile
 
     bpm = int(bpmSelected.get())
 
@@ -110,7 +110,7 @@ def nextTaskExternalTrigger():
 
 # don't play the song - wait until the stop button is pressed
 def nextTaskAlone(mode, userSelectedTask=False, userSelectedLocation=config.inputFileStrs[0]):
-    global midiFileLocation, midiSaved, alien1, generatedBpm
+    global midiFileLocation, midi_saved, alien1, generatedBpm
 
     # Turn on the stop button
     config.stopButton["state"] = "active"

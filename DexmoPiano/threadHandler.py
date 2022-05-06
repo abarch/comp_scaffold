@@ -265,5 +265,5 @@ def recordingFinished():
                             config.timestr, config.guidanceMode,
                             actualTimes, errorDiff)
     ###TODO: remove (testing)
-    # fileIO.printXML(config.outputDir + config.currentMidi + ".xml", True)
+    # fileIO.printXML(config.OUTPUT_DIR + config.current_midi + ".xml", True)
     print("Created XML")

@@ -1,20 +1,18 @@
-
-
 from task_generation.generator import TaskParameters
 from task_generation.note_range_per_hand import NoteRangePerHand
-import networkx  as nx
+import networkx as nx
 
 
 # this generates the graph with max four notes in the left, four notes in the right hand and either   
 # 0 means 1 note, or one hand. "1" hand means either alternating or bimanual tasks
 # 4,4
-def exp_graph(dim=(2,4,4)):
+def exp_graph(dim=(2, 4, 4)):
     G = nx.grid_graph(dim)
-    #G= nx.grid_graph(dim=(2,3,4,5))
+    # G= nx.grid_graph(dim=(2,3,4,5))
     for line in nx.generate_adjlist(G):
         print(line)
 
-    #print (G.nodes())
+    # print (G.nodes())
     # import matplotlib.pyplot as plt
     # # nx.spring_layout
     #
@@ -23,31 +21,31 @@ def exp_graph(dim=(2,4,4)):
     # plt.show()
     return G
 
+
 # given a tuple of the above dimension - create a task
-def make_task_from_node(node =(1,1,0)):
-    #rhythmic resolution is constantly at the same level
-    value = [1/2, 1/4]
+def make_task_from_node(node=(1, 1, 0)):
+    # rhythmic resolution is constantly at the same level
+    value = [1 / 2, 1 / 4]
 
-    notes_left= node[0]
-    notes_right=node[1]
-    hand_descr= node[2]
-
+    notes_left = node[0]
+    notes_right = node[1]
+    hand_descr = node[2]
 
     ranges = list(NoteRangePerHand)[1:]
-    #print ("note ranges", ranges)
+    # print ("note ranges", ranges)
 
-    if hand_descr==0 and notes_left > 0 and notes_right > 0:
+    if hand_descr == 0 and notes_left > 0 and notes_right > 0:
         # testing one case
         alternating = True
         left = True
-        right=True
+        right = True
 
-    elif hand_descr==1 and notes_left > 0 and notes_right> 0:
+    elif hand_descr == 1 and notes_left > 0 and notes_right > 0:
         alternating = False
         left = True
         right = True
 
-    elif notes_left == 0 and notes_right ==0: # a one-time case
+    elif notes_left == 0 and notes_right == 0:  # a one-time case
         # default task
         notes_right = 1
         alternating = False
@@ -55,23 +53,26 @@ def make_task_from_node(node =(1,1,0)):
         left = False
     else:
         alternating = False
-        left = False  if notes_left ==0  else  True
-        right = False if notes_right== 0 else  True
+        left = False if notes_left == 0 else True
+        right = False if notes_right == 0 else True
     from task_generation.generator import generate_task
-    par = TaskParameters((4,4), value.copy(), 3, 9,  ranges[notes_right], ranges[notes_left], left, right, alternating, 100)
-    #print (par)
-    #generate_task(par)
+    par = TaskParameters((4, 4), value.copy(), 3, 9, ranges[notes_right], ranges[notes_left], left,
+                         right, alternating, 100)
+    # print (par)
+    # generate_task(par)
     return par
+
 
 def getTasks():
     levels = []
     nodes = []
     G = exp_graph()
     for node in G.nodes():
-        par= make_task_from_node(node)
+        par = make_task_from_node(node)
         levels.append(par)
         nodes.append(node)
-    return levels,nodes
+    return levels, nodes
+
 
 def thresholds(df):
     """
@@ -83,42 +84,42 @@ def thresholds(df):
     """
     next_level = True
     for i in ["_right", "_left"]:
-        if df['note_hold_time'+i] >= 2:
+        if df['note_hold_time' + i] >= 2:
             print("Hold Time Error")
             next_level = False
-        elif df['timing'+i] >= 0.2:
+        elif df['timing' + i] >= 0.2:
             print("Timing Error")
             next_level = False
-        elif df['pitch'+i] >= 0.1:
+        elif df['pitch' + i] >= 0.1:
             print("Pitch Error")
             next_level = False
-        elif df['n_missing_notes'+i] >= 0.1:
+        elif df['n_missing_notes' + i] >= 0.1:
             print("Missing Notes Error")
             next_level = False
-        elif df['n_extra_notes'+i] >= 0.1:
+        elif df['n_extra_notes' + i] >= 0.1:
             print("Extra Notes Error")
             next_level = False
 
     return next_level
     # return true if one does not want to analyse the errors
-    #return True
+    # return True
 
-#getTaskComplexity()
+# getTaskComplexity()
 
-    # elif hand_descr==1
+# elif hand_descr==1
 
-        # timeSignature: tuple = (4, 4)
-        # noteValues: list = dc.field(default_factory=lambda: [1 / 2, 1 / 4])
-        # maxNotesPerBar: int = 3
-        # noOfBars: int = 7
-        # note_range_right: NoteRangePerHand = NoteRangePerHand.TWO_NOTES
-        # # FIXME: debug
-        # note_range_left: NoteRangePerHand = NoteRangePerHand.ONE_NOTE
-        # left: bool = False
-        # right: bool = True
-        # alternating: bool = True
-        # bpm: float = 100
-#exp_graph()
+# timeSignature: tuple = (4, 4)
+# noteValues: list = dc.field(default_factory=lambda: [1 / 2, 1 / 4])
+# maxNotesPerBar: int = 3
+# noOfBars: int = 7
+# note_range_right: NoteRangePerHand = NoteRangePerHand.TWO_NOTES
+# # FIXME: debug
+# note_range_left: NoteRangePerHand = NoteRangePerHand.ONE_NOTE
+# left: bool = False
+# right: bool = True
+# alternating: bool = True
+# bpm: float = 100
+# exp_graph()
 
 
 #

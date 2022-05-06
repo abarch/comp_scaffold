@@ -61,7 +61,7 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList, timeFunc=g
         if note_info.note_on_time != -1:
             logger.error(f"note_on was set twice! Pitch: {pitch} | {(noteType, pitch, velocity)}")
             return -1
-        # if config.showVerticalGuidance:
+        # if config.show_vertical_guidance:
         #   config.vnotes.update_key_pressed(pitch, time.time() - config.playing_start_time) # update visual notes
         #   noteInfoTemp[pitch] = [getTime(), -1, velocity]
         noteInfoTemp[pitch] = adapt_noteinfo(note_info, pitch=pitch,

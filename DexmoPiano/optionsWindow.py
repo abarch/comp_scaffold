@@ -2,6 +2,7 @@
 import tkinter as tk
 from task_generation.note_range_per_hand import noteRangePerHandDescription, noteRangeMap
 
+
 class optionsWindowClass():
     """
     Class for the GUI's options window, accessible from the main window.
@@ -12,13 +13,13 @@ class optionsWindowClass():
         Initializes necessary variables.
 
         @param root: GUI root.
-        @param taskParameters: a TaskParameters object
+        @param task_parameters: a TaskParameters object
         """
         self.root = root
         self.taskParameters = taskParamters
 
         self.pitchesOptions_left = noteRangePerHandDescription
-        self.pitchesOptions_right =  noteRangePerHandDescription
+        self.pitchesOptions_right = noteRangePerHandDescription
 
     # create Window to specify next task, root waiting until this window is closed
     def changeParameter(self):
@@ -35,7 +36,7 @@ class optionsWindowClass():
         self.specifyWindow.geometry("325x600")
         self.specifyWindow.title("Options for next task")
 
-    # NOTEVALUE checkboxes
+        # NOTEVALUE checkboxes
         l1 = tk.Label(self.specifyWindow, text=" Notevalues:")
         l1.grid(row=1, columnspan=4, sticky=tk.W, pady=(20, 0))
 
@@ -47,62 +48,62 @@ class optionsWindowClass():
         chk1.grid(column=1, row=2)
 
         halfNote = tk.BooleanVar()
-        halfNote.set(1/2 in self.taskParameters.noteValues)
+        halfNote.set(1 / 2 in self.taskParameters.noteValues)
         chk1_2 = tk.Checkbutton(self.specifyWindow, text='1/2', var=halfNote)
         chk1_2.grid(column=2, row=2)
 
         quarterNote = tk.BooleanVar()
-        quarterNote.set(1/4 in self.taskParameters.noteValues)
+        quarterNote.set(1 / 4 in self.taskParameters.noteValues)
         chk1_4 = tk.Checkbutton(self.specifyWindow, text='1/4', var=quarterNote)
         chk1_4.grid(column=3, row=2)
 
         eighthNote = tk.BooleanVar()
-        eighthNote.set(1/8 in self.taskParameters.noteValues)
+        eighthNote.set(1 / 8 in self.taskParameters.noteValues)
         chk1_8 = tk.Checkbutton(self.specifyWindow, text='1/8', var=eighthNote)
         chk1_8.grid(column=4, row=2)
 
         sixteenthNote = tk.BooleanVar()
-        sixteenthNote.set(1/16 in self.taskParameters.noteValues)
+        sixteenthNote.set(1 / 16 in self.taskParameters.noteValues)
         chk1_16 = tk.Checkbutton(self.specifyWindow, text='1/16', var=sixteenthNote)
         chk1_16.grid(column=5, row=2)
 
-    # Max NOTES per bar
+        # Max NOTES per bar
         l2 = tk.Label(self.specifyWindow, text=" Maximal note number per bar:")
-        l2.grid(row=3,columnspan=4, sticky=tk.W, pady=(20,0))
+        l2.grid(row=3, columnspan=4, sticky=tk.W, pady=(20, 0))
 
-        OptionList = ["1","2","3","4"]
+        OptionList = ["1", "2", "3", "4"]
         maxNoteNumber = tk.StringVar(self.specifyWindow)
         maxNoteNumber.set(self.taskParameters.maxNotesPerBar)
 
         opt = tk.OptionMenu(self.specifyWindow, maxNoteNumber, *OptionList)
-        opt.grid(row=4,columnspan=4,sticky=tk.W,)
+        opt.grid(row=4, columnspan=4, sticky=tk.W, )
 
-    # Number of BARS
+        # Number of BARS
         l3 = tk.Label(self.specifyWindow, text=" Number of bars:")
-        l3.grid(row=5,columnspan=4, sticky=tk.W, pady=(20,0))
+        l3.grid(row=5, columnspan=4, sticky=tk.W, pady=(20, 0))
 
         numberBars = tk.Scale(self.specifyWindow, from_=2, to=30, orient=tk.HORIZONTAL)
-        numberBars.grid(row=6, columnspan=4,sticky=tk.W,)
+        numberBars.grid(row=6, columnspan=4, sticky=tk.W, )
         numberBars.set(self.taskParameters.noOfBars)
 
-    # BEATS per minute
+        # BEATS per minute
         l4 = tk.Label(self.specifyWindow, text=" Beats per minute:")
-        l4.grid(row=7,columnspan=4, sticky=tk.W, pady=(20,0))
+        l4.grid(row=7, columnspan=4, sticky=tk.W, pady=(20, 0))
 
-        #bpmscale = tk.Scale(self.specifyWindow, from_=10, to=400, orient=tk.HORIZONTAL)
-        #bpmscale.grid(row=8, columnspan=4,sticky=tk.W,pady=(20,0) )
-        #bpmscale.set(self.taskParameters.bpm)
+        # bpmscale = tk.Scale(self.specifyWindow, from_=10, to=400, orient=tk.HORIZONTAL)
+        # bpmscale.grid(row=8, columnspan=4,sticky=tk.W,pady=(20,0) )
+        # bpmscale.set(self.task_parameters.bpm)
 
-        bpm_textbox = tk.Text(self.specifyWindow, bg="white", fg="black", relief=tk.GROOVE, bd=1,height=1, width=10, state=tk.NORMAL)
-        bpm_textbox.grid(row=8, columnspan=4,sticky=tk.W, pady=(20,0))
+        bpm_textbox = tk.Text(self.specifyWindow, bg="white", fg="black", relief=tk.GROOVE, bd=1,
+                              height=1, width=10, state=tk.NORMAL)
+        bpm_textbox.grid(row=8, columnspan=4, sticky=tk.W, pady=(20, 0))
         bpm_textbox.insert(tk.INSERT, self.taskParameters.bpm)
 
-    # NOTEPITCHES checkboxes
+        # NOTEPITCHES checkboxes
         l5 = tk.Label(self.specifyWindow, text=" Right:")
-        l5.grid (row=9,columnspan=4,sticky=tk.W, pady=(20,0))
+        l5.grid(row=9, columnspan=4, sticky=tk.W, pady=(20, 0))
         l55 = tk.Label(self.specifyWindow, text="Left:")
-        l55.grid(row=9, column=3, columnspan=4, sticky=tk.W, pady=(20,0))
-
+        l55.grid(row=9, column=3, columnspan=4, sticky=tk.W, pady=(20, 0))
 
         # FIXME: urgently refactor
         global chosenpitches_left, chosenpitches_right
@@ -112,8 +113,8 @@ class optionsWindowClass():
         chosenpitches_right = tk.StringVar(self.specifyWindow)
         chosenpitches_right.set(self.check_pitches_right())
 
-
-        guideopt = tk.OptionMenu(self.specifyWindow, chosenpitches_right, *self.pitchesOptions_right)
+        guideopt = tk.OptionMenu(self.specifyWindow, chosenpitches_right,
+                                 *self.pitchesOptions_right)
         guideopt.grid(row=10, columnspan=6, sticky=tk.W, )
 
         guideopt = tk.OptionMenu(self.specifyWindow, chosenpitches_left, *self.pitchesOptions_left)
@@ -121,13 +122,13 @@ class optionsWindowClass():
 
         #  BOTH HANDS
         l6 = tk.Label(self.specifyWindow, text=" One or both hands:")
-        l6.grid (row=12,columnspan=4,sticky=tk.W, pady=(20,0))
+        l6.grid(row=12, columnspan=4, sticky=tk.W, pady=(20, 0))
 
         global rightHand, leftHand, alternating
         rightHand = tk.BooleanVar()
         rightHand.set(self.taskParameters.right)
         chk = tk.Checkbutton(self.specifyWindow, text='right', var=rightHand)
-        chk.grid(column=1,columnspan=3, row=13)
+        chk.grid(column=1, columnspan=3, row=13)
 
         leftHand = tk.BooleanVar()
         print("left", self.taskParameters.left)
@@ -140,19 +141,22 @@ class optionsWindowClass():
         chk = tk.Checkbutton(self.specifyWindow, text='altern.', var=alternating)
         chk.grid(column=3, columnspan=3, row=13)
 
-    # SAVE and QUIT button
+        # SAVE and QUIT button
         l8 = tk.Label(self.specifyWindow, text=" \n \n ")
         l8.grid(row=16, columnspan=4, sticky=tk.W)
 
         saveButton = tk.Button(self.specifyWindow, text='Save and quit',
-                            command=lambda: self.save_settings(saveBPM=bpm_textbox.get("1.0",'end-1c') ,#saveBPM=bpmscale.get(),
-                                                               saveBarNumber=numberBars.get(),
-                                                               saveNotesPerBar=maxNoteNumber.get(),
-                                                               saveRightHand=rightHand.get(), saveLeftHand=leftHand.get(),
-                                                               saveAlternating=alternating.get()))
+                               command=lambda: self.save_settings(
+                                   saveBPM=bpm_textbox.get("1.0", 'end-1c'),
+                                   # saveBPM=bpmscale.get(),
+                                   saveBarNumber=numberBars.get(),
+                                   saveNotesPerBar=maxNoteNumber.get(),
+                                   saveRightHand=rightHand.get(), saveLeftHand=leftHand.get(),
+                                   saveAlternating=alternating.get()))
         saveButton.grid(row=17, column=4, columnspan=3, pady=(20, 0))
 
-        quitButton = tk.Button(self.specifyWindow, text='Quit without saving', command=lambda: self.quit_options())
+        quitButton = tk.Button(self.specifyWindow, text='Quit without saving',
+                               command=lambda: self.quit_options())
         quitButton.grid(row=17, columnspan=3, pady=(20, 0))
 
         self.root.wait_window(self.specifyWindow)
@@ -167,13 +171,13 @@ class optionsWindowClass():
         if (fullNote.get() == True):
             noteValuesList.append(1)
         if (halfNote.get() == True):
-            noteValuesList.append(1/2)
+            noteValuesList.append(1 / 2)
         if (quarterNote.get() == True):
-            noteValuesList.append(1/4)
+            noteValuesList.append(1 / 4)
         if (eighthNote.get() == True):
-            noteValuesList.append(1/8)
+            noteValuesList.append(1 / 8)
         if (sixteenthNote.get() == True):
-            noteValuesList.append(1/16)
+            noteValuesList.append(1 / 16)
 
         return noteValuesList
 
@@ -184,8 +188,9 @@ class optionsWindowClass():
 
         @return: Note pitches description.
         """
-        
+
         return noteRangeMap[self.taskParameters.note_range_left]
+
     def check_pitches_right(self):
         """
         Matches a description to the user-selected note pitches.
@@ -195,14 +200,13 @@ class optionsWindowClass():
 
         return noteRangeMap[self.taskParameters.note_range_right]
 
-
     def get_pitches_left(self):
         """
         Matches the user-selected note pitch description to the respective list.
 
         @return: Note pitches list.
         """
-        
+
         return noteRangeMap[chosenpitches_left.get()]
 
     def get_pitches_right(self):
@@ -220,12 +224,14 @@ class optionsWindowClass():
 
         @return: None
         """
-        l7 = tk.Label(self.specifyWindow, text=" Error: \n At least one note value and \n one hand must be selected.",
-             fg = "red")
-        l7.grid(row=16,column = 2, columnspan=4, sticky=tk.W)
+        l7 = tk.Label(self.specifyWindow,
+                      text=" Error: \n At least one note value and \n one hand must be selected.",
+                      fg="red")
+        l7.grid(row=16, column=2, columnspan=4, sticky=tk.W)
 
     # save settings to generate a new task with it
-    def save_settings(self, saveBPM, saveBarNumber, saveNotesPerBar, saveRightHand, saveLeftHand, saveAlternating):
+    def save_settings(self, saveBPM, saveBarNumber, saveNotesPerBar, saveRightHand, saveLeftHand,
+                      saveAlternating):
         """
         Saves the settings selected in the options window.
         Invoked when clicking the 'save' button. The options will be applied to
@@ -238,11 +244,12 @@ class optionsWindowClass():
         @param saveLeftHand: True for generating notes for the left hand.
         @return: None
         """
-        if (saveRightHand == False and saveLeftHand == False) or not self.get_noteValues(): # FIXME or not self.get_pitches():
+        if (
+                saveRightHand == False and saveLeftHand == False) or not self.get_noteValues():  # FIXME or not self.get_pitches():
             self.show_empty_list_error()
         else:
             self.taskParameters.bpm = saveBPM
-            self.taskParameters.noOfBars =  saveBarNumber
+            self.taskParameters.noOfBars = saveBarNumber
             self.taskParameters.maxNotesPerBar = int(saveNotesPerBar)
             self.taskParameters.noteValues = self.get_noteValues()
             self.taskParameters.note_range_left = self.get_pitches_left()
@@ -251,6 +258,7 @@ class optionsWindowClass():
             self.taskParameters.right = saveRightHand
             self.taskParameters.alternating = saveAlternating
             self.specifyWindow.destroy()
+
     def quit_options(self):
         """
         Closes the options window without saving changes.
