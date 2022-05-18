@@ -13,9 +13,11 @@ if socket.gethostname() == 'DESKTOP-17671':
     INSTRUM_DRUMS = 0 #9
     INSTRUM_DEXMO = 0
 
-    PITCH_METRO_HI = 39
+    #PITCH_METRO_HI = 39
+    PITCH_METRO_HI = 42
     PITCH_METRO_LO = 42
-    VOLUME = 100
+
+    VOLUME = 80
     TIME_AT_START = 0  # start at the beginning
 
     INTRO_BARS = 1  # no. of empty first bars for metronome intro

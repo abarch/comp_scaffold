@@ -86,8 +86,8 @@ def startTask():
         threadHandler.startThreads(inputFileStrs[2], guidanceMode,
                                    scheduler.current_task_data(), taskParameters,
                                    useVisualAttention=useVisualAttention.get())
-    df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
-                                                  taskParameters, note_errorString, config.participant_id, config.freetext)
+    #df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
+    #                                              taskParameters, note_errorString, config.participant_id, config.freetext)
     if difficultyScaling:
         next_level = difficulty.thresholds(df_error)
         print("Next Level", next_level)
@@ -101,6 +101,11 @@ def startTask():
     if not midiSaved:
         saveMidiAndXML(targetNotes, scheduler.current_task_data(), taskParameters)
         midiSaved = True
+
+    df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
+                                                  taskParameters, note_errorString, config.participant_id,
+                                                  config.freetext)
+
 
     # create entry containing actual notes in XML
     fileIO.createTrialEntry(outputDir, currentMidi, timestr, guidanceMode, actualNotes, errorVal)
@@ -172,6 +177,7 @@ def saveMidiAndXML(targetNotes, taskData, taskParameters):
     # currOptions = [bpm, numberOfBars, maxNotePerBar, noteValuesList, noteRangePerHand, twoHandsTup]
     fileIO.createXML(outputDir, timestr, taskParameters.astuple(), targetNotes)
 
+    config.savedFileName = timestr + '.xml'
 
 def getCurrentTimestamp():
     """
@@ -901,6 +907,8 @@ def openSavedFile():
     except:
         print("didn't find metronome and/or dexmo files")
 
+    midiSaved = False # create a new mid and xml file after loading a saved midi file
+
     custom_bpm = int(midiBPM.get("1.0",'end-1c'))
     if custom_bpm > 0:
         # change tempo to custom tempo
@@ -932,7 +940,7 @@ def openSavedFile():
         print("xml file was not found")
 
     config.fromFile = True
-    config.LoadedFileName = midi_file
+    config.loadedFileName = midi_file
     config.customBPM = int(midiBPM.get("1.0", 'end-1c'))
     print("data with new bpm:", taskData, taskParameters)
     scheduler.add_task_from_file(taskData, taskParameters)

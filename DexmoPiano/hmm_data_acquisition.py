@@ -5,6 +5,8 @@ from datetime import datetime
 
 import pandas as pd
 
+import config
+
 
 def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString, user_id, free_text):
     """
@@ -49,16 +51,23 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
     dic_error['time'] = time
     dic_error['user_id'] = user_id
     dic_error['free_text'] = free_text
+    dic_error['saved_filename'] = config.savedFileName
     dic_error['practice_mode'] = task_data.practice_mode
     dic_error['bpm'] = taskParameters.bpm
     dic_error['number_of_bars'] = taskParameters.noOfBars
     dic_error['complexityLevel'] = str(complexityLevel)
+
+    if config.fromFile is True:
+        dic_error['loaded_filename'] = config.loadedFileName
+    else:
+        dic_error['loaded_filename'] = ''
+
     for hand in ['_right', '_left']:
         if hand == '_right':
             error = errorVecRight
         else:
             error = errorVecLeft
-        dic_error['pitch'+hand] = error.pitch
+#        dic_error['pitch'+hand] = error.pitch
         dic_error['note_hold_time'+hand] = error.note_hold_time
         dic_error['timing'+hand] = error.timing
         dic_error['n_missing_notes'+hand] = error.n_missing_notes

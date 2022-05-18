@@ -11,10 +11,15 @@ currentMidi = "midi_test"
 
 str_date = ""
 playing_start_time = 0
-guidanceMode = ""
+guidanceMode = "At every note"
+#guidanceMode = ""
 timestr = ""
 participant_id = ""
 freetext = ""
+
+fromFile = False #indicates if the task is from file.
+loadedFileName = "" # the loaded file name
+savedFileName = "" # the file of the saved data of the run task.
 
 stopButton = ""
 
