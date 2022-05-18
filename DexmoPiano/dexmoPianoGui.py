@@ -57,6 +57,9 @@ difficulty_scaling = False
 complex_index = 0
 nodes = None
 
+root = tk.Tk()
+root.title("Piano with Dexmo")
+
 # Tk variables
 show_error_details = tk.BooleanVar()
 show_guidance = tk.BooleanVar()
@@ -67,10 +70,6 @@ use_visual_attention = tk.BooleanVar()
 node_params = tk.StringVar()
 
 # Tk view elements
-
-root = tk.Tk()
-root.title("Piano with Dexmo")
-
 dexmo_port_btn = None
 num_notes_warning_label = None
 hand_warning_label = None
