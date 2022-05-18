@@ -6,7 +6,7 @@ from datetime import datetime
 import pandas as pd
 
 
-def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString, user_id, free_text):
+def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString, user_id, free_text) -> pd.DataFrame:
     """
     Prints the error (observations) for the hmm into the *_error.csv file.
     Prints note specific errors into the *_notes.csv file.

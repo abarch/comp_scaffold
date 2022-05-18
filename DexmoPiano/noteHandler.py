@@ -79,7 +79,7 @@ def handleNote(noteType, pitch, velocity, noteInfoTemp, noteInfoList, timeFunc=g
             if config.showVerticalGuidance:
                 config.vnotes.update_key_released(pitch, time.time() - config.playing_start_time)  # update visual notes
         except AttributeError:
-            print("Called from loadUpTask")
+            pass
 
         final_note_info = adapt_noteinfo(note_info,
                                          note_off_time=timeFunc())

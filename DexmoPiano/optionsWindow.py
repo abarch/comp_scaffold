@@ -3,12 +3,12 @@ import tkinter as tk
 from task_generation.note_range_per_hand import noteRangePerHandDescription, noteRangeMap
 
 
-class optionsWindowClass():
+class OptionsWindowClass():
     """
     Class for the GUI's options window, accessible from the main window.
     """
 
-    def __init__(self, root, taskParamters):
+    def __init__(self, root, task_paramters):
         """
         Initializes necessary variables.
 
@@ -16,7 +16,7 @@ class optionsWindowClass():
         @param task_parameters: a TaskParameters object
         """
         self.root = root
-        self.taskParameters = taskParamters
+        self.taskParameters = task_paramters
 
         self.pitchesOptions_left = noteRangePerHandDescription
         self.pitchesOptions_right = noteRangePerHandDescription

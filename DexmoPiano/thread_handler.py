@@ -1,16 +1,21 @@
 # run midi player and keyboard input as separate threads
 # kill by Ctrl-C
 
+import imp
+import traceback
+import time
+from collections import defaultdict
 from threading import Thread
 
-import dexmoOutput
-from midiInput import MidiInputThread, empty_noteinfo
-from error_calc import functions as errorCalc
-from collections import defaultdict
-from midiOutput import MidiOutputThread
-import time
 import config
+import dexmoOutput
 import fileIO
+from task_generation.gp_experiment import Error
+from error_calc import functions
+from midiInput import MidiInputThread, empty_noteinfo
+from midiOutput import MidiOutputThread
+from openfaceInput import OpenFaceInput
+import noteHandler as nh
 
 # GLOBAL CONSTANTS
 MAX_NOTE = 128
@@ -37,7 +42,7 @@ def resetArrays():
     # targetTemp = [[-1, -1, -1]] * MAX_NOTE (PL)
 
 
-def initInputThread():
+def init_midi_keyboard_thread():
     """
     Initializes MIDI keyboard input thread.
 
@@ -86,7 +91,7 @@ def set_outport(portName):
         print("ERROR: outputThread was not defined yet")
 
 
-def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisualAttention=True):
+def start_midi_playback(midiFileLocation, guidance, task_data, use_visual_attention=True):
     """
     Starts the MIDI playback thread and activates the MIDI input handler.
     After the player thread terminates, the input handler is deactivated again.
@@ -103,8 +108,7 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
     inputThread.resetArrays()
     # outputThread.resetArrays()
 
-    if useVisualAttention:
-        from openfaceInput import OpenFaceInput
+    if use_visual_attention:
         ofi = OpenFaceInput()
         ofi.start()
 
@@ -126,87 +130,46 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
     # deactivate input handling
     inputThread.inputOff()
 
-    if useVisualAttention:
-        import time
+    if use_visual_attention:
         time.sleep(2)
         openface_data = ofi.stop()
 
         if openface_data is not None:
-            import noteHandler as nh
             midi_offset = nh.startTime
-
-            # note time = real_time - midi_offset
-            # of   time = real_time
             openface_data.timestamp = openface_data.timestamp - midi_offset
-
-    else:
-        openface_data = None
 
     # get array with actual notes
     actualTimes = inputThread.noteInfoList
 
-    ###TODO: remove/change
-    # print results
-    print("\n\n--- NOTES ---")
-    print("\nTarget notes:", targetTimes)
-    print("\nActual notes:", actualTimes)
-
     # COMPUTE ERROR (naive example)
     global errorDiff
-
-    # timeSums, errorDiff = errorCalc.computeError(targetTimes, actualTimes)
-    # print("\n\n--- ERRORS ---")
-    # print("\nTARGET TIME:", timeSums[0])
-    # print("\nACTUAl TIME:", timeSums[1])
-    # print("\nDIFFERENCE: ", errorDiff)
-
-    import imp
-    imp.reload(errorCalc)
 
     try:
         if len(actualTimes) == 0:  # i.e. they did not play
             print("No notes were played!!!")
-            return targetTimes, actualTimes, 99, 99, 99, task_data, 'No notes were played'
+            return targetTimes, actualTimes, 99, Error(pitch=0, timing=100), Error(pitch=0, timing=100), task_data, 'No notes were played'
 
         output_note_list, errorVec, errorVecLeft, errorVecRight = \
-            errorCalc.computeErrorEvo(task_data, actualTimes,
-                                      openface_data=openface_data,
+            functions.computeErrorEvo(task_data, actualTimes,
                                       inject_explanation=True,
                                       plot=False)
         print("task data", task_data.__dict__)
         print("\n\n--- ERRORS ---")
         print("\nNOTE_ERRORS:")
-        import shutil
-        cwidth = shutil.get_terminal_size().columns
 
-        # print("NOTES".center(cwidth, "+"))
         note_errorString = []
         for n in output_note_list:
             print(n.err_string())
             note_errorString.append(n.err_string(use_colors=False))
         print("\nSUMMED ERROR: ", errorVec)
-
         print("ERROR LEFT: ", errorVecLeft)
         print("ERROR RIGHT:", errorVecRight)
 
         # sum(errorVec[:7]): since errorVec[7] is the number of notes it is excluded from the sum
         return targetTimes, actualTimes, sum(errorVec[:7]), errorVecLeft, errorVecRight, task_data, note_errorString
     except:
-        import traceback
         traceback.print_exc()
-
         return targetTimes, actualTimes, 99
-
-
-###TODO: remove?
-def get_errors():
-    """
-    Returns the error (currently the naive prototype).
-
-    @return: Error value.
-    """
-    return errorDiff
-
 
 # Only record the user without playing the expected midi file.
 # If duration is set to 0, wait for the stop button to be pressed
@@ -239,16 +202,13 @@ def recordingFinished():
     # get array with actual notes
     actualTimes = inputThread.noteInfoList
 
-    ###TODO: remove/change
-    # print results
     print("\n\n--- NOTES ---")
     print("\nTarget notes:", targetTimes)
     print("\nActual notes:", actualTimes)
 
-    # COMPUTE ERROR (naive example)
     global errorDiff
 
-    timeSums, errorDiff = errorCalc.computeErrorOld(targetTimes, actualTimes)
+    timeSums, errorDiff = functions.computeErrorOld(targetTimes, actualTimes)
     print("\n\n--- ERRORS ---")
     print("\nTARGET TIME:", timeSums[0])
     print("\nACTUAl TIME:", timeSums[1])
@@ -260,10 +220,9 @@ def recordingFinished():
                      targetTimes)
 
     # create entry containing actual notes in XML
-    fileIO.createTrialEntry(config.outputDir,
-                            config.currentMidi + config.str_date + config.participant_id + "_" + config.freetext,
-                            config.timestr, config.guidanceMode,
-                            actualTimes, errorDiff)
-    ###TODO: remove (testing)
-    # fileIO.printXML(config.OUTPUT_DIR + config.current_midi + ".xml", True)
+    fileIO.create_trial_entry(config.outputDir,
+                              config.currentMidi + config.str_date + config.participant_id + "_" + config.freetext,
+                              config.timestr, config.guidanceMode,
+                              actualTimes, errorDiff)
+
     print("Created XML")

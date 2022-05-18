@@ -1,4 +1,7 @@
 import pathlib
+import pickle
+import shutil
+import time
 import tkinter as tk
 from tkinter import filedialog, NW
 from PIL import Image, ImageTk
@@ -11,15 +14,17 @@ import os
 import dexmoOutput
 import midiProcessing
 import config
-import threadHandler
+import thread_handler
+import hmm_data_acquisition, fileIO
 
-from optionsWindow import optionsWindowClass
+from pianoCapture import setupVisualNotes
+from task_generation.scheduler import Scheduler
 from task_generation.generator import TaskParameters
 
 OUTPUT_DIR = './output/'
 TEMP_DIR = './output/temp/'
-inputFileStrs = [TEMP_DIR + 'output.mid', TEMP_DIR + 'output-m.mid', TEMP_DIR + 'output-md.mid',
-                 TEMP_DIR + 'output.xml']
+OUTPUT_FILES_STRS = [TEMP_DIR + 'output.mid', TEMP_DIR + 'output-m.mid', TEMP_DIR + 'output-md.mid',
+                     TEMP_DIR + 'output.xml']
 OUTPUT_LY_STR = TEMP_DIR + 'output.ly'
 OUTPUT_PNG_STR = TEMP_DIR + 'output.png'
 
@@ -29,126 +34,544 @@ MIDI_TO_LY_WIN = "c:/Program Files (x86)/LilyPond/usr/bin/midi2ly"
 
 guidance_modes = ["None", "At every note", "Individual"]
 guidance_mode = "At every note"
-task_parameters = TaskParameters()
 
 first_start = True
-midi_bpm_label = None
 
 errors = []
 change_task = []
 
+midi_saved = False
+task_set = None
+
+difficulty_scaling = False
+complex_index = 0
+nodes = None
+
 root = tk.Tk()
+root.title("Piano with Dexmo")
+root.geometry("1500x1000")
+
+# Tk variables
+show_error_details = tk.BooleanVar()
+show_guidance = tk.BooleanVar()
+metronome = tk.BooleanVar()
+show_score_guidance = tk.IntVar(value=1)
+show_vertical_guidance = tk.IntVar(value=1)
+use_visual_attention = tk.BooleanVar()
+node_params = tk.StringVar()
+state_info = tk.StringVar()
+
+# Tk view elements
+dexmo_port_btn = None
+num_notes_warning_label = None
+hand_warning_label = None
+midi_bpm_label = None
+show_error_details_checkbox = None
+participant_id_text = None
+free_text = None
+canvas = None
+
+countdown_label = None
 
 # TODO: define real threshold for both tasks
 ERROR_THRESHOLD = 3
 EXIT_PRACTISE_MODE_THRESHOLD = 1
 
 
-class LearningState:
+class LearningState():
+
+    def __init__(self, scheduler: Scheduler, statemachine):
+        self.scheduler = scheduler
+        self.statemachine = statemachine
+
+    def _do_on_enter(self):
+        pass
+
+    def _do_on_exit(self):
+        pass
 
     def on_enter(self):
-        pass
+        self.clear_frame()
+        state_info_label = tk.Label(root, textvariable=state_info)
+        state_info_label.place(x=1050, y=720, height=60, width=150)
+        state_info.set(self.__class__.__name__)
+        self._do_on_enter()
 
     def on_exit(self):
-        pass
+        self._do_on_exit()
 
-    def next_state(self):
-        raise NotImplementedError("nextState() must be implemented in subclasses")
+    def clear_frame(self):
+        """
+        Destroys all widgets from the frame.
 
-    def is_end(self):
-        return False
+        @return: None
+        """
+        for widget in root.winfo_children():
+            widget.destroy()
+
+    def show_countdown(self, seconds=10):
+
+        countdown_string_var = tk.StringVar(value="Starting in: " + str(seconds))
+
+        countdown_label = tk.Label(root, textvariable=countdown_string_var)
+        countdown_label.place(x=10, y=10, height=50,
+                              width=150)
+
+        while seconds > 0:
+            countdown_string_var.set("Starting in: " + str(seconds))
+            countdown_label.update_idletasks()
+            time.sleep(1)
+            seconds -= 1
+
+        countdown_label.destroy()
+        countdown_label.update_idletasks()
+
+    def show_primary_next_state_btn(self, text, state):
+        tk.Button(root, text=text,
+                  command=lambda: statemachine.to_next_state(state)).place(
+            x=10, y=10,
+            height=50,
+            width=150)
+
+    def show_secondary_next_state_btn(self, text, state):
+        tk.Button(root, text=text,
+                  command=lambda: statemachine.to_next_state(state)).place(
+            x=10, y=80,
+            height=50,
+            width=150)
+
+    def gen_ly_for_current_task(self):
+        """
+        Generates a .ly file (LilyPond format) from the current task's file (needed for png generation).
+        If the file is in MusicXML format, finger numbers are taken into account. This is not the case
+        for MIDI files.
+
+        @return: None
+        """
+        xml_generated = False
+        files = os.listdir(TEMP_DIR)
+        for item in files:
+            if item.endswith('.xml'):
+                xml_generated = True
+
+        # create png from music xml with fingernumbers
+        # or from midi without finger numbers, if to less notes are generated
+        if xml_generated:
+            self.delete_no_fingernumbers_warning()
+            subprocess.run(
+                [LILYPOND_PYTHON_EXE_WIN if os.name == 'nt' else 'musicxml2ly', XMl_2_LY_WIN_FOLDER,
+                 OUTPUT_FILES_STRS[3], '--output=' + OUTPUT_LY_STR],
+                stderr=subprocess.DEVNULL)
+
+        else:
+            self.add_no_fingernumbers_warning()
+            if os.name == 'nt':
+                subprocess.run([LILYPOND_PYTHON_EXE_WIN, MIDI_TO_LY_WIN,
+                                OUTPUT_FILES_STRS[0], '--output=' + OUTPUT_LY_STR],
+                               stderr=subprocess.DEVNULL)
+            else:
+                subprocess.run(['midi2ly',
+                                OUTPUT_FILES_STRS[0], '--output=' + OUTPUT_LY_STR],
+                               stderr=subprocess.DEVNULL)
+
+    def add_no_fingernumbers_warning(self):
+        """
+        Creates a warning in case that a created or selected MIDI has only to less notes to
+        show fingernumbers.
+
+        @return: None
+        """
+        global too_few_notes_generated_warning
+        too_few_notes_generated_warning = tk.Label(root,
+                                                   text=" Info: \n Too few notes generated to show\n fingernumbers on music sheet.",
+                                                   fg="red")
+        too_few_notes_generated_warning.place(x=1030, y=770, width=250, height=100)
+
+    def delete_no_fingernumbers_warning(self):
+        """
+        Removes the warning created by add_no_fingernumbers_warning().
+
+        @return: None
+        """
+        global too_few_notes_generated_warning
+        too_few_notes_generated_warning = tk.Label(root, text="")
+        too_few_notes_generated_warning.place(x=1030, y=770, width=250, height=100)
+
+    def init_training_interface(self):
+        """
+        Create several GUI buttons
+
+        @return: None
+        """
+        global participant_id_text, free_text
+        global midi_bpm_label
+        global show_score_guidance, show_vertical_guidance
+
+        show_vertical_guidance_checkbutton = tk.Checkbutton(root, text='Show vertical guidance',
+                                                            variable=show_vertical_guidance,
+                                                            command=update_guidance)
+        show_vertical_guidance_checkbutton.place(x=1050, y=300, height=50, width=150)
+        config.showVerticalGuidance = show_vertical_guidance.get()
+
+        node_params.set("")
+        tk.Label(root, textvariable=node_params, font=("Courier", 12)).place(x=10, y=40)
+
+        metronome.set(dexmoOutput.metronome)
+        check_metronome = tk.Checkbutton(root, text='play metronome', variable=metronome,
+                                         command=dexmoOutput.set_metronome)
+        check_metronome.place(x=10, y=200)
+
+        l = tk.Label(root, text=" Guidance mode:")
+        l.place(x=10, y=220, width=150, height=70)
+
+        guidance = tk.StringVar(root)
+        guidance.set(guidance_mode)
+
+        guidance_option_menu = tk.OptionMenu(root, guidance, *guidance_modes, command=set_guidance)
+        guidance_option_menu.place(x=10, y=270, width=150, height=30)
+
+        # Scalebar to change BPM in loaded MIDI File
+        l = tk.Label(root, text=" BPM for loaded MIDI File:")
+        l.place(x=10, y=550)
+
+        midi_bpm_text = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1, height=1,
+                                width=10,
+                                state=tk.NORMAL)
+        midi_bpm_text.place(x=10, y=580)
+        midi_bpm_text.insert(tk.INSERT, 0)
+
+        use_visual_attention.set(False)
+        chk = tk.Checkbutton(root, text='Use Visual Attention', variable=use_visual_attention)
+        chk.place(x=0, y=735)
+
+        tk.Button(root, text='Back to Menu',
+                  command=lambda: statemachine.to_next_state(statemachine.main_menu_state)).place(
+            x=10, y=940,
+            height=50,
+            width=150)
+
+        participant_id_text = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1,
+                                      state=tk.NORMAL)
+        participant_id_text.place(x=1050, y=480, height=25, width=150)
+        participant_id_text.insert(tk.INSERT, "Enter ID")
+
+        free_text = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1)
+        free_text.place(x=1050, y=520, height=60, width=150)
+        free_text.insert(tk.INSERT, "Free text")
+
+    def show_note_sheet(self, png_file: str):
+        """
+        Loads the note sheet (png) for the current task.
+
+        @param png: Image file (png format).
+        @return: None
+        """
+        background = Image.open(png_file)
+        background = background.convert("RGBA")
+
+        img = ImageTk.PhotoImage(background)
+        panel = tk.Label(root, image=img)
+        panel.image = img
+        panel.place(x=170, y=0, width=835, height=1181)
+
+    def play_song(self, task_parameters: TaskParameters):
+        targetNotes, actualNotes, errorVal, error_vec_left, error_vec_right, task_data, note_error_str = \
+            thread_handler.start_midi_playback(OUTPUT_FILES_STRS[2], guidance_mode,
+                                               self.scheduler.current_task_data(),
+                                               use_visual_attention=use_visual_attention.get())
+        df_error = hmm_data_acquisition.save_hmm_data(error_vec_left, error_vec_right, task_data,
+                                                      task_parameters, note_error_str,
+                                                      config.participant_id, config.free_text)
+        self.save_midi_and_xml(targetNotes, self.scheduler.current_task_data(), task_parameters)
+        timestamp = get_current_timestamp()
+        # create entry containing actual notes in XML
+        fileIO.create_trial_entry(OUTPUT_DIR, timestamp, timestamp, guidance_mode, actualNotes,
+                                  errorVal)
+        add_error_plot()
+        summed_left = df_error.Summed_left
+        summed_right = df_error.Summed_right
+
+        # TODO: calc pitch, timing and
+        return summed_left + summed_right
+
+    def save_midi_and_xml(self, target_notes, task_data, task_parameters):
+        """
+        Saves the MIDI and the XML file to the globally defined output folder.
+
+        @param target_notes: List of notes to be played by the user.
+        @param task_data: a class with all task data.
+        @param task_parameters: a list of the parameters that generated the task.
+        @return: None
+        """
+
+        time_str = get_current_timestamp()
+
+        # MIDI
+        shutil.copy(OUTPUT_FILES_STRS[0], OUTPUT_DIR + time_str + '.mid')
+        shutil.copy(OUTPUT_FILES_STRS[1], OUTPUT_DIR + time_str + '-m.mid')
+        shutil.copy(OUTPUT_FILES_STRS[2], OUTPUT_DIR + time_str + '-md.mid')
+
+        # save task_data and task Parameters to pickle file
+        data_to_save = [task_data, task_parameters]
+
+        with open(OUTPUT_DIR + time_str + '-data.task', 'wb') as f:
+            pickle.dump(data_to_save, f)
+
+        fileIO.createXML(OUTPUT_DIR, time_str, task_parameters.astuple(), target_notes)
 
 
-class ShowCompleteSong(LearningState):
+class MenuState(LearningState):
 
-    def on_enter(self):
-        midi_file = filedialog.askopenfilename(
-            filetypes=[("Midi files", ".midi .mid")])
-        midiProcessing.generate_metronome_and_fingers_for_midi(task_parameters.left,
-                                                               task_parameters.right,
-                                                               inputFileStrs,
+    def _do_on_enter(self):
+
+        tk.Button(root, text='Start GP learning',
+                  command=self.start_if_ports_are_set) \
+            .place(x=675, y=560, height=50, width=150)
+        tk.Button(root, text='Quit',
+                  command=lambda: statemachine.to_next_state(statemachine.end_state)) \
+            .place(x=675, y=500, height=50, width=150)
+
+        self.create_port_drop_down_menus()
+
+    def start_if_ports_are_set(self):
+        if dexmoOutput.midi_interface_sound != "None" and thread_handler.portname != "None":
+            statemachine.to_next_state(statemachine.show_complete_song)
+
+    def create_port_drop_down_menus(self):
+        """
+        Creates drop-down menus for choosing the ports for MIDI input/output and Dexmo
+        in the start window.
+
+        @return: None
+        """
+        global dexmo_port_btn, first_start
+
+        # CONSTANTS
+        x_pos = 660
+        x_diff = 10
+        y_diff = 40
+        text_height = 50
+        field_height = 25
+        width = 200
+
+        def create_port_btn(portText, findStr, yPos, portList, set_port):
+            """
+            Creates a port menu and matches the current MIDI ports for a preselection.
+            Example: If Dexmo is connected, a port having "Dexmo" in its name will be preselected.
+                     If nothing is found, the user needs to selection the desired port manually.
+
+            @param portText: Text of the port menu description.
+            @param findStr: Keyword for matching the port (e.g. "Dexmo").
+            @param yPos: Vertical position offset for description and menu.
+            @param portList: List of currently existing MIDI ports.
+            @param set_port: Function for setting the port in the respective file.
+            @return: MIDI port name (global).
+            """
+            # place button label (text)
+            port_label = tk.Label(root, text=portText + " port:")
+            port_label.place(x=x_pos, y=yPos, height=text_height, width=width)
+
+            # match port
+            midi_port = tk.StringVar(root)
+            if first_start:
+                matching = [s for s in portList if findStr in s.lower()]
+                if matching:
+                    midi_port.set(matching[0])
+                else:
+                    midi_port.set("None")
+
+                set_port(midi_port.get())
+            else:
+                if portText == "Dexmo output":
+                    midi_port.set(dexmoOutput.midi_interface)
+                elif portText == "Sound output":
+                    midi_port.set(dexmoOutput.midi_interface_sound)
+                elif portText == "Piano input":
+                    midi_port.set(thread_handler.portname)
+
+            option_menu = tk.OptionMenu(root, midi_port, *portList, command=set_port)
+            option_menu.place(x=x_pos - x_diff, y=yPos + y_diff, height=field_height, width=width)
+
+            return midi_port
+
+        # choose outport for (Lego)Dexmo etc
+        outports, inports = dexmoOutput.get_midi_interfaces()
+        outports.append("None")
+        inports.append("None")
+
+        # create port buttons with automatic port name choice (if possible)
+        dexmo_port_btn = create_port_btn("Dexmo output", "dexmo", 680, outports,
+                                         dexmoOutput.set_dexmo)
+
+        create_port_btn("Sound output", "qsynth", 760, outports,
+                        dexmoOutput.set_sound_outport)
+        create_port_btn("Piano input", "vmpk", 840, inports, thread_handler.set_inport)
+
+        first_start = False
+
+
+class SelectCompleteSongState(LearningState):
+
+    def __init__(self, scheduler: Scheduler, statemachine):
+        super().__init__(scheduler, statemachine)
+        self.task_parameters = TaskParameters()
+
+    def _do_on_enter(self):
+        self.init_training_interface()
+
+        midi_file = None
+
+        while midi_file is None or len(midi_file) == 0:
+            midi_file = filedialog.askopenfilename(
+                filetypes=[("Midi files", ".midi .mid")])
+
+        self.show_primary_next_state_btn('Play Complete Song',
+                                         PlayCompleteSong(self.scheduler, self.statemachine,
+                                                          self.task_parameters))
+
+        midiProcessing.generate_metronome_and_fingers_for_midi(self.task_parameters.left,
+                                                               self.task_parameters.right,
+                                                               OUTPUT_FILES_STRS,
                                                                midi_file,
                                                                )
-        gen_ly_for_current_task()
+        self.gen_ly_for_current_task()
         subprocess.run(['lilypond', '--png', '-o', TEMP_DIR, OUTPUT_LY_STR],
                        stderr=subprocess.DEVNULL)
-        load_note_sheet(OUTPUT_PNG_STR)
-        check_dexmo_connected(mainWindow=True)
+        self.show_note_sheet(OUTPUT_PNG_STR)
+        self.check_dexmo_connected(main_window=True)
 
-    def next_state(self):
-        return feedback_state
+    def check_dexmo_connected(self, main_window):
+        """
+        Checks if Dexmo is connected and changes the list of feasible guidance modes accordingly.
 
+        @param main_window: True if the current window is the main window.
+        @return: None
+        """
 
-class FeedbackState(LearningState):
-
-    def on_enter(self):
-        add_error_plot()
-
-    def next_state(self):
-        return None
-
-    def is_end(self):
-        return True
-
-
-class CalcError(LearningState):
-
-    def get_next_state(self):
-        error = 0
-        # TODO: How to calculate error?
-        if error < ERROR_THRESHOLD:
-            return calc_error_state
+        global guidance_modes, guidance_mode
+        if dexmo_port_btn.get() == "None":
+            guidance_modes = ["None"]
+            guidance_mode = "None"
+            if main_window:
+                self.add_dexmo_Warning()
         else:
-            return end_state
+            guidance_modes = ["None", "At every note", "Individual"]
+
+    def add_dexmo_Warning(self):
+        """
+        Creates a warning in case that Dexmo is not connected.
+
+        @return: None
+        """
+        tk.Label(root, text=" Warning: \n No Dexmo connected, \n no guidance possible.",
+                 fg="red").place(x=10, y=300, width=150, height=70)
+
+
+class PlayCompleteSong(LearningState):
+
+    def __init__(self, scheduler: Scheduler, statemachine, task_parameters):
+        super().__init__(scheduler, statemachine)
+        self.task_parameters = task_parameters
+
+    def _do_on_enter(self):
+        self.init_training_interface()
+        self.show_note_sheet(OUTPUT_PNG_STR)
+
+        root.update_idletasks()
+
+        self.scheduler.get_next_task(task_parameters=self.task_parameters)
+
+        task = self.scheduler.current_task_data()
+
+        midiProcessing.generateMidi(task, outFiles=OUTPUT_FILES_STRS)
+
+        self.show_countdown(5)
+
+        total_error = self.play_song(self.task_parameters)
+
+        if total_error > ERROR_THRESHOLD:
+            self.show_primary_next_state_btn('Start learning',
+                                             PractiseModeState(self.scheduler, self.statemachine,
+                                                               total_error))
+            self.show_secondary_next_state_btn('Select new Song', statemachine.show_complete_song)
+        else:
+            self.show_primary_next_state_btn('Select new Song', statemachine.show_complete_song)
+            self.show_secondary_next_state_btn('Start learning',
+                                               PractiseModeState(self.scheduler, self.statemachine,
+                                                                 total_error))
 
 
 class PractiseModeState(LearningState):
 
-    def get_next_state(self):
-        return feedback_state
+    def __init__(self, scheduler: Scheduler, statemachine, error_form_last_state):
+        super().__init__(scheduler, statemachine)
+        self.error_form_last_state = error_form_last_state
+
+    def get_next_task_parameters(self):
+        # TODO: Logic with gaussian processing by using error_form_last_state
+        return TaskParameters()
+
+    def _do_on_enter(self):
+        self.init_training_interface()
 
 
-class EndOfOnePractiseItterationState(LearningState):
 
-    def get_next_state(self):
-        # TODO: Add case when user want to exit practise loop
-        user_forced_exit = False
-        # TODO: How to calc error?
-        error = 0
-        if user_forced_exit:
-            return show_complete_song
+        self.show_note_sheet(OUTPUT_PNG_STR)
+        root.update_idletasks()
+        task_parameters = self.get_next_task_parameters()
+        self.scheduler.get_next_task(task_parameters=task_parameters)
+        task = self.scheduler.current_task_data()
+
+        # TODO: Generate midi file based on task_parameters insted of select it in each iteration
+        midi_file = None
+
+        while midi_file is None or len(midi_file) == 0:
+            midi_file = filedialog.askopenfilename(
+                filetypes=[("Midi files", ".midi .mid")])
+
+        midiProcessing.generate_metronome_and_fingers_for_midi(task_parameters.left,
+                                                               task_parameters.right,
+                                                               OUTPUT_FILES_STRS,
+                                                               midi_file,
+                                                               )
+        self.gen_ly_for_current_task()
+        subprocess.run(['lilypond', '--png', '-o', TEMP_DIR, OUTPUT_LY_STR],
+                       stderr=subprocess.DEVNULL)
+        self.show_note_sheet(OUTPUT_PNG_STR)
+
+        midiProcessing.generateMidi(task, outFiles=OUTPUT_FILES_STRS)
+
+        self.show_countdown(5)
+
+        total_error = self.play_song(task_parameters)
+
+        if total_error > ERROR_THRESHOLD:
+            self.show_primary_next_state_btn('Resume Learning',
+                                             PractiseModeState(self.scheduler, self.statemachine,
+                                                               total_error))
+            self.show_secondary_next_state_btn('Select new Song', statemachine.show_complete_song)
         else:
-            if error < ERROR_THRESHOLD:
-                return show_complete_song
-            else:
-                return practise_mode_state
+            self.show_primary_next_state_btn('Select new Song', statemachine.show_complete_song)
+            self.show_secondary_next_state_btn('Resume Learning',
+                                               PractiseModeState(self.scheduler, self.statemachine,
+                                                                 total_error))
 
 
 class EndState(LearningState):
 
-    def is_end(self):
-        return True
-
-
-show_complete_song = ShowCompleteSong()
-feedback_state = FeedbackState()
-calc_error_state = CalcError()
-practise_mode_state = PractiseModeState()
-
-end_state = EndState()
+    def _do_on_enter(self):
+        quit()
 
 
 class Statemachine:
 
     def __init__(self):
-        self.current_state = show_complete_song
+        self.scheduler = Scheduler()
+        self.main_menu_state = MenuState(self.scheduler, self)
+        self.show_complete_song = SelectCompleteSongState(self.scheduler, self)
+        self.end_state = EndState(self.scheduler, self)
 
-    def start(self):
-        show_complete_song.on_enter()
-        next_state = show_complete_song.next_state()
-        # TODO: Replace dummy loop by call switch in btns or after events are done
-        while next_state is not None and not self.current_state.is_end():
-            self.to_next_state(next_state)
+        self.current_state = self.main_menu_state
 
     def to_next_state(self, next_state):
         self.current_state.on_exit()
@@ -162,6 +585,9 @@ def add_error_plot():
 
     @return: None
     """
+
+    global show_error_details_checkbox, show_error_details, canvas
+
     tk.Label(root, text=" Error visualization:").place(x=1200, y=10, width=150, height=20)
 
     fig = Figure(figsize=(9, 6), facecolor="white")
@@ -181,23 +607,20 @@ def add_error_plot():
     axis.axhline(y=0.2, color="red", linestyle="--")
 
     axis.set_xticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    # axis.set_xticks(xvalues)
     axis.set_yticks([0, 1, 2, 3])
     axis.set_ylim(0, 4)
     axis.set_xlabel("Trials")
     axis.set_ylabel("Error")
-    # axis.legend()
     axis.grid()
 
     canvas = FigureCanvasTkAgg(fig, master=root)
     canvas._tkcanvas.place(x=1050, y=30, width=400, height=400)
 
-    global checkbox, details
-    details = tk.BooleanVar()
-    details.set(False)
-    checkbox = tk.Checkbutton(root, text='show error show_error_details', command=add_error_details,
-                              var=details)
-    checkbox.place(x=1050, y=440)
+    show_error_details.set(False)
+    show_error_details_checkbox = tk.Checkbutton(root, text='show error show_error_details',
+                                                 command=add_error_details,
+                                                 variable=show_error_details)
+    show_error_details_checkbox.place(x=1050, y=440)
 
 
 def add_error_details():
@@ -206,6 +629,8 @@ def add_error_details():
 
     @return: None
     """
+
+    global canvas
     fig = Figure(figsize=(9, 6), facecolor="white")
     axis = fig.add_subplot(111)
     x = np.linspace(0, 10, 1000)
@@ -236,39 +661,21 @@ def add_error_details():
     canvas = FigureCanvasTkAgg(fig, master=root)
     canvas._tkcanvas.place(x=1050, y=30, width=400, height=400)
 
-    global checkbox, details
-    details = tk.BooleanVar()
-    details.set(True)
-    checkbox = tk.Checkbutton(root, text='show error show_error_details', command=add_error_plot, var=details)
-    checkbox.place(x=1050, y=440)
+    global show_error_details_checkbox, show_error_details
+    show_error_details = tk.BooleanVar()
+    show_error_details.set(True)
+    show_error_details_checkbox = tk.Checkbutton(root, text='show error show_error_details',
+                                                 command=add_error_plot,
+                                                 variable=show_error_details)
+    show_error_details_checkbox.place(x=1050, y=440)
 
 
-def clear_frame():
-    """
-    Destroys all widgets from the frame.
+def update_guidance():
+    global showNotes1, showNotes2, show_vertical_guidance, canvas, piano_img, hand_img
 
-    @return: None
-    """
-    for widget in root.winfo_children():
-        widget.destroy()
+    config.showVerticalGuidance = show_vertical_guidance.get()
 
-
-def backToMenu():
-    """
-    Switches from main to start window.
-
-    @return: None
-    """
-    clear_frame()
-    load_start_menu()
-
-
-def updateGuidance():
-    global showNotes1, showNotes2, showScoreGuidance, showVerticalGuidance, canvas, piano_img, hand_img
-
-    config.showVerticalGuidance = showVerticalGuidance.get()
-
-    if showVerticalGuidance.get() == 0:
+    if show_vertical_guidance.get() == 0:
         canvas.create_rectangle(0, 200, 500, 600, fill='white', outline='white')
     else:
         setupVisualNotes()
@@ -286,297 +693,23 @@ def updateGuidance():
         canvas.create_image(470, 300, anchor=NW, image=hand_img)
 
 
-def load_gp_training_interface():
-    """
-    Create several GUI buttons (start demo, start task etc.).
-
-    @return: None
-    """
-    global node_params
-    global currentMidi, metronome
-    global showScoreGuidance, showVerticalGuidance
-    global id_textbox, freetext
-    global midi_bpm_label
-
-    showScoreGuidance = tk.IntVar(value=1)
-    showVerticalGuidance = tk.IntVar(value=1)
-    showVerticalGuidanceCheck = tk.Checkbutton(root, text='Show vertical guidance',
-                                               variable=showVerticalGuidance,
-                                               command=updateGuidance)
-    showVerticalGuidanceCheck.place(x=1050, y=300, height=50, width=150)
-    config.showVerticalGuidance = showVerticalGuidance.get()
-
-    node_params = tk.StringVar()
-    node_params.set("")
-    tk.Label(root, textvariable=node_params, font=("Courier", 12)).place(x=10, y=40)
-
-    # add button to disable metronome sound
-    metronome = tk.BooleanVar()
-    metronome.set(dexmoOutput.metronome)
-    checkmetronome = tk.Checkbutton(root, text='play metronome', variable=metronome,
-                                    command=dexmoOutput.set_metronome)
-    checkmetronome.place(x=10, y=200)
-
-    ##  GUIDANCE Mode
-    l = tk.Label(root, text=" Guidance mode:")
-    l.place(x=10, y=220, width=150, height=70)
-    guidance = tk.StringVar(root)
-    guidance.set(guidance_mode)
-
-    guideopt = tk.OptionMenu(root, guidance, *guidance_modes, command=set_guidance)
-    guideopt.place(x=10, y=270, width=150, height=30)
-
-    # Scalebar to change BPM in loaded MIDI File
-    l = tk.Label(root, text=" BPM for loaded MIDI File:")
-    l.place(x=10, y=550)
-
-    midiBPM = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1, height=1, width=10,
-                      state=tk.NORMAL)
-    midiBPM.place(x=10, y=580)
-    midiBPM.insert(tk.INSERT, 0)
-
-    global useVisualAttention
-    useVisualAttention = tk.BooleanVar()
-    useVisualAttention.set(False)
-    chk = tk.Checkbutton(root, text='Use Visual Attention', var=useVisualAttention)
-    chk.place(x=0, y=735)
-
-    ## Back to Menu
-    tk.Button(root, text='Back to Menu', command=backToMenu).place(x=10, y=940, height=50,
-                                                                   width=150)
-
-    id_textbox = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1, state=tk.NORMAL)
-    id_textbox.place(x=1050, y=480, height=25, width=150)
-    id_textbox.insert(tk.INSERT, "Enter ID")
-
-    freetext = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1)
-    freetext.place(x=1050, y=520, height=60, width=150)
-    freetext.insert(tk.INSERT, "Free text")
-
-
-def load_note_sheet(png):
-    """
-    Loads the note sheet (png) for the current task.
-
-    @param png: Image file (png format).
-    @return: None
-    """
-    global background
-
-    background = Image.open(png)
-    background = background.convert("RGBA")
-    # width, height = background.size
-
-    img = ImageTk.PhotoImage(background)
-    panel = tk.Label(root, image=img)
-    panel.image = img
-    panel.place(x=170, y=0, width=835, height=1181)
-
-
-def add_no_fingernumbers_warning():
-    """
-    Creates a warning in case that a created or selected MIDI has only to less notes to
-    show fingernumbers.
-
-    @return: None
-    """
-    global numNotesWarning
-    numNotesWarning = tk.Label(root,
-                               text=" Info: \n Too few notes generated to show\n fingernumbers on music sheet.",
-                               fg="red")
-    numNotesWarning.place(x=1030, y=770, width=250, height=100)
-
-
-def delete_no_fingernumbers_warning():
-    """
-    Removes the warning created by add_no_fingernumbers_warning().
-
-    @return: None
-    """
-    global numNotesWarning
-    numNotesWarning = tk.Label(root, text="")
-    numNotesWarning.place(x=1030, y=770, width=250, height=100)
-
-
-def gen_ly_for_current_task():
-    """
-    Generates a .ly file (LilyPond format) from the current task's file (needed for png generation).
-    If the file is in MusicXML format, finger numbers are taken into account. This is not the case
-    for MIDI files.
-
-    @return: None
-    """
-    xmlGenerated = False
-    files = os.listdir(TEMP_DIR)
-    for item in files:
-        if item.endswith('.xml'):
-            xmlGenerated = True
-
-    # create png from music xml with fingernumbers
-    # or from midi without finger numbers, if to less notes are generated
-    if xmlGenerated:
-        delete_no_fingernumbers_warning()
-        subprocess.run(
-            [LILYPOND_PYTHON_EXE_WIN if os.name == 'nt' else 'musicxml2ly', XMl_2_LY_WIN_FOLDER,
-             inputFileStrs[3], '--output=' + OUTPUT_LY_STR],
-            stderr=subprocess.DEVNULL)
-
-    else:
-        add_no_fingernumbers_warning()
-        if os.name == 'nt':
-            subprocess.run([LILYPOND_PYTHON_EXE_WIN, MIDI_TO_LY_WIN,
-                            inputFileStrs[0], '--output=' + OUTPUT_LY_STR],
-                           stderr=subprocess.DEVNULL)
-        else:
-            subprocess.run(['midi2ly',
-                            inputFileStrs[0], '--output=' + OUTPUT_LY_STR],
-                           stderr=subprocess.DEVNULL)
-
-
-def start_gp_learning():
-    load_gp_training_interface()
-    Statemachine().start()
-
-
-def load_start_menu():
-    """
-    Loads the start window with buttons for starting the first task and
-    quitting the program.
-
-    @return: None
-    """
-    tk.Button(root, text='Start GP learning', command=start_gp_learning).place(x=675, y=560,
-                                                                               height=50,
-                                                                               width=150)
-    tk.Button(root, text='Quit', command=quit).place(x=675, y=500, height=50, width=150)
-    choose_ports()
-
-
-def choose_ports():
-    """
-    Creates drop-down menus for choosing the ports for MIDI input/output and Dexmo
-    in the start window.
-
-    @return: None
-    """
-    global dexmo_port_btn, first_start
-
-    # CONSTANTS
-    X_POS = 660
-    X_DIFF = 10
-    Y_DIFF = 40
-    TEXT_HEIGHT = 50
-    FIELD_HEIGHT = 25
-    WIDTH = 200
-
-    def createPortButton(portText, findStr, yPos, portList, setFunc):
-        """
-        Creates a port menu and matches the current MIDI ports for a preselection.
-        Example: If Dexmo is connected, a port having "Dexmo" in its name will be preselected.
-                 If nothing is found, the user needs to selection the desired port manually.
-
-        @param portText: Text of the port menu description.
-        @param findStr: Keyword for matching the port (e.g. "Dexmo").
-        @param yPos: Vertical position offset for description and menu.
-        @param portList: List of currently existing MIDI ports.
-        @param setFunc: Function for setting the port in the respective file.
-        @return: MIDI port name (global).
-        """
-        global first_start
-        # place button label (text)
-        l = tk.Label(root, text=portText + " port:")
-        l.place(x=X_POS, y=yPos, height=TEXT_HEIGHT, width=WIDTH)
-
-        # match port
-        midiPort = tk.StringVar(root)
-        if firstStart:
-            matching = [s for s in portList if findStr in s.lower()]
-            if matching:
-                midiPort.set(matching[0])
-            else:
-                midiPort.set("None")
-
-            setFunc(midiPort.get())
-        else:
-            if portText == "Dexmo output":
-                midiPort.set(dexmoOutput.midi_interface)
-            elif portText == "Sound output":
-                midiPort.set(dexmoOutput.midi_interface_sound)
-            elif portText == "Piano input":
-                midiPort.set(threadHandler.portname)
-
-        # place drop-down menu
-        options = tk.OptionMenu(root, midiPort, *portList, command=setFunc)
-        options.place(x=X_POS - X_DIFF, y=yPos + Y_DIFF, height=FIELD_HEIGHT, width=WIDTH)
-
-        return midiPort
-
-    # choose outport for (Lego)Dexmo etc
-    outports, inports = dexmoOutput.get_midi_interfaces()
-    outports.append("None")
-    inports.append("None")
-
-    # create port buttons with automatic port name choice (if possible)
-    dexmo_port_btn = createPortButton("Dexmo output", "dexmo", 680, outports, dexmoOutput.set_dexmo)
-    createPortButton("Sound output", "qsynth", 760, outports,
-                     dexmoOutput.set_sound_outport)
-    createPortButton("Piano input", "vmpk", 840, inports, threadHandler.set_inport)
-
-    firstStart = False
-
-
 def set_guidance(guidance):
-    """
-    Sets guidance mode globally.
-
-    @param guidance: Guidance mode.
-    @return: None
-    """
     global guidance_mode
-    guidanceMode = guidance
+    guidance_mode = guidance
 
 
-def add_dexmo_Warning():
-    """
-    Creates a warning in case that Dexmo is not connected.
-
-    @return: None
-    """
-    tk.Label(root, text=" Warning: \n No Dexmo connected, \n no guidance possible.",
-             fg="red").place(x=10, y=300, width=150, height=70)
-
-
-def check_dexmo_connected(mainWindow):
-    """
-    Checks if Dexmo is connected and changes the list of feasible guidance modes accordingly.
-
-    @param mainWindow: True if the current window is the main window.
-    @return: None
-    """
-
-    global guidance_modes, guidance_mode
-    if dexmo_port_btn.get() == "None":
-        GuidanceModeList = ["None"]
-        guidanceMode = "None"
-        if mainWindow:
-            add_dexmo_Warning()
-    else:
-        GuidanceModeList = ["None", "At every note", "Individual"]
+def get_current_timestamp() -> str:
+    return time.strftime("%Y_%m_%d-%H_%M_%S")
 
 
 if __name__ == '__main__':
     # create file output folder if it does not already exist
     pathlib.Path(TEMP_DIR).mkdir(exist_ok=True)
-    # Create a window and title
-    root.title("Piano with Dexmo")
 
-    threadHandler.initInputThread()
+    statemachine = Statemachine()
 
-    load_start_menu()
-    # Set the resolution of window
-    root.geometry("1500x1000")
+    thread_handler.init_midi_keyboard_thread()
 
-    check_dexmo_connected(mainWindow=False)
-    options = optionsWindowClass(root=root, taskParamters=task_parameters)
+    statemachine.to_next_state(statemachine.main_menu_state)
 
     root.mainloop()

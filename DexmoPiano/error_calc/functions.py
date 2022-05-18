@@ -1,14 +1,8 @@
-try:
-    from error_calc.explanation import get_explanation
-except:
-    from explanation import get_explanation
+from error_calc.explanation import get_explanation
+from error_calc.mappingEvo import get_mapping
 
 
-
-def computeErrorOld(targetNoteInfoList, actualNoteInfoList,
-                    openface_data=None,
-                    inject_explanation=False,
-                    plot=False):
+def computeErrorOld(targetNoteInfoList, actualNoteInfoList):
     """
     Naive example for error computation.
     Adds up all milliseconds where notes where pressed in either case.
@@ -20,7 +14,7 @@ def computeErrorOld(targetNoteInfoList, actualNoteInfoList,
     """
     # assert(plot==False), "dummy attr, to have same as other functions"
     # assert(inject_explanation==False), "dummy attr, to have same as other functions"
-    
+
     timeSums = []
 
     for noteInfoList in [targetNoteInfoList, actualNoteInfoList]:
@@ -36,42 +30,31 @@ def computeErrorOld(targetNoteInfoList, actualNoteInfoList,
 
     return timeSums, errorDiff
 
-def computeErrorLV(task_data, actualNoteInfoList, 
-                   openface_data=None,
+
+def computeErrorLV(task_data, actualNoteInfoList,
                    inject_explanation=True,
                    plot=False):
-    
-    from error_calc.mappingLevenshtein import get_mapping
-    
     mapping = get_mapping(task_data, actualNoteInfoList)
-    
-    error = get_explanation(task_data, actualNoteInfoList, 
+
+    error = get_explanation(task_data, actualNoteInfoList,
                             mapping,
-                            # task_infos=FAKE_TASK_INFO,
                             inject_explanation=inject_explanation,
                             plot=plot
                             )
-    
+
     return error
 
-def computeErrorEvo(task_data, actualNoteInfoList, 
-                    openface_data=None,
-                   inject_explanation=True,
-                   plot=False,
-                   interactive=False):
-    
-    from error_calc.mappingEvo import get_mapping
-    
+
+def computeErrorEvo(task_data, actualNoteInfoList,
+                    inject_explanation=True,
+                    plot=False,
+                    interactive=False):
     mapping = get_mapping(task_data, actualNoteInfoList,
                           interactive=interactive)
-    
-    error = get_explanation(task_data, actualNoteInfoList, 
-                            mapping,
-                            # task_infos=FAKE_TASK_INFO,
-                            inject_explanation=inject_explanation,
-                            plot=plot
-                            )
-    
-    return error
 
-    
+    error = get_explanation(task_data, actualNoteInfoList,
+                            mapping,
+                            inject_explanation=inject_explanation,
+                            plot=plot)
+
+    return error

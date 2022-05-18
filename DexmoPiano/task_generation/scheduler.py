@@ -8,7 +8,7 @@ from task_generation.task import TargetTask
 
 
 class Scheduler:
-    def __init__(self, load_next_task_func):
+    def __init__(self, load_next_task_func = None):
         ## load the heuristics
 
         self.task_queue = list()
@@ -54,9 +54,9 @@ class Scheduler:
         print("(SCHEDULER) task queue:", self.task_queue, "[", self.task_queue_index, "]")
         return self._current_target_task().current_task_data()
 
-    def get_next_task(self, taskParameters):
+    def get_next_task(self, task_parameters):
         if len(self.task_queue) == 0:
-            return self.get_new_target_task(taskParameters)
+            return self.get_new_target_task(task_parameters)
 
         if self._current_target_task().next_subtask_exists():
             return self._current_target_task().next_subtask()
@@ -65,7 +65,7 @@ class Scheduler:
             self.task_queue_index += 1
             return self.current_task_data()
 
-        return self.get_new_target_task(taskParameters)
+        return self.get_new_target_task(task_parameters)
 
     def get_previous_task(self):
         # try to go to the prev subtask of the current target task
@@ -119,7 +119,7 @@ class Scheduler:
                 # empty after pop
                 self.task_movement_eval_func(*self.task_movement_errors)
 
-            else:
+            elif self.load_next_task_func is not None:
                 self.load_next_task_func()
 
         else:

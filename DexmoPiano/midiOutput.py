@@ -1,6 +1,6 @@
 import mido
 
-import threadHandler
+import thread_handler
 import noteHandler as nh
 import config
 

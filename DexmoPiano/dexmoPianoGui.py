@@ -18,9 +18,9 @@ import dexmoOutput
 import fileIO
 import midiProcessing
 import config, difficulty, hmm_data_acquisition
-import threadHandler
+import thread_handler
 
-from optionsWindow import optionsWindowClass
+from optionsWindow import OptionsWindowClass
 from pianoCapture import setupVisualNotes
 from task_generation.generator import TaskParameters
 from task_generation.scheduler import Scheduler, threshold_info, complexity_error
@@ -34,8 +34,9 @@ OUTPUT_TEMP_DIR = './output/temp/'
 OUTPUT_FILES_STR = [OUTPUT_TEMP_DIR + 'output.mid', OUTPUT_TEMP_DIR + 'output-m.mid',
                     OUTPUT_TEMP_DIR + 'output-md.mid',
                     OUTPUT_TEMP_DIR + 'output.xml']
+
 OUTPUT_LY_STR = OUTPUT_TEMP_DIR + 'output.ly'
-OUTPUT_PNG_STR = OUTPUT_TEMP_DIR + 'output.png'
+OUTPUT_NOTE_SHEET_PNG = OUTPUT_TEMP_DIR + 'output.png'
 
 LILYPOND_PYTHON_EXE_WIN = "c:/Program Files (x86)/LilyPond/usr/bin/python.exe"
 XMl_2_LY_WIN_FOLDER = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly"
@@ -56,9 +57,6 @@ difficulty_scaling = False
 complex_index = 0
 nodes = None
 
-root = tk.Tk()
-root.title("Piano with Dexmo")
-
 # Tk variables
 show_error_details = tk.BooleanVar()
 show_guidance = tk.BooleanVar()
@@ -68,8 +66,11 @@ show_vertical_guidance = tk.IntVar(value=1)
 use_visual_attention = tk.BooleanVar()
 node_params = tk.StringVar()
 
-
 # Tk view elements
+
+root = tk.Tk()
+root.title("Piano with Dexmo")
+
 dexmo_port_btn = None
 num_notes_warning_label = None
 hand_warning_label = None
@@ -92,9 +93,9 @@ def start_task():
     config.freetext = free_text.get("1.0", 'end-1c')
 
     targetNotes, actualNotes, errorVal, errorVecLeft, errorVecRight, task_data, note_errorString = \
-        threadHandler.startThreads(OUTPUT_FILES_STR[2], guidance_mode,
-                                   scheduler.current_task_data(), task_parameters,
-                                   useVisualAttention=use_visual_attention.get())
+        thread_handler.start_midi_playback(OUTPUT_FILES_STR[2], guidance_mode,
+                                           scheduler.current_task_data(),
+                                           use_visual_attention=use_visual_attention.get())
     df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
                                                   task_parameters, note_errorString,
                                                   config.participant_id, config.freetext)
@@ -113,9 +114,7 @@ def start_task():
     timestamp = get_current_timestamp()
 
     # create entry containing actual notes in XML
-    fileIO.createTrialEntry(OUTPUT_DIR, timestamp, timestamp, guidance_mode, actualNotes, errorVal)
-    ###TODO: remove (testing)
-    fileIO.printXML(OUTPUT_DIR + timestamp + ".xml", True)
+    fileIO.create_trial_entry(OUTPUT_DIR, timestamp, timestamp, guidance_mode, actualNotes, errorVal)
 
     errors.append(abs(errorVal))
     show_error_plot()
@@ -194,7 +193,7 @@ def generate_next_task():
 
 
 def next_task():
-    scheduler.get_next_task(taskParameters=task_parameters)
+    scheduler.get_next_task(task_parameters=task_parameters)
     load_up_task()
 
 
@@ -235,7 +234,6 @@ def load_up_task(task_is_selected_by_user: bool = False, midi_file: str = OUTPUT
     # generate new midi
     else:
         # new task is correctly created
-        config.fromFile = False
         config.fileName = ""
 
         task = scheduler.current_task_data()
@@ -249,8 +247,8 @@ def load_up_task(task_is_selected_by_user: bool = False, midi_file: str = OUTPUT
 
     subprocess.run(['lilypond', '--png', '-o', OUTPUT_TEMP_DIR, OUTPUT_LY_STR],
                    stderr=subprocess.DEVNULL)
-    # clearFrame()
-    load_note_sheet(OUTPUT_PNG_STR)
+
+    load_note_sheet(OUTPUT_NOTE_SHEET_PNG)
 
     check_dexmo_connected(main_window=True)
     refresh_buttons()
@@ -356,7 +354,7 @@ def generate_and_show_note_sheet():
 
     @return: None
     """
-    if show_guidance.get():  # output_md anzeigen
+    if show_guidance.get():
         if os.name == 'nt':
             subprocess.run([LILYPOND_PYTHON_EXE_WIN, MIDI_TO_LY_WIN,
                             OUTPUT_FILES_STR[2], '--output=' + OUTPUT_LY_STR],
@@ -371,7 +369,7 @@ def generate_and_show_note_sheet():
 
     subprocess.run(['lilypond', '--png', '-o', OUTPUT_TEMP_DIR, OUTPUT_LY_STR],
                    stderr=subprocess.DEVNULL)
-    load_note_sheet(OUTPUT_PNG_STR)
+    load_note_sheet(OUTPUT_NOTE_SHEET_PNG)
 
 
 def specify_task():
@@ -829,7 +827,7 @@ def open_saved_midi_file():
 
     subprocess.run(['lilypond', '--png', '-o', OUTPUT_TEMP_DIR, OUTPUT_LY_STR],
                    stderr=subprocess.DEVNULL)
-    load_note_sheet(OUTPUT_PNG_STR)
+    load_note_sheet(OUTPUT_NOTE_SHEET_PNG)
 
     check_dexmo_connected(main_window=True)
     refresh_buttons()
@@ -932,7 +930,7 @@ def create_port_btn(portText: str, findStr: str, yPos: int, portList: [str],
         elif portText == "Sound output":
             midi_port.set(dexmoOutput.midi_interface_sound)
         elif portText == "Piano input":
-            midi_port.set(threadHandler.portname)
+            midi_port.set(thread_handler.portname)
 
     options_menu = tk.OptionMenu(root, midi_port, *portList, command=setFunc)
     options_menu.place(x=x_pos - x_diff, y=yPos + y_diff, height=field_height, width=width)
@@ -958,7 +956,7 @@ def create_port_drop_downs():
     dexmo_port_btn = create_port_btn("Dexmo output", "dexmo", 680, outports, dexmoOutput.set_dexmo)
     create_port_btn("Sound output", "qsynth", 760, outports,
                     dexmoOutput.set_sound_outport)
-    create_port_btn("Piano input", "vmpk", 840, inports, threadHandler.set_inport)
+    create_port_btn("Piano input", "vmpk", 840, inports, thread_handler.set_inport)
 
     first_start = False
 
@@ -970,13 +968,13 @@ if __name__ == '__main__':
     pathlib.Path(OUTPUT_TEMP_DIR).mkdir(parents=True, exist_ok=True)
 
     # initialize keyboard input thread
-    threadHandler.initInputThread()
+    thread_handler.init_midi_keyboard_thread()
 
     load_start_menu()
     # Set the resolution of window
     root.geometry("1500x1000")
 
     check_dexmo_connected(main_window=False)
-    options = optionsWindowClass(root=root, taskParamters=task_parameters)
+    options = OptionsWindowClass(root=root, task_paramters=task_parameters)
 
     root.mainloop()

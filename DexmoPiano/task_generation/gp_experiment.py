@@ -57,7 +57,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import GPyOpt
-import GPy
 
 from dataclasses import dataclass
 from collections import defaultdict
