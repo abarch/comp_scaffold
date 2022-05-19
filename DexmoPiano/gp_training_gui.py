@@ -532,6 +532,8 @@ class PracticeModeState(LearningState):
 
         error_df = self.start_playback_and_calc_error(task_parameters)
 
+        # TODO: Update model with new data point
+
         if ERROR_THRESHOLD > error_df.Summed_right + error_df.Summed_left:
             self.show_primary_next_state_btn('Resume Learning',
                                              PreviewNextPracticeState(self.scheduler, self.statemachine,
@@ -544,12 +546,19 @@ class PracticeModeState(LearningState):
                                                                  self.midi_file, error_df))
 
 
+class EndState(LearningState):
+
+    def _do_on_enter(self):
+        quit()
+
+
 class Statemachine:
 
     def __init__(self):
         self.scheduler = Scheduler()
         self.main_menu_state = MenuState(self.scheduler, self)
         self.show_complete_song = SelectSongState(self.scheduler, self)
+        self.end_state = EndState(self.scheduler, self)
 
         self.current_state = self.main_menu_state
 
