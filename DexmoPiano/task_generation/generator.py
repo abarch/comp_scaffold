@@ -1,45 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import collections
 import random
-import dataclasses as dc
 
-from dataclasses import dataclass, astuple
-from task_generation.note_range_per_hand import NoteRangePerHand, get_pitchlist, transpose
+from task_generation.note_range_per_hand import  get_pitchlist, transpose
 from collections import namedtuple
 from collections.abc import Iterable
+from task_generation.task import TaskData, TaskParameters
 
 TaskNote = namedtuple("TaskNote", "start pitch duration")
 
 INTRO_BARS = 1  # no. of empty first bars for metronome intro
 ACROSS_BARS = False  # allow notes to reach across two bars
-
-
-@dataclass
-class TaskParameters:
-    """
-    @param bpm: Tempo (beats per minute).
-    @param maxNotesPerBar: Maximum number of notes that a bar can contain.
-    @param numberOfBars: Total number of bars.
-    @param noteValuesList: Possible durations of the notes (e.g. 1, 1/2 etc.).
-    @param pitchesList: Possible MIDI pitch numbers (0-127).
-    @param alternating: if true play left/right alternating instead of simultaneously
-    @param twoHandsTup: Tuple of booleans, True if left/right hand is active.
-    """
-    timeSignature: tuple = (4, 4)
-    noteValues: list = dc.field(default_factory=lambda: [1 / 2, 1 / 4])
-    maxNotesPerBar: int = 3
-    noOfBars: int = 7
-    note_range_right: NoteRangePerHand = NoteRangePerHand.TWO_NOTES
-    # FIXME: debug
-    note_range_left: NoteRangePerHand = NoteRangePerHand.ONE_NOTE
-    left: bool = False
-    right: bool = True
-    alternating: bool = True
-    bpm: float = 100
-
-    def astuple(self):
-        return astuple(self)
 
 
 def flatten(x):
@@ -49,12 +20,11 @@ def flatten(x):
         return [x]
 
 
-def generate_task(task_parameters):
+def generate_task(task_parameters: TaskParameters) -> TaskData:
     return _generate_task_v1(task_parameters)
 
 
 def _generate_task_v1(task_parameters):
-    ### EXERCISE GENERATION ###
     numerator, denominator = task_parameters.timeSignature
 
     # adjust no. of bars (in case of intro bars)
@@ -107,14 +77,11 @@ def _generate_task_v1(task_parameters):
         while t < (len(timesteps) - 1):
             # compute maximum note length until next note
             maxNoteVal = (timesteps[t + 1] - timesteps[t]) / denominator
-            ###temp = maxNoteVal
 
             # compute maximum note length until next bar
             if not ACROSS_BARS:
                 maxToNextBar = 1 - ((timesteps[t] % denominator) / denominator)
                 maxNoteVal = min([maxNoteVal, maxToNextBar])
-
-            ###print(timesteps[t], "min(", temp, maxToNextBar, ") =", maxNoteVal)
 
             # calculate possible note values at current time step
             possNoteValues = [v for v in task_parameters.noteValues if v <= maxNoteVal]
@@ -189,9 +156,6 @@ def _generate_task_v1(task_parameters):
                 for item in remove:
                     data[hand].remove(item)
 
-    # data = sorted(data, key=lambda n: n.start)
-    # return Task(time_sig=timeSig, noOfBars=bars, data=data)
-    from task_generation.task import TaskData
     return TaskData(parameters=task_parameters, time_signature=task_parameters.timeSignature,
                     number_of_bars=bars,
                     bpm=float(task_parameters.bpm), notes_left=data["left"],

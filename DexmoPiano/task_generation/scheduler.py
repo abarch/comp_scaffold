@@ -4,19 +4,18 @@
 import copy
 import functools
 import tkinter as tk
-from task_generation.task import TargetTask
 
+from task_generation.generator import TaskParameters
+from task_generation.task import TargetTask, TaskData
+from task_generation.practice_modes import PracticeMode
 
 class Scheduler:
-    def __init__(self, load_next_task_func = None):
-        ## load the heuristics
-
-        self.task_queue = list()
+    def __init__(self, load_next_task_func=None):
+        self.task_queue = list() # type: list[TargetTask]
         self.task_queue_index = 0
 
         # if there are tasks in here they have to be executed
-        self.task_movement = list()
-        self.task_movement_errors = list()
+        self.task_movement = list() # type: list[(str, TaskData)]
         self.task_movement_eval_func = functools.partial(print, "TASK_MOVEMENT_ERRORS:")
 
         self.load_next_task_func = load_next_task_func
@@ -26,27 +25,24 @@ class Scheduler:
 
     def new_task_forced_practice_sequence_prior(self, task_parameters_fallback,
                                                 list_of_practice_modes):
-        self.get_new_target_task(task_parameters_fallback)
-        tt = self.current_target_task
+        self.queue_new_target_task(task_parameters_fallback)
 
         for pm in list_of_practice_modes:
-            tt.queue_practice_mode(pm)
-        tt.single_target_eval_at_end()
-        self.task_movement = copy.deepcopy(tt.subtask_queue)
-        self.task_movement_errors = list()
+            self._current_target_task().queue_practice_mode(pm)
 
-    def get_new_target_task(self, task_parameters_fallback):
-        best_task_params = self.get_optimal_task_parameters(fallback=task_parameters_fallback)
-        self.current_target_task = TargetTask.from_task_parameters(best_task_params)
+        self._current_target_task().single_target_eval_at_end()
+        self.task_movement = copy.deepcopy(self._current_target_task().subtask_queue)
 
-        self.task_queue.append(self.current_target_task)
+    def queue_new_target_task(self, task_parameters: TaskParameters) -> TaskData:
+        target_task = TargetTask.from_task_parameters(task_parameters)
+        self.task_queue.append(target_task)
         self.task_queue_index = len(self.task_queue) - 1
         return self.current_task_data()
 
-    def _current_target_task(self):
+    def _current_target_task(self) -> TargetTask:
         return self.task_queue[self.task_queue_index]
 
-    def current_task_data(self):
+    def current_task_data(self) -> TaskData:
         if self.in_task_movement():
             print("(SCHEDULER) IN TASK MOVEMENT")
             return self.task_movement[0][1]
@@ -56,7 +52,7 @@ class Scheduler:
 
     def get_next_task(self, task_parameters):
         if len(self.task_queue) == 0:
-            return self.get_new_target_task(task_parameters)
+            return self.queue_new_target_task(task_parameters)
 
         if self._current_target_task().next_subtask_exists():
             return self._current_target_task().next_subtask()
@@ -65,7 +61,7 @@ class Scheduler:
             self.task_queue_index += 1
             return self.current_task_data()
 
-        return self.get_new_target_task(task_parameters)
+        return self.queue_new_target_task(task_parameters)
 
     def get_previous_task(self):
         # try to go to the prev subtask of the current target task
@@ -80,9 +76,6 @@ class Scheduler:
 
     def queue_practice_mode(self, practice_mode):
         self._current_target_task().queue_practice_mode(practice_mode)
-
-    def get_optimal_task_parameters(self, fallback):
-        return fallback
 
     def info(self):
         pass
@@ -108,27 +101,10 @@ class Scheduler:
             return self._current_target_task().next_subtask_exists() or \
                    self.task_queue_index < len(self.task_queue) - 1
 
-    # in case task has been executed, save the error values
-    def register_error(self, error):
-        if self.in_task_movement():
-            task_data = self.task_movement.pop(0)
-            self.task_movement_errors.append(error)
-            self._current_target_task().register_error(error, task_data)
-
-            if len(self.task_movement) == 0:
-                # empty after pop
-                self.task_movement_eval_func(*self.task_movement_errors)
-
-            elif self.load_next_task_func is not None:
-                self.load_next_task_func()
-
-        else:
-            self._current_target_task().register_error(error)
-
     # add new task to queue from task_data and task_parameters
     def add_task_from_file(self, task_data, task_parameters):
-        self.current_target_task = TargetTask(task_data, task_parameters)
-        self.task_queue.append(self.current_target_task)
+        current_target_task = TargetTask(task_data)
+        self.task_queue.append(current_target_task)
         self.task_queue_index = len(self.task_queue) - 1
         return self.current_task_data()
 
@@ -138,7 +114,6 @@ def choosePracticeMode(tk_root):
 
     new_window = tk.Toplevel(tk_root)
 
-    import functools
     def set_option(option):
         def set_option_actual(option):
             globals()[global_var_name] = option
@@ -158,12 +133,11 @@ def choosePracticeMode(tk_root):
     l = tk.Label(new_window, text="Same piece, but practice mode:")
     l.pack(side=tk.TOP, padx=5, pady=1)
 
-    from task_generation.practice_modes import PracticeMode
     for pm in PracticeMode:
         b = tk.Button(new_window, text=pm.name, command=set_option(pm),
                       padx=5, pady=5)
         b.pack(side=tk.TOP)
-        b.bind
+        b.bind()
 
     tk_root.wait_window(new_window)
 
@@ -192,7 +166,6 @@ def threshold_info(tk_root):
 
 
 def complexity_error(tk_root):
-
     new_window = tk.Toplevel(tk_root)
 
     l = tk.Label(new_window,
