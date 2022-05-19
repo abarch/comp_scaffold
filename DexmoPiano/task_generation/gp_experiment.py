@@ -1,21 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import time
-import numpy as np
 from collections import namedtuple
+import enum
+import dataclasses as dc
+from dataclasses import dataclass, astuple
 
 Error = namedtuple("Error", "pitch timing")
 
 BPM_BOUNDS = [50,200]
 
-# def _norm_bpm(v):
-#     return v/50
-
-# BPM_BOUNDS = [90,160]
-
-#### SIMPLIFIED ENUMS
-import enum
 class PracticeMode(enum.Enum):
     IMP_PITCH = enum.auto()
     IMP_TIMING = enum.auto()
@@ -26,8 +20,6 @@ class NoteRangePerHand(enum.Enum):
     HARD = 3.0
     
 
-import dataclasses as dc
-from dataclasses import dataclass, astuple    
 @dataclass
 class TaskParameters:
     """

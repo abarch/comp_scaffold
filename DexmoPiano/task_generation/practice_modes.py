@@ -4,7 +4,6 @@
 import enum
 
 
-
 class PracticeMode(enum.Enum):
     IDENTITY = enum.auto()
     RIGHT_HAND = enum.auto()

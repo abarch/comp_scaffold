@@ -1,7 +1,6 @@
 # run midi player and keyboard input as separate threads
 # kill by Ctrl-C
 
-import imp
 import traceback
 import time
 from collections import defaultdict
@@ -10,16 +9,20 @@ from threading import Thread
 import config
 import dexmoOutput
 import fileIO
-from task_generation.gp_experiment import Error
 from error_calc import functions
+from error_calc.explanation import Error
 from midiInput import MidiInputThread, empty_noteinfo
 from midiOutput import MidiOutputThread
 from openfaceInput import OpenFaceInput
 import noteHandler as nh
 
-# GLOBAL CONSTANTS
 MAX_NOTE = 128
 global portname
+
+# Is error really percentage
+ERROR_VEC_IF_NO_NOTE_PLAYED = Error(pitch=0, note_hold_time=0, timing=100, n_missing_notes=100,
+                                    t_missing_notes=100, n_extra_notes=100, t_extra_notes=100,
+                                    number_of_notes=100)
 
 
 def resetArrays():
@@ -39,7 +42,6 @@ def resetArrays():
     # index = note: [t_on, t_off, velocity]
     ###TODO: documentation (temporary etc.)
     targetTemp = defaultdict(empty_noteinfo)
-    # targetTemp = [[-1, -1, -1]] * MAX_NOTE (PL)
 
 
 def init_midi_keyboard_thread():
@@ -147,7 +149,7 @@ def start_midi_playback(midiFileLocation, guidance, task_data, use_visual_attent
     try:
         if len(actualTimes) == 0:  # i.e. they did not play
             print("No notes were played!!!")
-            return targetTimes, actualTimes, 99, Error(pitch=0, timing=100), Error(pitch=0, timing=100), task_data, 'No notes were played'
+            return targetTimes, actualTimes, 99, ERROR_VEC_IF_NO_NOTE_PLAYED, ERROR_VEC_IF_NO_NOTE_PLAYED, task_data, 'No notes were played'
 
         output_note_list, errorVec, errorVecLeft, errorVecRight = \
             functions.computeErrorEvo(task_data, actualTimes,
@@ -166,10 +168,12 @@ def start_midi_playback(midiFileLocation, guidance, task_data, use_visual_attent
         print("ERROR RIGHT:", errorVecRight)
 
         # sum(errorVec[:7]): since errorVec[7] is the number of notes it is excluded from the sum
-        return targetTimes, actualTimes, sum(errorVec[:7]), errorVecLeft, errorVecRight, task_data, note_errorString
+        return targetTimes, actualTimes, sum(
+            errorVec[:7]), errorVecLeft, errorVecRight, task_data, note_errorString
     except:
         traceback.print_exc()
         return targetTimes, actualTimes, 99
+
 
 # Only record the user without playing the expected midi file.
 # If duration is set to 0, wait for the stop button to be pressed
@@ -180,10 +184,6 @@ def startRecordThread(midiFileLocation, guidance, duration, root):
     resetArrays()
     inputThread.resetArrays()
 
-    # KEYBOARD MIDI INPUT THREAD
-    # (has been started before)
-
-    # activate input handling
     print("starting input on.")
     inputThread.inputOn()
 
@@ -215,9 +215,10 @@ def recordingFinished():
     print("\nDIFFERENCE: ", errorDiff)
 
     options = [1, True, "bla"]
-    fileIO.createXML(config.outputDir,
-                     config.currentMidi + config.str_date + config.participant_id + "_" + config.freetext, options,
-                     targetTimes)
+    fileIO.create_xml(config.outputDir,
+                      config.currentMidi + config.str_date + config.participant_id + "_" + config.freetext,
+                      options,
+                      targetTimes)
 
     # create entry containing actual notes in XML
     fileIO.create_trial_entry(config.outputDir,

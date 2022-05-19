@@ -155,7 +155,7 @@ def save_midi_and_xml(target_notes, task_data, task_parameters):
     with open(OUTPUT_DIR + time_str + '-data.task', 'wb') as f:
         pickle.dump(data_to_save, f)
 
-    fileIO.createXML(OUTPUT_DIR, time_str, task_parameters.astuple(), target_notes)
+    fileIO.create_xml(OUTPUT_DIR, time_str, task_parameters.astuple(), target_notes)
 
 
 def get_current_timestamp() -> str:
@@ -646,15 +646,15 @@ def new_complexity_level():
     assert isinstance(task_set, list)
     assert node_params is not None
     try:
-        next_complextiy_index = complex_index + 1
-        if next_complextiy_index < len(nodes):
+        next_complexity_index = complex_index + 1
+        if next_complexity_index < len(nodes):
             print("complex_index", complex_index)
-            new_parameters = task_set[next_complextiy_index]
+            new_parameters = task_set[next_complexity_index]
             print("New complexity_level: ", repr(new_parameters))
             scheduler.get_next_task(new_parameters)
             load_up_task()
-            set_complexity_index(next_complextiy_index)
-            node_params.set(str(nodes[next_complextiy_index]))
+            set_complexity_index(next_complexity_index)
+            node_params.set(str(nodes[next_complexity_index]))
         else:
             # get back to the first exercise, preliminary hack..
             print("going back to the first complexity level")
@@ -820,7 +820,7 @@ def open_saved_midi_file():
     config.LoadedFileName = midi_file
     config.customBPM = int(midi_bpm_label.get("1.0", 'end-1c'))
     print("data with new bpm:", task_data, task_parameters)
-    scheduler.add_task_from_file(task_data, task_parameters)
+    scheduler.add_task_from_file(task_data)
 
     gen_ly_for_current_task()
 
@@ -961,7 +961,7 @@ def create_port_drop_downs():
 
 
 if __name__ == '__main__':
-    scheduler = Scheduler(load_up_task)
+    scheduler = Scheduler()
 
     # create file output folder if it does not already exist
     pathlib.Path(OUTPUT_TEMP_DIR).mkdir(parents=True, exist_ok=True)

@@ -69,7 +69,7 @@ class MidiOutputThread:
 
     def playMidi(self, filename, guidance, stopAfterSong):
         mid = mido.MidiFile(filename)
-        for msg in mid.play():
+        for msg in mid.start_playback_and_calc_error():
             self.outport.send(msg)
 
         if stopAfterSong:

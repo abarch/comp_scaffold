@@ -1,6 +1,4 @@
-import copy
 import csv
-from collections import namedtuple
 from datetime import datetime
 
 import pandas as pd
@@ -30,12 +28,6 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
     else:
         hand = "both"
     complexityLevel = (taskParameters.note_range_left, taskParameters.note_range_right,  taskParameters.noteValues, hand)
-
-
-    #ef = open(error_file, 'a', newline='')
-    #ef_writer = csv.writer(ef, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    #ef_writer.writerow([task_data.practice_mode, complexityLevel, errorVecRight, errorVecLeft])
-    #ef.close()
 
     nf = open(notes_file, 'a', newline='')
     nf_writer = csv.writer(nf, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)

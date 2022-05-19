@@ -1,8 +1,9 @@
+import pathlib
+
 import mido
 from mido import Message
 from mido import MidiFile
 import time
-import datetime
 import logging
 
 import noteHandler as nh
@@ -106,7 +107,6 @@ def dexmo_action(msg, outport):
 
     logging.info(msg)
     if (msg.type == 'note_on'):
-        #stop_guidance_out(outport) # stop last guidance out before next note
         outport.send(msg)
     elif (msg.type == 'note_off'):
         outport.send(msg)
@@ -134,7 +134,7 @@ def play_demo(midiFile, guidanceMode):
     if (midi_interface != "None"):
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
-        for msg in MidiFile(midiFile).play():
+        for msg in MidiFile(midiFile).start_playback_and_calc_error():
             # sound from piano and metronome track,channel 9 is metronome, piano is 0
             if metronome == True:
                 if msg.channel == 0 or msg.channel == 9:
@@ -168,16 +168,17 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode, showVertic
     @param guidanceMode: Current guidance Mode (Dexmo).
     @return: None
     """
-    if (guidanceMode != "None"):
+    if guidanceMode != "None":
         timestr = time.strftime("%Y%m%d-%H%M%S")
         log = "/tmp/DexmoPiano/" + timestr + ".log"
+        pathlib.Path(log).parent.mkdir()
         logging.basicConfig(filename=log,level=logging.DEBUG,format='%(asctime)s %(message)s', datefmt='%d/%m/%Y %H:%M:%S')
 
 
         logging.info("")
         logging.info("TASK from " + timestr)
 
-    if (midi_interface != "None"):
+    if midi_interface != "None":
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
         noteCounter = 1

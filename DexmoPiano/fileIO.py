@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import json
 
-def createXML(path, midiPrefix, options, targetNotes):
+def create_xml(path, midiPrefix, options, targetNotes):
     """
     Creates a new XML tree containing the necessary nodes.
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     actualNotes = [[11, 22, 33, 44], [55, 66, 77, 88], [99, 0, 0, 0]]
     actualNotes = [NoteInfo(*t) for t in actualNotes]
 
-    createXML(outpath, midiPrefix, options, targetNotes)
+    create_xml(outpath, midiPrefix, options, targetNotes)
     printXML(outfile, True)
     print("\n\n")
     create_trial_entry(outpath, midiPrefix, "01-11-1999", "guidance1", actualNotes, "123")

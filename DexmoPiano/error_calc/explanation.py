@@ -8,6 +8,12 @@ from collections import namedtuple
 
 from error_calc.explanation_helpers import NoteExpected, NoteExtra, NoteMissing
 
+Error = namedtuple("Error", ["pitch", "note_hold_time", "timing",
+                             "n_missing_notes", "t_missing_notes",
+                             "n_extra_notes", "t_extra_notes",
+                             "number_of_notes"
+                             ])
+
 
 def get_anchor_map(target_notes):
     from collections import defaultdict
@@ -103,12 +109,6 @@ def get_explanation(task_data, actual, mapping,
                                )
         hand = sorted(pitch_time_dist)[0][2]
         extra_notes_dict[hand].append(extra_note)
-
-    Error = namedtuple("Error", ["pitch", "note_hold_time", "timing",
-                                 "n_missing_notes", "t_missing_notes",
-                                 "n_extra_notes", "t_extra_notes",
-                                 "number_of_notes"
-                                 ])
 
     errors = []
     output_note_list = list()

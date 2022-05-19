@@ -5,6 +5,7 @@ import dataclasses as dc
 from collections import defaultdict
 from dataclasses import dataclass, asdict, astuple
 
+import task_generation.generator as generator
 from task_generation.note_range_per_hand import NoteRangePerHand
 from task_generation.practice_modes import PracticeMode
 
@@ -137,7 +138,7 @@ class TargetTask:
 
     @staticmethod
     def from_task_parameters(task_parameters: TaskParameters):
-        task_data = generate_task(task_parameters)
+        task_data = generator.generate_task(task_parameters)
         return TargetTask(task_data)
 
     def queue_practice_mode(self, practice_mode):

@@ -1,15 +1,18 @@
 import pathlib
 import pickle
+import random
 import shutil
 import time
+import pandas
+import subprocess
+import os
+
+import numpy as np
 import tkinter as tk
-from tkinter import filedialog, NW
+from tkinter import filedialog
 from PIL import Image, ImageTk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import numpy as np
-import subprocess
-import os
 
 import dexmoOutput
 import midiProcessing
@@ -17,7 +20,7 @@ import config
 import thread_handler
 import hmm_data_acquisition, fileIO
 
-from pianoCapture import setupVisualNotes
+from task_generation.practice_modes import PracticeMode
 from task_generation.scheduler import Scheduler
 from task_generation.generator import TaskParameters
 
@@ -40,13 +43,6 @@ first_start = True
 errors = []
 change_task = []
 
-midi_saved = False
-task_set = None
-
-difficulty_scaling = False
-complex_index = 0
-nodes = None
-
 root = tk.Tk()
 root.title("Piano with Dexmo")
 root.geometry("1500x1000")
@@ -56,7 +52,6 @@ show_error_details = tk.BooleanVar()
 show_guidance = tk.BooleanVar()
 metronome = tk.BooleanVar()
 show_score_guidance = tk.IntVar(value=1)
-show_vertical_guidance = tk.IntVar(value=1)
 use_visual_attention = tk.BooleanVar()
 node_params = tk.StringVar()
 state_info = tk.StringVar()
@@ -67,8 +62,6 @@ num_notes_warning_label = None
 hand_warning_label = None
 midi_bpm_label = None
 show_error_details_checkbox = None
-participant_id_text = None
-free_text = None
 canvas = None
 
 countdown_label = None
@@ -78,7 +71,7 @@ ERROR_THRESHOLD = 3
 EXIT_PRACTISE_MODE_THRESHOLD = 1
 
 
-class LearningState():
+class LearningState:
 
     def __init__(self, scheduler: Scheduler, statemachine):
         self.scheduler = scheduler
@@ -207,12 +200,6 @@ class LearningState():
         global midi_bpm_label
         global show_score_guidance, show_vertical_guidance
 
-        show_vertical_guidance_checkbutton = tk.Checkbutton(root, text='Show vertical guidance',
-                                                            variable=show_vertical_guidance,
-                                                            command=update_guidance)
-        show_vertical_guidance_checkbutton.place(x=1050, y=300, height=50, width=150)
-        config.showVerticalGuidance = show_vertical_guidance.get()
-
         node_params.set("")
         tk.Label(root, textvariable=node_params, font=("Courier", 12)).place(x=10, y=40)
 
@@ -240,24 +227,11 @@ class LearningState():
         midi_bpm_text.place(x=10, y=580)
         midi_bpm_text.insert(tk.INSERT, 0)
 
-        use_visual_attention.set(False)
-        chk = tk.Checkbutton(root, text='Use Visual Attention', variable=use_visual_attention)
-        chk.place(x=0, y=735)
-
         tk.Button(root, text='Back to Menu',
                   command=lambda: statemachine.to_next_state(statemachine.main_menu_state)).place(
             x=10, y=940,
             height=50,
             width=150)
-
-        participant_id_text = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1,
-                                      state=tk.NORMAL)
-        participant_id_text.place(x=1050, y=480, height=25, width=150)
-        participant_id_text.insert(tk.INSERT, "Enter ID")
-
-        free_text = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1)
-        free_text.place(x=1050, y=520, height=60, width=150)
-        free_text.insert(tk.INSERT, "Free text")
 
     def show_note_sheet(self, png_file: str):
         """
@@ -274,7 +248,7 @@ class LearningState():
         panel.image = img
         panel.place(x=170, y=0, width=835, height=1181)
 
-    def play_song(self, task_parameters: TaskParameters):
+    def start_playback_and_calc_error(self, task_parameters: TaskParameters) -> pandas.DataFrame:
         targetNotes, actualNotes, errorVal, error_vec_left, error_vec_right, task_data, note_error_str = \
             thread_handler.start_midi_playback(OUTPUT_FILES_STRS[2], guidance_mode,
                                                self.scheduler.current_task_data(),
@@ -282,17 +256,15 @@ class LearningState():
         df_error = hmm_data_acquisition.save_hmm_data(error_vec_left, error_vec_right, task_data,
                                                       task_parameters, note_error_str,
                                                       config.participant_id, config.free_text)
+
         self.save_midi_and_xml(targetNotes, self.scheduler.current_task_data(), task_parameters)
         timestamp = get_current_timestamp()
         # create entry containing actual notes in XML
         fileIO.create_trial_entry(OUTPUT_DIR, timestamp, timestamp, guidance_mode, actualNotes,
                                   errorVal)
         add_error_plot()
-        summed_left = df_error.Summed_left
-        summed_right = df_error.Summed_right
 
-        # TODO: calc pitch, timing and
-        return summed_left + summed_right
+        return df_error
 
     def save_midi_and_xml(self, target_notes, task_data, task_parameters):
         """
@@ -317,7 +289,7 @@ class LearningState():
         with open(OUTPUT_DIR + time_str + '-data.task', 'wb') as f:
             pickle.dump(data_to_save, f)
 
-        fileIO.createXML(OUTPUT_DIR, time_str, task_parameters.astuple(), target_notes)
+        fileIO.create_xml(OUTPUT_DIR, time_str, task_parameters.astuple(), target_notes)
 
 
 class MenuState(LearningState):
@@ -407,10 +379,7 @@ class MenuState(LearningState):
                         dexmoOutput.set_sound_outport)
         create_port_btn("Piano input", "vmpk", 840, inports, thread_handler.set_inport)
 
-        first_start = False
-
-
-class SelectCompleteSongState(LearningState):
+class SelectSongState(LearningState):
 
     def __init__(self, scheduler: Scheduler, statemachine):
         super().__init__(scheduler, statemachine)
@@ -427,7 +396,7 @@ class SelectCompleteSongState(LearningState):
 
         self.show_primary_next_state_btn('Play Complete Song',
                                          PlayCompleteSong(self.scheduler, self.statemachine,
-                                                          self.task_parameters))
+                                                          self.task_parameters, midi_file))
 
         midiProcessing.generate_metronome_and_fingers_for_midi(self.task_parameters.left,
                                                                self.task_parameters.right,
@@ -469,98 +438,110 @@ class SelectCompleteSongState(LearningState):
 
 class PlayCompleteSong(LearningState):
 
-    def __init__(self, scheduler: Scheduler, statemachine, task_parameters):
+    def __init__(self, scheduler: Scheduler, statemachine, task_parameters: TaskParameters,
+                 midi_file):
         super().__init__(scheduler, statemachine)
         self.task_parameters = task_parameters
+        self.midi_file = midi_file
 
     def _do_on_enter(self):
         self.init_training_interface()
         self.show_note_sheet(OUTPUT_PNG_STR)
-
         root.update_idletasks()
 
-        self.scheduler.get_next_task(task_parameters=self.task_parameters)
+        self.scheduler.clear_queue()
+        task_data = self.scheduler.queue_new_target_task(task_parameters=self.task_parameters)
 
-        task = self.scheduler.current_task_data()
-
-        midiProcessing.generateMidi(task, outFiles=OUTPUT_FILES_STRS)
+        midiProcessing.generateMidi(task_data, outFiles=OUTPUT_FILES_STRS)
 
         self.show_countdown(5)
 
-        total_error = self.play_song(self.task_parameters)
+        error = self.start_playback_and_calc_error(self.task_parameters)
 
-        if total_error > ERROR_THRESHOLD:
+        if ERROR_THRESHOLD > error.Summed_right + error.Summed_left:
             self.show_primary_next_state_btn('Start learning',
-                                             PractiseModeState(self.scheduler, self.statemachine,
-                                                               total_error))
+                                             PreviewNextPracticeState(self.scheduler, self.statemachine,
+                                                               self.midi_file, error))
             self.show_secondary_next_state_btn('Select new Song', statemachine.show_complete_song)
         else:
             self.show_primary_next_state_btn('Select new Song', statemachine.show_complete_song)
             self.show_secondary_next_state_btn('Start learning',
-                                               PractiseModeState(self.scheduler, self.statemachine,
-                                                                 total_error))
+                                               PreviewNextPracticeState(self.scheduler, self.statemachine,
+                                                                 self.midi_file, error))
 
 
-class PractiseModeState(LearningState):
+class PreviewNextPracticeState(LearningState):
 
-    def __init__(self, scheduler: Scheduler, statemachine, error_form_last_state):
+    def __init__(self, scheduler: Scheduler, statemachine, midi_file: str,
+                 error_form_last_state: pandas.DataFrame):
         super().__init__(scheduler, statemachine)
+        self.midi_file = midi_file
         self.error_form_last_state = error_form_last_state
 
-    def get_next_task_parameters(self):
-        # TODO: Logic with gaussian processing by using error_form_last_state
-        return TaskParameters()
+    def get_next_practise_mode(self) -> PracticeMode:
+        print(self.error_form_last_state)
+        # TODO: gaussian processing by using error_form_last_state
+        return random.choice([pm for pm in PracticeMode])
 
     def _do_on_enter(self):
         self.init_training_interface()
-
-
-
         self.show_note_sheet(OUTPUT_PNG_STR)
         root.update_idletasks()
-        task_parameters = self.get_next_task_parameters()
-        self.scheduler.get_next_task(task_parameters=task_parameters)
+
+        practice_mode = self.get_next_practise_mode()
+        self.scheduler.queue_practice_mode(practice_mode)
+
+        tk.Label(root, text=f"Recommended practise:\n{practice_mode.name}").place(
+            x=10, y=10,
+            height=50,
+            width=150)
+
+        self.show_secondary_next_state_btn("Start Practise",
+                                           PracticeModeState(self.scheduler, self.statemachine,
+                                                             self.midi_file,
+                                                             self.error_form_last_state))
+
+
+class PracticeModeState(LearningState):
+
+    def __init__(self, scheduler: Scheduler, statemachine, midi_file: str,
+                 error_form_last_state: pandas.DataFrame):
+        super().__init__(scheduler, statemachine)
+        self.midi_file = midi_file
+        self.error_form_last_state = error_form_last_state
+
+    def _do_on_enter(self):
+        self.init_training_interface()
+        self.show_note_sheet(OUTPUT_PNG_STR)
+
         task = self.scheduler.current_task_data()
-
-        # TODO: Generate midi file based on task_parameters insted of select it in each iteration
-        midi_file = None
-
-        while midi_file is None or len(midi_file) == 0:
-            midi_file = filedialog.askopenfilename(
-                filetypes=[("Midi files", ".midi .mid")])
+        task_parameters = task.parameters
 
         midiProcessing.generate_metronome_and_fingers_for_midi(task_parameters.left,
                                                                task_parameters.right,
                                                                OUTPUT_FILES_STRS,
-                                                               midi_file,
+                                                               self.midi_file,
                                                                )
         self.gen_ly_for_current_task()
         subprocess.run(['lilypond', '--png', '-o', TEMP_DIR, OUTPUT_LY_STR],
                        stderr=subprocess.DEVNULL)
-        self.show_note_sheet(OUTPUT_PNG_STR)
 
         midiProcessing.generateMidi(task, outFiles=OUTPUT_FILES_STRS)
 
         self.show_countdown(5)
 
-        total_error = self.play_song(task_parameters)
+        error_df = self.start_playback_and_calc_error(task_parameters)
 
-        if total_error > ERROR_THRESHOLD:
+        if ERROR_THRESHOLD > error_df.Summed_right + error_df.Summed_left:
             self.show_primary_next_state_btn('Resume Learning',
-                                             PractiseModeState(self.scheduler, self.statemachine,
-                                                               total_error))
+                                             PreviewNextPracticeState(self.scheduler, self.statemachine,
+                                                               self.midi_file, error_df))
             self.show_secondary_next_state_btn('Select new Song', statemachine.show_complete_song)
         else:
             self.show_primary_next_state_btn('Select new Song', statemachine.show_complete_song)
             self.show_secondary_next_state_btn('Resume Learning',
-                                               PractiseModeState(self.scheduler, self.statemachine,
-                                                                 total_error))
-
-
-class EndState(LearningState):
-
-    def _do_on_enter(self):
-        quit()
+                                               PreviewNextPracticeState(self.scheduler, self.statemachine,
+                                                                 self.midi_file, error_df))
 
 
 class Statemachine:
@@ -568,8 +549,7 @@ class Statemachine:
     def __init__(self):
         self.scheduler = Scheduler()
         self.main_menu_state = MenuState(self.scheduler, self)
-        self.show_complete_song = SelectCompleteSongState(self.scheduler, self)
-        self.end_state = EndState(self.scheduler, self)
+        self.show_complete_song = SelectSongState(self.scheduler, self)
 
         self.current_state = self.main_menu_state
 
@@ -668,29 +648,6 @@ def add_error_details():
                                                  command=add_error_plot,
                                                  variable=show_error_details)
     show_error_details_checkbox.place(x=1050, y=440)
-
-
-def update_guidance():
-    global showNotes1, showNotes2, show_vertical_guidance, canvas, piano_img, hand_img
-
-    config.showVerticalGuidance = show_vertical_guidance.get()
-
-    if show_vertical_guidance.get() == 0:
-        canvas.create_rectangle(0, 200, 500, 600, fill='white', outline='white')
-    else:
-        setupVisualNotes()
-
-    if showNotes1.get() == 0:
-        canvas.create_rectangle(200, 300, 200 + 264 - 1, 300 + 219 - 1, fill='white',
-                                outline='white')
-    else:
-        canvas.create_image(200, 300, anchor=NW, image=piano_img)
-
-    if showNotes2.get() == 0:
-        canvas.create_rectangle(470, 300, 470 + 277 - 1, 300 + 277 - 1, fill='white',
-                                outline='white')
-    else:
-        canvas.create_image(470, 300, anchor=NW, image=hand_img)
 
 
 def set_guidance(guidance):

@@ -9,16 +9,15 @@ from task_generation.generator import TaskParameters
 from task_generation.task import TargetTask, TaskData
 from task_generation.practice_modes import PracticeMode
 
+
 class Scheduler:
-    def __init__(self, load_next_task_func=None):
-        self.task_queue = list() # type: list[TargetTask]
+    def __init__(self):
+        self.task_queue = list()  # type: list[TargetTask]
         self.task_queue_index = 0
 
         # if there are tasks in here they have to be executed
-        self.task_movement = list() # type: list[(str, TaskData)]
+        self.task_movement = list()  # type: list[(str, TaskData)]
         self.task_movement_eval_func = functools.partial(print, "TASK_MOVEMENT_ERRORS:")
-
-        self.load_next_task_func = load_next_task_func
 
     def in_task_movement(self):
         return len(self.task_movement) > 0
@@ -50,7 +49,7 @@ class Scheduler:
         print("(SCHEDULER) task queue:", self.task_queue, "[", self.task_queue_index, "]")
         return self._current_target_task().current_task_data()
 
-    def get_next_task(self, task_parameters):
+    def get_next_task(self, task_parameters) -> TaskData:
         if len(self.task_queue) == 0:
             return self.queue_new_target_task(task_parameters)
 
@@ -102,11 +101,16 @@ class Scheduler:
                    self.task_queue_index < len(self.task_queue) - 1
 
     # add new task to queue from task_data and task_parameters
-    def add_task_from_file(self, task_data, task_parameters):
+    def add_task_from_file(self, task_data):
         current_target_task = TargetTask(task_data)
         self.task_queue.append(current_target_task)
         self.task_queue_index = len(self.task_queue) - 1
         return self.current_task_data()
+
+    def clear_queue(self):
+        self.task_queue.clear()
+        self.task_queue_index = 0
+        self.task_movement.clear()
 
 
 def choosePracticeMode(tk_root):
@@ -123,9 +127,6 @@ def choosePracticeMode(tk_root):
 
     b = tk.Button(new_window, text="NEW TASK", command=set_option("NEW_TASK"))
     b.pack(side=tk.TOP, padx=5, pady=15)
-
-    # b = tk.Button(new_window, text="TEST MOVEMENT 1", command=set_option("TEST_MOVEMENT_1"))
-    # b.pack(side = tk.TOP, padx=5, pady=15)
 
     b = tk.Button(new_window, text="Next node", command=set_option("NEXT_LEVEL"))
     b.pack(side=tk.TOP, padx=5, pady=15)
@@ -158,10 +159,7 @@ def threshold_info(tk_root):
                       "modes and learn together.")
     l.pack(side=tk.TOP, padx=5, pady=1)
 
-    def close():
-        new_window.destroy()
-
-    b = tk.Button(new_window, text="Okay", command=close)
+    b = tk.Button(new_window, text="Okay", command=lambda: new_window.destroy())
     b.pack(side=tk.TOP, padx=5, pady=15)
 
 
@@ -172,8 +170,5 @@ def complexity_error(tk_root):
                  text="Error: To use the predefined complexity levels, please start the Dynamic Difficulty Adjustment!")
     l.pack(side=tk.TOP, padx=5, pady=1)
 
-    def close():
-        new_window.destroy()
-
-    b = tk.Button(new_window, text="Okay", command=close)
+    b = tk.Button(new_window, text="Okay", command=lambda: new_window.destroy())
     b.pack(side=tk.TOP, padx=5, pady=15)

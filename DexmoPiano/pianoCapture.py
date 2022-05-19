@@ -164,7 +164,7 @@ def nextTaskAlone(mode, userSelectedTask=False, userSelectedLocation=config.inpu
 
     recThread = Thread(
         target=lambda q, arg1, arg2, arg3, arg4: q.put(
-            threadHandler.startRecordThread(arg1, arg2, arg3, arg4)),
+            thread_handler.startRecordThread(arg1, arg2, arg3, arg4)),
         args=(que, midiFileLocation, guidance, duration, root))
     recThread.start()
 
