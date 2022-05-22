@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import collections
 import random
-from dataclasses import dataclass, astuple, asdict
+from dataclasses import dataclass, astuple
 import dataclasses as dc
 
-import numpy as np
+from collections.abc import Iterable
 from task_generation.note_range_per_hand import NoteRangePerHand, get_pitchlist, transpose
 
 from collections import namedtuple
@@ -44,7 +43,7 @@ class TaskParameters:
         return astuple(self)
     
 def flatten(x):
-    if isinstance(x, collections.Iterable):
+    if isinstance(x, Iterable):
         return [a for i in x for a in flatten(i)]
     else:
         return [x]
