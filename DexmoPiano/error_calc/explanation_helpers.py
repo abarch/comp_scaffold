@@ -230,9 +230,5 @@ def fmt_dict(d):
     return ", ".join(strs)
 @dataclass
 class NoteExtra(NotePlayed):
-    # def err_string(self):
-    #     return f"{bcolors.WARNING}NoteExtra{bcolors.ENDC}({fmt_dict(dataclasses.asdict(self))})"
-    
-    
     pass
 

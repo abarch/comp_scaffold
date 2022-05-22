@@ -146,33 +146,28 @@ def start_midi_playback(midiFileLocation, guidance, task_data, use_visual_attent
     # COMPUTE ERROR (naive example)
     global errorDiff
 
-    try:
-        if len(actualTimes) == 0:  # i.e. they did not play
-            print("No notes were played!!!")
-            return targetTimes, actualTimes, 99, ERROR_VEC_IF_NO_NOTE_PLAYED, ERROR_VEC_IF_NO_NOTE_PLAYED, task_data, 'No notes were played'
+    if len(actualTimes) == 0:  # i.e. they did not play
+        print("No notes were played!!!")
 
-        output_note_list, errorVec, errorVecLeft, errorVecRight = \
-            functions.computeErrorEvo(task_data, actualTimes,
-                                      inject_explanation=True,
-                                      plot=False)
-        print("task data", task_data.__dict__)
-        print("\n\n--- ERRORS ---")
-        print("\nNOTE_ERRORS:")
+    output_note_list, errorVec, errorVecLeft, errorVecRight = \
+        functions.computeErrorEvo(task_data, actualTimes,
+                                  inject_explanation=True,
+                                  plot=False)
+    print("task data", task_data.__dict__)
+    print("\n\n--- ERRORS ---")
+    print("\nNOTE_ERRORS:")
 
-        note_errorString = []
-        for n in output_note_list:
-            print(n.err_string())
-            note_errorString.append(n.err_string(use_colors=False))
-        print("\nSUMMED ERROR: ", errorVec)
-        print("ERROR LEFT: ", errorVecLeft)
-        print("ERROR RIGHT:", errorVecRight)
+    note_errorString = []
+    for n in output_note_list:
+        print(n.err_string())
+        note_errorString.append(n.err_string(use_colors=False))
+    print("\nSUMMED ERROR: ", errorVec)
+    print("ERROR LEFT: ", errorVecLeft)
+    print("ERROR RIGHT:", errorVecRight)
 
-        # sum(errorVec[:7]): since errorVec[7] is the number of notes it is excluded from the sum
-        return targetTimes, actualTimes, sum(
-            errorVec[:7]), errorVecLeft, errorVecRight, task_data, note_errorString
-    except:
-        traceback.print_exc()
-        return targetTimes, actualTimes, 99
+    # sum(errorVec[:7]): since errorVec[7] is the number of notes it is excluded from the sum
+    return targetTimes, actualTimes, sum(
+        errorVec[:7]), errorVecLeft, errorVecRight, task_data, note_errorString
 
 
 # Only record the user without playing the expected midi file.

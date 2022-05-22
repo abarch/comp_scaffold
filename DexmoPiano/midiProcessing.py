@@ -3,12 +3,8 @@ from music21 import converter
 
 import copy
 import os
-#import random
 import mido
 import settings
-import shutil
-import pickle
-import config
 
 import pianoplayer_interface
 from task_generation.note_range_per_hand import NoteRangePerHand  # ,get_pitchlist
@@ -21,9 +17,6 @@ from task_generation.note_range_per_hand import NoteRangePerHand  # ,get_pitchli
 # time signature (ex. 4/4 = (4, 4))
 # TODO: USE AS INPUT?
 timeSig = (4, 4)
-
-
-# outFiles: [midi, midi+metronome, midi+metronome+dexmo, musicXML]
 
 def write_midi(out_file, mf):
     """
@@ -335,8 +328,6 @@ def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left):
         raise Exception("both hands selected but only one beam in score!")
     pianoplayer.generate_fingernumbers(left and not right, right and not left, 0, lbeam,
                                        pianoplayer.get_measure_number())
-    # noOfBars)
-    # pianoplayer.generate_fingernumbers(False, False, 0, 1, noOfBars)
     pianoplayer.write_output(mxmlFile)
     return pianoplayer.get_score(), pianoplayer.get_measure_number(), pianoplayer.get_bpm()
 

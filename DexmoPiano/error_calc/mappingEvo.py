@@ -186,11 +186,11 @@ def mutGeneral(n_actual_notes, ind, indpb):
 def initial_guess(n_target, n_actual):
     init = list(range(n_actual))
     while len(init) > n_target:
-        r = random.randint(0, len(init) - 1)
+        r = random.randint(0, max(len(init) - 1, 0))
         init.pop(r)
 
     while len(init) < n_target:
-        r = random.randint(0, len(init) - 1)
+        r = random.randint(0, max(len(init) - 1, 0))
         init.insert(r, -1)
 
     return init

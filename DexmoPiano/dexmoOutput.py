@@ -47,8 +47,7 @@ def set_sound_outport(port):
     midi_interface_sound = port
 
 
-# TODO: rename to "toggle_metronome"
-def set_metronome():
+def toggle_metronome():
     """
     Toggles the global metronome boolean (True if metronome is active).
 
@@ -125,7 +124,7 @@ def play_demo(midiFile, guidanceMode):
     @param guidanceMode: Current guidance Mode (Dexmo).
     @return: None
     """
-    if (guidanceMode != "None"):
+    if guidanceMode != "None":
         timestr = time.strftime("%Y%m%d-%H%M%S")
         log = "/tmp/DexmoPiano/" + timestr + ".log"
         logging.basicConfig(filename=log, level=logging.DEBUG, format='%(asctime)s %(message)s',
@@ -134,7 +133,7 @@ def play_demo(midiFile, guidanceMode):
         logging.info("")
         logging.info("DEMO from " + timestr)
 
-    if (midi_interface != "None"):
+    if midi_interface != "None":
         dexmoPort = mido.open_output(midi_interface)
     with mido.open_output(midi_interface_sound) as soundPort:
         for msg in MidiFile(midiFile).play():

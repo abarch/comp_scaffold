@@ -148,14 +148,17 @@ class LearningState:
                 xml_generated = True
 
         # create png from music xml with fingernumbers
-        # or from midi without finger numbers, if to less notes are generated
         if xml_generated:
             self.delete_no_fingernumbers_warning()
-            subprocess.run(
-                [LILYPOND_PYTHON_EXE_WIN if os.name == 'nt' else 'musicxml2ly', XMl_2_LY_WIN_FOLDER,
-                 OUTPUT_FILES_STRS[3], '--output=' + OUTPUT_LY_STR],
-                stderr=subprocess.DEVNULL)
-
+            if os.name == 'nt':
+                subprocess.run([LILYPOND_PYTHON_EXE_WIN, XMl_2_LY_WIN_FOLDER,
+                                OUTPUT_FILES_STRS[3], '--output=' + OUTPUT_LY_STR],
+                               stderr=subprocess.DEVNULL)
+            else:
+                subprocess.run(['musicxml2ly',
+                                OUTPUT_FILES_STRS[3], '--output=' + OUTPUT_LY_STR],
+                               stderr=subprocess.DEVNULL)
+        # or from midi without finger numbers, if to less notes are generated
         else:
             self.add_no_fingernumbers_warning()
             if os.name == 'nt':
@@ -205,7 +208,7 @@ class LearningState:
 
         metronome.set(dexmoOutput.metronome)
         check_metronome = tk.Checkbutton(root, text='play metronome', variable=metronome,
-                                         command=dexmoOutput.set_metronome)
+                                         command=dexmoOutput.toggle_metronome)
         check_metronome.place(x=10, y=200)
 
         l = tk.Label(root, text=" Guidance mode:")
@@ -368,6 +371,9 @@ class MenuState(LearningState):
 
         # choose outport for (Lego)Dexmo etc
         outports, inports = dexmoOutput.get_midi_interfaces()
+        outports = list(dict.fromkeys(outports))
+        inports = list(dict.fromkeys(inports))
+
         outports.append("None")
         inports.append("None")
 
@@ -378,6 +384,7 @@ class MenuState(LearningState):
         create_port_btn("Sound output", "qsynth", 760, outports,
                         dexmoOutput.set_sound_outport)
         create_port_btn("Piano input", "vmpk", 840, inports, thread_handler.set_inport)
+
 
 class SelectSongState(LearningState):
 
@@ -394,10 +401,6 @@ class SelectSongState(LearningState):
             midi_file = filedialog.askopenfilename(
                 filetypes=[("Midi files", ".midi .mid")])
 
-        self.show_primary_next_state_btn('Play Complete Song',
-                                         PlayCompleteSong(self.scheduler, self.statemachine,
-                                                          self.task_parameters, midi_file))
-
         midiProcessing.generate_metronome_and_fingers_for_midi(self.task_parameters.left,
                                                                self.task_parameters.right,
                                                                OUTPUT_FILES_STRS,
@@ -408,6 +411,16 @@ class SelectSongState(LearningState):
                        stderr=subprocess.DEVNULL)
         self.show_note_sheet(OUTPUT_PNG_STR)
         self.check_dexmo_connected(main_window=True)
+
+        self.show_primary_next_state_btn('Play Complete Song',
+                                         PlayCompleteSong(self.scheduler, self.statemachine,
+                                                          self.task_parameters, midi_file))
+
+        tk.Button(root, text="Play Demo",
+                  command=lambda: dexmoOutput.play_demo(OUTPUT_FILES_STRS[2], guidance_mode)).place(
+            x=10, y=80,
+            height=50,
+            width=150)
 
     def check_dexmo_connected(self, main_window):
         """
@@ -460,14 +473,16 @@ class PlayCompleteSong(LearningState):
 
         if ERROR_THRESHOLD > error.Summed_right + error.Summed_left:
             self.show_primary_next_state_btn('Start learning',
-                                             PreviewNextPracticeState(self.scheduler, self.statemachine,
-                                                               self.midi_file, error))
+                                             PreviewNextPracticeState(self.scheduler,
+                                                                      self.statemachine,
+                                                                      self.midi_file, error))
             self.show_secondary_next_state_btn('Select new Song', statemachine.show_complete_song)
         else:
             self.show_primary_next_state_btn('Select new Song', statemachine.show_complete_song)
             self.show_secondary_next_state_btn('Start learning',
-                                               PreviewNextPracticeState(self.scheduler, self.statemachine,
-                                                                 self.midi_file, error))
+                                               PreviewNextPracticeState(self.scheduler,
+                                                                        self.statemachine,
+                                                                        self.midi_file, error))
 
 
 class PreviewNextPracticeState(LearningState):
@@ -536,14 +551,16 @@ class PracticeModeState(LearningState):
 
         if ERROR_THRESHOLD > error_df.Summed_right + error_df.Summed_left:
             self.show_primary_next_state_btn('Resume Learning',
-                                             PreviewNextPracticeState(self.scheduler, self.statemachine,
-                                                               self.midi_file, error_df))
+                                             PreviewNextPracticeState(self.scheduler,
+                                                                      self.statemachine,
+                                                                      self.midi_file, error_df))
             self.show_secondary_next_state_btn('Select new Song', statemachine.show_complete_song)
         else:
             self.show_primary_next_state_btn('Select new Song', statemachine.show_complete_song)
             self.show_secondary_next_state_btn('Resume Learning',
-                                               PreviewNextPracticeState(self.scheduler, self.statemachine,
-                                                                 self.midi_file, error_df))
+                                               PreviewNextPracticeState(self.scheduler,
+                                                                        self.statemachine,
+                                                                        self.midi_file, error_df))
 
 
 class EndState(LearningState):

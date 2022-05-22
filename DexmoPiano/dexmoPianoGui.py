@@ -566,7 +566,7 @@ def load_interface():
     # add button to disable metronome sound
     metronome.set(dexmoOutput.metronome)
     check_metronome = tk.Checkbutton(root, text='play metronome', variable=metronome,
-                                     command=dexmoOutput.set_metronome)
+                                     command=dexmoOutput.toggle_metronome)
     check_metronome.place(x=10, y=200)
 
     ##  GUIDANCE Mode
@@ -948,6 +948,7 @@ def create_port_drop_downs():
 
     # choose outport for (Lego)Dexmo etc
     outports, inports = dexmoOutput.get_midi_interfaces()
+
     outports.append("None")
     inports.append("None")
 
