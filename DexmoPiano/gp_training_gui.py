@@ -19,10 +19,11 @@ import midiProcessing
 import config
 import thread_handler
 import hmm_data_acquisition, fileIO
+from task_generation.gp_experiment import GaussianProcess
 
 from task_generation.practice_modes import PracticeMode
 from task_generation.scheduler import Scheduler
-from task_generation.generator import TaskParameters
+from task_generation.task_parameters import TaskParameters
 
 OUTPUT_DIR = './output/'
 TEMP_DIR = './output/temp/'
@@ -299,7 +300,7 @@ class MenuState(LearningState):
 
     def _do_on_enter(self):
 
-        tk.Button(root, text='Start GP learning',
+        tk.Button(root, text='Start gp learning',
                   command=self.start_if_ports_are_set) \
             .place(x=675, y=560, height=50, width=150)
         tk.Button(root, text='Quit',
@@ -494,9 +495,11 @@ class PreviewNextPracticeState(LearningState):
         self.error_form_last_state = error_form_last_state
 
     def get_next_practise_mode(self) -> PracticeMode:
-        print(self.error_form_last_state)
-        # TODO: gaussian processing by using error_form_last_state
-        return random.choice([pm for pm in PracticeMode])
+        task = self.scheduler.current_task_data()
+        task_parameters = task.parameters
+        complexity_level = self.statemachine.complexity_level
+        return self.statemachine.gausian_process.get_best_practice_mode(complexity_level,
+                                                                        task_parameters)
 
     def _do_on_enter(self):
         self.init_training_interface()
@@ -504,6 +507,7 @@ class PreviewNextPracticeState(LearningState):
         root.update_idletasks()
 
         practice_mode = self.get_next_practise_mode()
+
         self.scheduler.queue_practice_mode(practice_mode)
 
         tk.Label(root, text=f"Recommended practise:\n{practice_mode.name}").place(
@@ -523,7 +527,7 @@ class PracticeModeState(LearningState):
                  error_form_last_state: pandas.DataFrame):
         super().__init__(scheduler, statemachine)
         self.midi_file = midi_file
-        self.error_form_last_state = error_form_last_state
+        self.error_last_state = error_form_last_state
 
     def _do_on_enter(self):
         self.init_training_interface()
@@ -545,22 +549,38 @@ class PracticeModeState(LearningState):
 
         self.show_countdown(5)
 
-        error_df = self.start_playback_and_calc_error(task_parameters)
+        error_current_state = self.start_playback_and_calc_error(task_parameters)
 
         # TODO: Update model with new data point
+        utility = self.error_diff_to_utility(self.error_last_state, error_current_state)
+        self.statemachine.gausian_process.add_data_point(self.statemachine.complexity_level,
+                                                         task_parameters, task.practice_mode,
+                                                         utility)
 
-        if ERROR_THRESHOLD > error_df.Summed_right + error_df.Summed_left:
+        if ERROR_THRESHOLD > error_current_state.Summed_right + error_current_state.Summed_left:
             self.show_primary_next_state_btn('Resume Learning',
                                              PreviewNextPracticeState(self.scheduler,
                                                                       self.statemachine,
-                                                                      self.midi_file, error_df))
+                                                                      self.midi_file,
+                                                                      error_current_state))
             self.show_secondary_next_state_btn('Select new Song', statemachine.show_complete_song)
         else:
             self.show_primary_next_state_btn('Select new Song', statemachine.show_complete_song)
             self.show_secondary_next_state_btn('Resume Learning',
                                                PreviewNextPracticeState(self.scheduler,
                                                                         self.statemachine,
-                                                                        self.midi_file, error_df))
+                                                                        self.midi_file,
+                                                                        error_current_state))
+
+    def error_diff_to_utility(self, error_last_state, error_current_state) -> float:
+
+        diff_timing = error_last_state.timing - error_current_state.timing
+        diff_pitch = error_last_state.pitch - error_current_state.pitch
+
+        MEAN_UTILITY = 0.75
+        utility = - (diff_timing * 1 + diff_pitch * 1) - MEAN_UTILITY
+        utility *= random.gauss(1, 0.1)
+        return utility
 
 
 class EndState(LearningState):
@@ -573,6 +593,8 @@ class Statemachine:
 
     def __init__(self):
         self.scheduler = Scheduler()
+        self.gausian_process = GaussianProcess()
+        self.complexity_level = 0
         self.main_menu_state = MenuState(self.scheduler, self)
         self.show_complete_song = SelectSongState(self.scheduler, self)
         self.end_state = EndState(self.scheduler, self)

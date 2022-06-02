@@ -6,7 +6,7 @@ import time
 from error_calc.explanation import NoteExtra, NoteMissing
 from collections import namedtuple
 NoteInfo = namedtuple("NoteInfo", ["pitch", "velocity", "note_on_time", "note_off_time"])
-from task_generation.task import TaskData
+from task_generation.task_data import TaskData
 from task_generation.generator import TaskNote
 from task_generation.note_range_per_hand import NoteRangePerHand
 

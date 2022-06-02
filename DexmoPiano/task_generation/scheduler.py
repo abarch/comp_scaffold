@@ -5,8 +5,9 @@ import copy
 import functools
 import tkinter as tk
 
-from task_generation.generator import TaskParameters
-from task_generation.task import TargetTask, TaskData
+from task_generation.task_parameters import TaskParameters
+from task_generation.task import TargetTask
+from task_generation.task_data import TaskData
 from task_generation.practice_modes import PracticeMode
 
 

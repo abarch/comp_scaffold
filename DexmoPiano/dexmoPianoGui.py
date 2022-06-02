@@ -22,7 +22,7 @@ import thread_handler
 
 from optionsWindow import OptionsWindowClass
 from pianoCapture import setupVisualNotes
-from task_generation.generator import TaskParameters
+from task_generation.task_parameters import TaskParameters
 from task_generation.scheduler import Scheduler, threshold_info, complexity_error
 from task_generation.scheduler import choosePracticeMode
 from task_generation.practice_modes import PracticeMode

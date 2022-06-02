@@ -5,7 +5,8 @@ import random
 from task_generation.note_range_per_hand import  get_pitchlist, transpose
 from collections import namedtuple
 from collections.abc import Iterable
-from task_generation.task import TaskData, TaskParameters
+from task_generation.task_parameters import TaskParameters
+from task_generation.task_data import TaskData
 
 TaskNote = namedtuple("TaskNote", "start pitch duration")
 

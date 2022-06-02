@@ -1,113 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import dataclasses as dc
 from collections import defaultdict
-from dataclasses import dataclass, asdict, astuple
 
 import task_generation.generator as generator
-from task_generation.note_range_per_hand import NoteRangePerHand
 from task_generation.practice_modes import PracticeMode
-
-
-@dataclass
-class MidiNoteEventContainer:
-    left: list = dc.field(init=False)
-    right: list = dc.field(init=False)
-    together: list = dc.field(init=False)
-
-    def register_midi_events(self, midi_left, midi_right):
-        self.left = midi_left
-        self.right = midi_right
-        self.together = sorted(self.left + self.right, key=lambda n: n.note_on_time)
-
-    def __repr__(self):
-        try:
-            return super().__repr__()
-        except:
-            return "MidiNoteEventContainer"
-
-
-
-@dataclass
-class TaskParameters:
-    """
-    @param bpm: Tempo (beats per minute).
-    @param maxNotesPerBar: Maximum number of notes that a bar can contain.
-    @param numberOfBars: Total number of bars.
-    @param noteValuesList: Possible durations of the notes (e.g. 1, 1/2 etc.).
-    @param pitchesList: Possible MIDI pitch numbers (0-127).
-    @param alternating: if true play left/right alternating instead of simultaneously
-    @param twoHandsTup: Tuple of booleans, True if left/right hand is active.
-    """
-    timeSignature: tuple = (4, 4)
-    noteValues: list = dc.field(default_factory=lambda: [1 / 2, 1 / 4])
-    maxNotesPerBar: int = 3
-    noOfBars: int = 7
-    note_range_right: NoteRangePerHand = NoteRangePerHand.TWO_NOTES
-    # FIXME: debug
-    note_range_left: NoteRangePerHand = NoteRangePerHand.ONE_NOTE
-    left: bool = False
-    right: bool = True
-    alternating: bool = True
-    bpm: float = 100
-
-    def astuple(self):
-        return astuple(self)
-
-
-@dataclass(frozen=False)  # Maor: it was changed to False so the bpm could be changed.
-class TaskData:
-    parameters: TaskParameters
-    time_signature: tuple
-    number_of_bars: int
-    notes_right: list
-    notes_left: list
-    bpm: float
-    midi: MidiNoteEventContainer = dc.field(default_factory=MidiNoteEventContainer)
-    practice_mode: str = "None"
-
-    def __post_init__(self):
-        assert type(self.midi) != dict
-
-    def asdict(self):
-        _d = asdict(self)
-        _d["midi"] = self.midi  # the midi container gets turned into a dict!?
-        _d["parameters"] = self.parameters
-        return _d
-
-    def astuple(self):
-        return astuple(self)
-
-    def beats_per_measure(self):
-        return self.time_signature[0]
-
-    def note2hand(self, note):
-        if note in self.midi.right:
-            return "right"
-        if note in self.midi.left:
-            return "left"
-        raise ValueError("note in neither lists?")
-
-    def all_notes(self):
-        assert hasattr(self.midi, "together"), "MidiContainer didn't have any events yet?"
-        return self.midi.together
-
-    def __repr__(self):
-        h = str(id(self))[-5:]
-        return f"<TaskData obj {h}>"
-
-    def __hash__(self):
-        d = self.asdict()
-        d["notes_right"] = tuple(d["notes_right"])
-        d["notes_left"] = tuple(d["notes_left"])
-
-        # the midi data is kind of not related to the task itself, thus
-        # shouldn't result in a different hash if different.
-        del d["midi"]
-        del d["parameters"]
-        return hash(tuple(d.items()))
-
+from task_generation.task_data import TaskData
+from task_generation.task_parameters import TaskParameters
 
 """
 What is a task? 
@@ -185,7 +84,6 @@ class TargetTask:
 
 
 def apply_practice_mode(task_data, practice_mode) -> tuple[list[object], list[str]]:
-    from task_generation.task import TaskData
     from task_generation.generator import TaskNote
 
     if practice_mode == PracticeMode.IDENTITY:

@@ -1,38 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from task_generation.generator import TaskParameters
-
-SIMPLIFIED_TEST_ENUMS = False
-
-if SIMPLIFIED_TEST_ENUMS == False:
-    from task_generation.practice_modes import PracticeMode
-
-else:
-    import enum
-
-
-    class PracticeMode(enum.Enum):
-        IMP_PITCH = enum.auto()
-        IMP_TIMING = enum.auto()
-
-
-    class NoteRangePerHand(enum.Enum):
-        EASY = enum.auto()
-        MEDIUM = enum.auto()
-        HARD = enum.auto()
-
-practicemode2int = {pm: i for i, pm in enumerate(PracticeMode)}
-int2practicemode = {i: pm for i, pm in enumerate(PracticeMode)}
+import enum
 
 import matplotlib.pyplot as plt
 import numpy as np
 import random
 import GPyOpt
-import GPy
-
+from GPyOpt.methods import BayesianOptimization
+from task_generation.task_parameters import TaskParameters
 from dataclasses import dataclass
 from collections import defaultdict
+
+
+class PracticeMode(enum.Enum):
+    IMP_PITCH = enum.auto()
+    IMP_TIMING = enum.auto()
+
+
+class NoteRangePerHand(enum.Enum):
+    EASY = enum.auto()
+    MEDIUM = enum.auto()
+    HARD = enum.auto()
+
+
+practicemode_to_int = {pm: i for i, pm in enumerate(PracticeMode)}
+int_to_practicemode = {i: pm for i, pm in enumerate(PracticeMode)}
 
 
 @dataclass
@@ -57,7 +50,7 @@ class GPPlotData:
         ]
 
 
-def hands2int(left, right):
+def hands_to_int(left, right):
     r = -1
     if left:
         r += 2
@@ -72,7 +65,7 @@ def round_to_closest(f, vals):
     return diff[0][1]
 
 
-def enforce_categoricals(np_array):
+def enforce_categorical(np_array):
     np_array[:, 1] = np.floor(np_array[:, 1])
     np_array[:, 2] = np.floor(np_array[:, 2])
 
@@ -84,90 +77,70 @@ class GaussianProcess:
               {'name': 'practice_mode', 'type': 'categorical', 'domain': (0, 1, 2, 3)},
               {'name': 'hands', 'type': 'categorical', 'domain': (0, 1, 2)},
               {'name': 'bpm', 'type': 'discrete', 'domain': range(50, 201)},
-
               ]
+
     # only subset of task_parameters for easier testing for now
     space = GPyOpt.core.task.space.Design_space(domain)
-
-    def _params2domain(self, complexity_level, task_parameters, practice_mode):
-        # TODO normalize these here??
-        domain_x = [complexity_level,
-                    practicemode2int[practice_mode],
-                    hands2int(task_parameters.left, task_parameters.right),
-                    int(task_parameters.bpm),
-                    ]
-
-        return np.array([domain_x])
-
-    def _domain2space(self, domain_x):
-        # domain_x = np.array([domain_x])
-        print(domain_x.shape)
-        space_rep = self.space.unzip_inputs(domain_x)
-        # print("DX", domain_x, domain_x.shape)
-        # print("SX", space_rep)
-        return space_rep
 
     def __init__(self):
         self.data_X = None
         self.data_Y = None
 
-    def _get_bayes_opt(self):
-        global bayes_opt
+    def _params_to_domain(self, complexity_level: int, task_parameters: TaskParameters, practice_mode: PracticeMode):
+        # TODO normalize these here??
+        domain_x = [complexity_level,
+                    practicemode_to_int[practice_mode],
+                    hands_to_int(task_parameters.left, task_parameters.right),
+                    int(task_parameters.bpm),
+                    ]
 
-        # kernel = GPy.kern.RBF(input_dim=4, 
-        #                       variance=0.22, 
-        #                       lengthscale=0.000001)
+        return np.array([domain_x])
 
-        bayes_opt = GPyOpt.methods.BayesianOptimization(
+    def _domain_to_space(self, domain_x):
+        space_rep = self.space.unzip_inputs(domain_x)
+        return space_rep
+
+    def _get_bayes_opt(self) -> BayesianOptimization:
+        bayes_opt = BayesianOptimization(
             f=None, domain=self.domain, X=self.data_X, Y=self.data_Y,
             maximize=True,
-            # kernel=kernel,
-            # normalize_Y=False,
-            # kernel=kernel,
         )
-        bayes_opt._update_model()  # .suggest_next_locations()
-        ## somehow needed, otherwise the model is None
+        bayes_opt._update_model()
+
         return bayes_opt
 
-    def get_estimate(self, complexity_level, task_parameters, practice_mode):
+    def get_estimate(self, complexity_level: int, task_parameters: TaskParameters,
+                     practice_mode: PracticeMode) -> float:
         if self.data_X is None:
-            print("(GP) DATA_X IS NONE, RETURNING RANDOM NUMBER")
+            print("(gp) DATA_X IS NONE, RETURNING RANDOM NUMBER")
             return random.random()
-
-        # print(self.data_X, self.data_Y)
-        # print(self.data_X.shape, self.data_Y.shape)
 
         bayes_opt = self._get_bayes_opt()
 
-        X = self._params2domain(complexity_level, task_parameters, practice_mode)
-        X = self._domain2space(X)
-
-        # print(bayes_opt.X, bayes_opt.X.shape)
-
-        # print(bayes_opt.model.predict)
-
-        # print("XX", X)
+        X = self._params_to_domain(complexity_level, task_parameters, practice_mode)
+        X = self._domain_to_space(X)
 
         mean, var = bayes_opt.model.predict(X)
         print("EST RES:", mean[0], var[0])
         return mean[0]
 
-    def get_best_practice_mode(self, complexity_level, task_parameters):
+    def get_best_practice_mode(self, complexity_level: int,
+                               task_parameters: TaskParameters) -> PracticeMode:
         all_practice_modes = list(PracticeMode)
         return all_practice_modes[
             np.argmax([self.get_estimate(complexity_level, task_parameters, pm)
                        for pm in all_practice_modes])]
 
-    def add_data_point(self, complexity_level, task_parameters, practice_mode,
-                       utility_measurement):
-        new_x = self._params2domain(complexity_level, task_parameters, practice_mode)
+    def add_data_point(self, complexity_level: int, task_parameters: TaskParameters,
+                       practice_mode: PracticeMode,
+                       utility_measurement: float):
+        new_x = self._params_to_domain(complexity_level, task_parameters, practice_mode)
         new_y = [utility_measurement]
 
         if self.data_X is None:
             self.data_X = new_x
             self.data_Y = new_y
         else:
-            # print(self.data_X, new_x)
             self.data_X = np.vstack((self.data_X, new_x[0]))
             self.data_Y = np.vstack((self.data_Y, new_y[0]))
 
@@ -178,19 +151,17 @@ class GaussianProcess:
         model = bayes_opt.model
 
         X1 = np.linspace(bounds[0][0], bounds[0][1], 200, endpoint=False)
-        # X1 = np.array([0,1,2])
         X2 = np.linspace(bounds[1][0], bounds[1][1], 200)
         x1, x2 = np.meshgrid(X1, X2)
         X = np.hstack((
 
             np.array([c] * (200 * 200)).reshape(200 * 200, 1),
-            np.array([practicemode2int[practice_mode]] * (200 * 200)).reshape(200 * 200, 1),
+            np.array([practicemode_to_int[practice_mode]] * (200 * 200)).reshape(200 * 200, 1),
             x1.reshape(200 * 200, 1),
             x2.reshape(200 * 200, 1)))
 
-        X = enforce_categoricals(X)
-        X_spaced = self._domain2space(X)
-        # print(X[:100,:])
+        X = enforce_categorical(X)
+        X_spaced = self._domain_to_space(X)
 
         acqu = acquisition_function(X_spaced)
         acqu_normalized = acqu  # (-acqu - min(-acqu))/(max(-acqu - min(-acqu)))
@@ -203,79 +174,46 @@ class GaussianProcess:
         data_dict[practice_mode].X1 = X1
         data_dict[practice_mode].X2 = X2
 
-    def _plot_single_practice_mode(self, gp_plot_data, subplotf):
+    def _plot_single_practice_mode(self, gp_plot_data: GPPlotData, subplotf):
         label_x = "Hands"
         label_y = "BPM"
 
-        # Xdata = bayes_opt.X
         bounds = [[0, 3], [50, 200]]
-        # color_by_step = True
-
-        ## Derived from GPyOpt/plotting/plots_bo.py
-        # n = Xdata.shape[0]
-        # colors = np.linspace(0, 1, n)
-        # cmap = plt.cm.Reds
-        # norm = plt.Normalize(vmin=0, vmax=1)
-        # points_var_color = lambda X: plt.scatter(
-        #     X[:,0], X[:,1], c=colors, label=u'Observations', cmap=cmap, norm=norm)
-        # points_one_color = lambda X: plt.plot(
-        #     X[:,0], X[:,1], 'r.', markersize=10, label=u'Observations')
 
         X1 = gp_plot_data.X1
         X2 = gp_plot_data.X2
 
         acqu_normalized = gp_plot_data.acq.reshape((200, 200))
-        # acqu_normalized *= -1
-        # acqu_normalized += 1
 
-        # print(X[:100,:])
-        # m, v = model.predict(X_spaced)
-
-        # plt.subplot(1, 3, 1)
         subplotf(1)
         plt.contourf(X1, X2, gp_plot_data.mean.reshape(200, 200), 100,
                      vmin=gp_plot_data.mean_min,
                      vmax=gp_plot_data.mean_max, )
         plt.colorbar()
-        # if color_by_step:
-        #     points_var_color(Xdata)
-        # else:
-        #     points_one_color(Xdata)
+
         plt.ylabel(label_y)
         plt.title('Posterior mean')
         plt.axis((bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]))
-        ##
-        # plt.subplot(1, 3, 2)
         subplotf(2)
         plt.contourf(X1, X2, gp_plot_data.std.reshape(200, 200), 100,
                      vmin=gp_plot_data.std_min,
                      vmax=gp_plot_data.std_max)
         plt.colorbar()
-        # if color_by_step:
-        #     points_var_color(Xdata)
-        # else:
-        #     points_one_color(Xdata)
         plt.xlabel(label_x)
         plt.ylabel(label_y)
         plt.title('Posterior sd.')
         plt.axis((bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]))
-        ##
-        # plt.subplot(1, 3, 3)
         subplotf(3)
         plt.contourf(X1, X2, acqu_normalized, 100,
                      vmin=gp_plot_data.acq_min,
                      vmax=gp_plot_data.acq_max, )
         plt.colorbar()
-        # plt.plot(suggested_sample[:,0],suggested_sample[:,1],'m.', markersize=10)
         plt.xlabel(label_x)
         plt.ylabel(label_y)
         plt.title('Acquisition function')
         plt.axis((bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]))
-        # if filename!=None:
-        #     savefig(filename)
-        # else:
 
-    def plot_single(self, c, practice_mode):
+    def plot_single(self, c, practice_mode: PracticeMode):
         bayes_opt = self._get_bayes_opt()
 
         plt.figure(figsize=(10, 5))
@@ -284,18 +222,15 @@ class GaussianProcess:
         self._plot_single_practice_mode(c, practice_mode, bayes_opt, subplotf)
         plt.show()
 
-    def plot_mutiple(self, c, practice_modes):
+    def plot_mutiple(self, c, practice_modes: [PracticeMode]):
         bayes_opt = self._get_bayes_opt()
 
         n_rows = len(practice_modes)
-        # n_plots = n_rows*3
 
         data_dict = defaultdict(GPPlotData)
         for i, practice_mode in enumerate(practice_modes):
             self._get_plot_data(data_dict, c, practice_mode, bayes_opt)
 
-        # print([d.apply_to_arrays(np.max) for d in 
-        #                                      data_dict.values()])
         mean_max, std_max, acq_max = np.max([d.apply_to_arrays(np.max) for d in
                                              data_dict.values()], axis=0)
 
@@ -313,7 +248,6 @@ class GaussianProcess:
         fig = plt.figure(figsize=(10, 5 * n_rows))
 
         for i, practice_mode in enumerate(practice_modes):
-            # for i, practice_mode in enumerate(practice_modes):
             subplotf = lambda idx: plt.subplot(n_rows, 3, i * 3 + idx)
             self._plot_single_practice_mode(data_dict[practice_mode], subplotf)
 
@@ -323,14 +257,6 @@ class GaussianProcess:
             ax.annotate(row, xy=(0, 0.5), xytext=(-ax.yaxis.labelpad - pad, 0),
                         xycoords=ax.yaxis.label, textcoords='offset points',
                         size='large', ha='right', va='center')
-
-        # print(argmax_plot_data.mean.shape)
-
-        # axes = fig.get_axes()
-        # print(axes)
-        # pad = 5
-        # rows = ["HAHA"] * n_rows
-        # for ax, row in zip(axes[:,0], rows):
 
         fig.tight_layout()
 

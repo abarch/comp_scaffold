@@ -1,4 +1,4 @@
-from task_generation.generator import TaskParameters
+from task_generation.task_parameters import TaskParameters
 from task_generation.note_range_per_hand import NoteRangePerHand
 import networkx as nx
 

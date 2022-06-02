@@ -5,10 +5,12 @@ mido~=1.2.9
 music21~=6.1.0
 image
 
-cryptography~=3.4.8
+cryptography~=37.0.0
 numpy~=1.22.3
 deap~=1.3.1
-networkx~=2.6.3
-Pillow~=8.2.0
-matplotlib~=3.4.3
-pandas~=1.3.4
+networkx~=2.8.1
+Pillow~=9.1.0
+matplotlib~=3.5.2
+pandas~=1.4.2
+GPyOpt~=1.2.6
+tqdm~=4.64.0
