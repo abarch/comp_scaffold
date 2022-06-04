@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-# from dataclasses import dataclass
-# from pprint import pprint
-# import dataclasses
 from collections import namedtuple
-
+from collections import defaultdict
 from error_calc.explanation_helpers import NoteExpected, NoteExtra, NoteMissing
 
 Error = namedtuple("Error", ["pitch", "note_hold_time", "timing",
@@ -14,9 +8,7 @@ Error = namedtuple("Error", ["pitch", "note_hold_time", "timing",
                              "number_of_notes"
                              ])
 
-
 def get_anchor_map(target_notes):
-    from collections import defaultdict
     anchor_map = defaultdict(lambda: (-1, 0))
 
     for i in range(len(target_notes)):

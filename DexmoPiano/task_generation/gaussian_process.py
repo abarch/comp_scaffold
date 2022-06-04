@@ -1,27 +1,21 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-import enum
-
-import matplotlib.pyplot as plt
-import numpy as np
 import random
-import GPyOpt
-from GPyOpt.methods import BayesianOptimization
-from task_generation.task_parameters import TaskParameters
 from dataclasses import dataclass
-from collections import defaultdict
+
+import GPy
+import GPyOpt
+import numpy as np
 
 
-class PracticeMode(enum.Enum):
-    IMP_PITCH = enum.auto()
-    IMP_TIMING = enum.auto()
+# interval of possible bpm_values
+import pandas
+from GPyOpt.methods import BayesianOptimization
+from pandas import DataFrame
 
+from task_generation.practice_modes import PracticeMode
+from task_generation.task_parameters import TaskParameters
 
-class NoteRangePerHand(enum.Enum):
-    EASY = enum.auto()
-    MEDIUM = enum.auto()
-    HARD = enum.auto()
+BPM_BOUNDS = [50, 200]
+
 
 
 practicemode_to_int = {pm: i for i, pm in enumerate(PracticeMode)}
@@ -73,238 +67,125 @@ def enforce_categorical(np_array):
 
 
 class GaussianProcess:
-    domain = [{'name': 'complexity_level', 'type': 'discrete', 'domain': tuple(range(10))},
-              {'name': 'practice_mode', 'type': 'categorical', 'domain': (0, 1, 2, 3)},
-              {'name': 'hands', 'type': 'categorical', 'domain': (0, 1, 2)},
-              {'name': 'bpm', 'type': 'discrete', 'domain': range(50, 201)},
-              ]
-
-    # only subset of task_parameters for easier testing for now
-    space = GPyOpt.core.task.space.Design_space(domain)
-
-    def __init__(self):
+    def __init__(self, bpm_norm_fac=100):
         self.data_X = None
+        self.data_X_old_shape = None
+
         self.data_Y = None
 
-    def _params_to_domain(self, complexity_level: int, task_parameters: TaskParameters, practice_mode: PracticeMode):
-        # TODO normalize these here??
-        domain_x = [complexity_level,
-                    practicemode_to_int[practice_mode],
-                    hands_to_int(task_parameters.left, task_parameters.right),
-                    int(task_parameters.bpm),
-                    ]
+        self.bpm_norm_fac = bpm_norm_fac
+
+        self.domain = [
+            {'name': 'practice_mode', 'type': 'categorical', 'domain': (0, 1, 2)},
+            {'name': 'bpm', 'type': 'continuous', 'domain':
+                (self._norm_bpm(BPM_BOUNDS[0]), self._norm_bpm(BPM_BOUNDS[1]))},
+            {'name': 'error_pitch', 'type': 'continuous', 'domain': (0, 1)},
+            {'name': 'error_timing', 'type': 'continuous', 'domain': (0, 1)}
+        ]
+
+        self.space = GPyOpt.core.task.space.Design_space(self.domain)
+
+    def _norm_bpm(self, v: float) -> float:
+        return v / self.bpm_norm_fac
+
+    def _params2domain(self, error: DataFrame, task_parameters: TaskParameters, practice_mode: PracticeMode):
+        domain_x = [
+            practice_mode.value,
+            self._norm_bpm(task_parameters.bpm),
+            error.pitch_right + error.pitch_left,
+            error.timing_right + error.timing_left
+        ]
 
         return np.array([domain_x])
 
-    def _domain_to_space(self, domain_x):
+    def _domain2space(self, domain_x):
+        # Converts the domain variables into the GPs input space
+        # does one-hot encoding
         space_rep = self.space.unzip_inputs(domain_x)
         return space_rep
 
     def _get_bayes_opt(self) -> BayesianOptimization:
-        bayes_opt = BayesianOptimization(
+        return self.bayes_opt
+
+    def update_model(self):
+        """
+            If the Gaussian Process' training data has changed, "trains" the GP on the complete data set.
+        """
+        # only calculate new model if data changed
+        if self.data_X is None or self.data_X.shape == self.data_X_old_shape:
+            return
+
+        self.data_X_old_shape = self.data_X.shape
+
+        kernel = GPy.kern.RBF(input_dim=self.space.model_dimensionality,
+                              variance=0.01,
+                              lengthscale=1)
+        self.bayes_opt = GPyOpt.methods.BayesianOptimization(
             f=None, domain=self.domain, X=self.data_X, Y=self.data_Y,
-            maximize=True,
+            maximize=True, normalize_Y=False,
+            kernel=kernel,
         )
-        bayes_opt._update_model()
 
-        return bayes_opt
+        self.bayes_opt.model.max_iters = 0
+        self.bayes_opt._update_model()
+        self.bayes_opt.model.max_iters = 1000
+        self.bayes_opt._update_model()
 
-    def get_estimate(self, complexity_level: int, task_parameters: TaskParameters,
-                     practice_mode: PracticeMode) -> float:
-        if self.data_X is None:
-            print("(gp) DATA_X IS NONE, RETURNING RANDOM NUMBER")
+    def get_estimate(self, error: DataFrame, task_parameters: TaskParameters, practice_mode: PracticeMode) -> float:
+        """
+            Estimates the utility value for a given practice mode
+        @param error: namedtuple("Error", "pitch timing")
+        @param task_parameters: task_parameters of the music piece
+        @param practice_mode: the practice mode for which the utility value should be estimated
+        @return: gaussian process' estimate of the utility value
+        """
+        if not hasattr(self, "bayes_opt"):
+            # if there is no model yet, e.g. in the first iteration
+            # print("(GP) DATA_X IS NONE, RETURNING RANDOM NUMBER")
             return random.random()
 
         bayes_opt = self._get_bayes_opt()
 
-        X = self._params_to_domain(complexity_level, task_parameters, practice_mode)
-        X = self._domain_to_space(X)
+        x = self._params2domain(error, task_parameters, practice_mode)
+        x = self._domain2space(x)
 
-        mean, var = bayes_opt.model.predict(X)
-        print("EST RES:", mean[0], var[0])
+        mean, var = bayes_opt.model.predict(x)
+
         return mean[0]
 
-    def get_best_practice_mode(self, complexity_level: int,
-                               task_parameters: TaskParameters) -> PracticeMode:
+    def get_best_practice_mode(self, error: DataFrame, task_parameters: TaskParameters, epsilon=0.05):
+        """
+            computes the gaussian process' estimate of the best practice mode
+            for exploration: currently utilizes epsilon-greedy exploration
+        @param error: dataframe with the error values
+        @param task_parameters: task_parameters of the music piece
+        @param (optional) epsilon: the probability of making a random decision. set to 0 for no exploration.
+        @return: chosen for given input parameters PracticeMode
+        """
         all_practice_modes = list(PracticeMode)
-        return all_practice_modes[
-            np.argmax([self.get_estimate(complexity_level, task_parameters, pm)
-                       for pm in all_practice_modes])]
+        # epsilon-greedy
+        if random.random() > epsilon:
+            max_i = np.argmax([self.get_estimate(error, task_parameters, pm)
+                               for pm in all_practice_modes])
+            return all_practice_modes[max_i]
+        else:
+            return np.random.choice(all_practice_modes)
 
-    def add_data_point(self, complexity_level: int, task_parameters: TaskParameters,
-                       practice_mode: PracticeMode,
-                       utility_measurement: float):
-        new_x = self._params_to_domain(complexity_level, task_parameters, practice_mode)
+    def add_data_point(self, error: DataFrame, task_parameters: TaskParameters, practice_mode: PracticeMode, utility_measurement: float):
+        """
+            Adds a new datapoint to the dataset of the gaussian process.
+            Does not update the Gaussian Process for the new training data (see: update_model)
+        @param error: dataframe with the error values
+        @param task_parameters: task_parameters of the music piece
+        @param practice_mode: practice mode in which the performer practiced
+        @param utility_measurement: observed utility value for the given parameters
+        """
+        new_x = self._params2domain(error, task_parameters, practice_mode)
         new_y = [utility_measurement]
 
         if self.data_X is None:
             self.data_X = new_x
-            self.data_Y = new_y
+            self.data_Y = [new_y]
         else:
             self.data_X = np.vstack((self.data_X, new_x[0]))
             self.data_Y = np.vstack((self.data_Y, new_y[0]))
-
-    def _get_plot_data(self, data_dict, c, practice_mode, bayes_opt):
-        bounds = [[0, 3], [50, 200]]
-
-        acquisition_function = bayes_opt.acquisition.acquisition_function
-        model = bayes_opt.model
-
-        X1 = np.linspace(bounds[0][0], bounds[0][1], 200, endpoint=False)
-        X2 = np.linspace(bounds[1][0], bounds[1][1], 200)
-        x1, x2 = np.meshgrid(X1, X2)
-        X = np.hstack((
-
-            np.array([c] * (200 * 200)).reshape(200 * 200, 1),
-            np.array([practicemode_to_int[practice_mode]] * (200 * 200)).reshape(200 * 200, 1),
-            x1.reshape(200 * 200, 1),
-            x2.reshape(200 * 200, 1)))
-
-        X = enforce_categorical(X)
-        X_spaced = self._domain_to_space(X)
-
-        acqu = acquisition_function(X_spaced)
-        acqu_normalized = acqu  # (-acqu - min(-acqu))/(max(-acqu - min(-acqu)))
-
-        m, v = model.predict(X_spaced)
-
-        data_dict[practice_mode].mean = m
-        data_dict[practice_mode].std = np.sqrt(v)
-        data_dict[practice_mode].acq = acqu_normalized
-        data_dict[practice_mode].X1 = X1
-        data_dict[practice_mode].X2 = X2
-
-    def _plot_single_practice_mode(self, gp_plot_data: GPPlotData, subplotf):
-        label_x = "Hands"
-        label_y = "BPM"
-
-        bounds = [[0, 3], [50, 200]]
-
-        X1 = gp_plot_data.X1
-        X2 = gp_plot_data.X2
-
-        acqu_normalized = gp_plot_data.acq.reshape((200, 200))
-
-        subplotf(1)
-        plt.contourf(X1, X2, gp_plot_data.mean.reshape(200, 200), 100,
-                     vmin=gp_plot_data.mean_min,
-                     vmax=gp_plot_data.mean_max, )
-        plt.colorbar()
-
-        plt.ylabel(label_y)
-        plt.title('Posterior mean')
-        plt.axis((bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]))
-        subplotf(2)
-        plt.contourf(X1, X2, gp_plot_data.std.reshape(200, 200), 100,
-                     vmin=gp_plot_data.std_min,
-                     vmax=gp_plot_data.std_max)
-        plt.colorbar()
-        plt.xlabel(label_x)
-        plt.ylabel(label_y)
-        plt.title('Posterior sd.')
-        plt.axis((bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]))
-        subplotf(3)
-        plt.contourf(X1, X2, acqu_normalized, 100,
-                     vmin=gp_plot_data.acq_min,
-                     vmax=gp_plot_data.acq_max, )
-        plt.colorbar()
-        plt.xlabel(label_x)
-        plt.ylabel(label_y)
-        plt.title('Acquisition function')
-        plt.axis((bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]))
-
-    def plot_single(self, c, practice_mode: PracticeMode):
-        bayes_opt = self._get_bayes_opt()
-
-        plt.figure(figsize=(10, 5))
-        subplotf = lambda idx: plt.subplot(1, 3, idx)
-
-        self._plot_single_practice_mode(c, practice_mode, bayes_opt, subplotf)
-        plt.show()
-
-    def plot_mutiple(self, c, practice_modes: [PracticeMode]):
-        bayes_opt = self._get_bayes_opt()
-
-        n_rows = len(practice_modes)
-
-        data_dict = defaultdict(GPPlotData)
-        for i, practice_mode in enumerate(practice_modes):
-            self._get_plot_data(data_dict, c, practice_mode, bayes_opt)
-
-        mean_max, std_max, acq_max = np.max([d.apply_to_arrays(np.max) for d in
-                                             data_dict.values()], axis=0)
-
-        mean_min, std_min, acq_min = np.min([d.apply_to_arrays(np.min) for d in
-                                             data_dict.values()], axis=0)
-
-        for pd in data_dict.values():
-            pd.mean_max = mean_max
-            pd.mean_min = mean_min
-            pd.std_max = std_max
-            pd.std_min = std_min
-            pd.acq_max = acq_max
-            pd.acq_min = acq_min
-
-        fig = plt.figure(figsize=(10, 5 * n_rows))
-
-        for i, practice_mode in enumerate(practice_modes):
-            subplotf = lambda idx: plt.subplot(n_rows, 3, i * 3 + idx)
-            self._plot_single_practice_mode(data_dict[practice_mode], subplotf)
-
-            ax = subplotf(1)
-            row = practice_mode.name
-            pad = 5
-            ax.annotate(row, xy=(0, 0.5), xytext=(-ax.yaxis.labelpad - pad, 0),
-                        xycoords=ax.yaxis.label, textcoords='offset points',
-                        size='large', ha='right', va='center')
-
-        fig.tight_layout()
-
-        plt.show()
-
-        some_pd = list(data_dict.values())[0]
-
-        argmax_plot_data = GPPlotData(X1=some_pd.X1, X2=some_pd.X2)
-        argmax_plot_data.mean = np.argmax([d.mean for d in
-                                           data_dict.values()], axis=0)
-
-        argmax_plot_data.std = np.argmax([d.std for d in
-                                          data_dict.values()], axis=0)
-
-        argmax_plot_data.acq = np.argmax([d.acq for d in
-                                          data_dict.values()], axis=0)
-
-        plt.figure(figsize=(10, 5))
-        subplotf = lambda idx: plt.subplot(1, 3, idx)
-
-        self._plot_single_practice_mode(argmax_plot_data, subplotf)
-        ax = subplotf(1)
-        row = "ARGMAX"
-        pad = 5
-        ax.annotate(row, xy=(0, 0.5), xytext=(-ax.yaxis.labelpad - pad, 0),
-                    xycoords=ax.yaxis.label, textcoords='offset points',
-                    size='large', ha='right', va='center')
-        plt.show()
-
-
-if __name__ == "__main__":
-    STARTING_COMPLEXITY_LEVEL = 0
-    c = STARTING_COMPLEXITY_LEVEL
-    GP = GaussianProcess()
-
-    tp = TaskParameters()
-    print(GP.get_best_practice_mode(c, tp))
-
-    for i in range(8):
-        print("ADD DATA")
-        tp.bpm = 60 + i * 10
-        GP.add_data_point(c, tp,
-                          PracticeMode.IDENTITY,
-                          10 - i)
-
-    print(GP.get_best_practice_mode(c, tp))
-
-    GP.plot_mutiple(c, [
-        PracticeMode.IDENTITY,
-        PracticeMode.SLOWER
-    ])

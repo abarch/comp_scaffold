@@ -2,6 +2,7 @@ import dataclasses as dc
 from dataclasses import dataclass, asdict, astuple
 
 from task_generation.midi_note_event_container import MidiNoteEventContainer
+from task_generation.practice_modes import PracticeMode
 from task_generation.task_parameters import TaskParameters
 
 
@@ -14,7 +15,7 @@ class TaskData:
     notes_left: list
     bpm: float
     midi: MidiNoteEventContainer = dc.field(default_factory=MidiNoteEventContainer)
-    practice_mode: str = "None"
+    practice_mode: PracticeMode = "None"
 
     def __post_init__(self):
         assert type(self.midi) != dict

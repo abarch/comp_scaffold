@@ -174,7 +174,6 @@ if __name__ == "__main__":
     print("ACTUAL_NOTES:")
     print(actual_notes)
     
-    from error_calc.functions import computeErrorOld as ce_old
     from error_calc.functions import computeErrorLV  as ce_lv
     from error_calc.functions import computeErrorEvo as ce_evo
     

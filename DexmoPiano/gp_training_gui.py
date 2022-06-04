@@ -19,7 +19,7 @@ import midiProcessing
 import config
 import thread_handler
 import hmm_data_acquisition, fileIO
-from task_generation.gp_experiment import GaussianProcess
+from task_generation.gaussian_process import GaussianProcess
 
 from task_generation.practice_modes import PracticeMode
 from task_generation.scheduler import Scheduler
@@ -67,7 +67,6 @@ canvas = None
 
 countdown_label = None
 
-# TODO: define real threshold for both tasks
 ERROR_THRESHOLD = 3
 EXIT_PRACTISE_MODE_THRESHOLD = 1
 
@@ -498,8 +497,8 @@ class PreviewNextPracticeState(LearningState):
         task = self.scheduler.current_task_data()
         task_parameters = task.parameters
         complexity_level = self.statemachine.complexity_level
-        return self.statemachine.gausian_process.get_best_practice_mode(complexity_level,
-                                                                        task_parameters)
+        return self.statemachine.gaussian_process.get_best_practice_mode(complexity_level,
+                                                                         task_parameters)
 
     def _do_on_enter(self):
         self.init_training_interface()
@@ -524,7 +523,7 @@ class PreviewNextPracticeState(LearningState):
 class PracticeModeState(LearningState):
 
     def __init__(self, scheduler: Scheduler, statemachine, midi_file: str,
-                 error_form_last_state: pandas.DataFrame):
+                 error_form_last_state):
         super().__init__(scheduler, statemachine)
         self.midi_file = midi_file
         self.error_last_state = error_form_last_state
@@ -553,9 +552,9 @@ class PracticeModeState(LearningState):
 
         # TODO: Update model with new data point
         utility = self.error_diff_to_utility(self.error_last_state, error_current_state)
-        self.statemachine.gausian_process.add_data_point(self.statemachine.complexity_level,
-                                                         task_parameters, task.practice_mode,
-                                                         utility)
+        self.statemachine.gaussian_process.add_data_point(self.error_last_state,
+                                                          task_parameters, task.practice_mode,
+                                                          utility)
 
         if ERROR_THRESHOLD > error_current_state.Summed_right + error_current_state.Summed_left:
             self.show_primary_next_state_btn('Resume Learning',
@@ -574,8 +573,8 @@ class PracticeModeState(LearningState):
 
     def error_diff_to_utility(self, error_last_state, error_current_state) -> float:
 
-        diff_timing = error_last_state.timing - error_current_state.timing
-        diff_pitch = error_last_state.pitch - error_current_state.pitch
+        diff_timing = (error_last_state.timing_right + error_last_state.timing_left) - (error_current_state.timing_right + error_current_state.timing_left)
+        diff_pitch = (error_last_state.pitch_right + error_last_state.pitch_left) - (error_current_state.pitch_right + error_current_state.pitch_left)
 
         MEAN_UTILITY = 0.75
         utility = - (diff_timing * 1 + diff_pitch * 1) - MEAN_UTILITY
@@ -593,7 +592,7 @@ class Statemachine:
 
     def __init__(self):
         self.scheduler = Scheduler()
-        self.gausian_process = GaussianProcess()
+        self.gaussian_process = GaussianProcess()
         self.complexity_level = 0
         self.main_menu_state = MenuState(self.scheduler, self)
         self.show_complete_song = SelectSongState(self.scheduler, self)

@@ -19,11 +19,6 @@ import noteHandler as nh
 MAX_NOTE = 128
 global portname
 
-# Is error really percentage
-ERROR_VEC_IF_NO_NOTE_PLAYED = Error(pitch=0, note_hold_time=0, timing=100, n_missing_notes=100,
-                                    t_missing_notes=100, n_extra_notes=100, t_extra_notes=100,
-                                    number_of_notes=100)
-
 
 def resetArrays():
     """
@@ -108,7 +103,6 @@ def start_midi_playback(midiFileLocation, guidance, task_data, use_visual_attent
     ###TODO: change?
     resetArrays()
     inputThread.resetArrays()
-    # outputThread.resetArrays()
 
     if use_visual_attention:
         ofi = OpenFaceInput()
@@ -142,9 +136,6 @@ def start_midi_playback(midiFileLocation, guidance, task_data, use_visual_attent
 
     # get array with actual notes
     actualTimes = inputThread.noteInfoList
-
-    # COMPUTE ERROR (naive example)
-    global errorDiff
 
     if len(actualTimes) == 0:  # i.e. they did not play
         print("No notes were played!!!")
