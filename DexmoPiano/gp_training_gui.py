@@ -467,7 +467,7 @@ class PlayCompleteSong(LearningState):
 
         midiProcessing.generateMidi(task_data, outFiles=OUTPUT_FILES_STRS)
 
-        self.show_countdown(5)
+        # self.show_countdown(5)
 
         error = self.start_playback_and_calc_error(self.task_parameters)
 

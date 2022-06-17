@@ -197,12 +197,10 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode, showVertic
                     if (msg.type == 'note_on') or (msg.type == 'note_off'):
                         if msg.note < 48 and metronome:
                             soundPort.send(msg)  # sound only from metronome track
-                            # print(msg.note)
                 # Code not for Nord: metronome is on channel 9
                 else:
                     if msg.channel == 9 and metronome:
                         soundPort.send(msg)  # sound only from metronome track
-                        print(msg.channel)
 
                 if msg.channel == 0:  # haptic feeback for notes in Piano track
 
