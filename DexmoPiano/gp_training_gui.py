@@ -576,6 +576,7 @@ class PracticeModeState(LearningState):
         diff_timing = (error_last_state.timing_right + error_last_state.timing_left) - (error_current_state.timing_right + error_current_state.timing_left)
         diff_pitch = (error_last_state.pitch_right + error_last_state.pitch_left) - (error_current_state.pitch_right + error_current_state.pitch_left)
 
+        # TODO!!! (ASYA): This is an important constant that should be estimated empirically. this default is at thm for the data that has been simulated.
         MEAN_UTILITY = 0.75
         utility = - (diff_timing * 1 + diff_pitch * 1) - MEAN_UTILITY
         utility *= random.gauss(1, 0.1)
