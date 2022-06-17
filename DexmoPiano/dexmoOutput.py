@@ -5,6 +5,7 @@ from mido import Message
 from mido import MidiFile
 import time
 import logging
+import settings
 
 import noteHandler as nh
 
@@ -192,14 +193,16 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode, showVertic
                 # do not play all notes at once
                 time.sleep(msg.time)
                 # for Nord 4: since Metronome and piano are both on channel 0, then metronome is defined by pitch < 48.
-                if (msg.type == 'note_on') or (msg.type == 'note_off'):
-                    if msg.note < 48 and metronome == True:
-                        soundPort.send(msg)  # sound only from metronome track
-                        # print(msg.note)
+                if settings.CHANNEL_METRO == 0:
+                    if (msg.type == 'note_on') or (msg.type == 'note_off'):
+                        if msg.note < 48 and metronome:
+                            soundPort.send(msg)  # sound only from metronome track
+                            # print(msg.note)
                 # Code not for Nord: metronome is on channel 9
-                #                if msg.channel == 9 and metronome == True:
-                #                    soundPort.send(msg)  # sound only from metronome track
-                #                    print(msg.channel)
+                else:
+                    if msg.channel == 9 and metronome:
+                        soundPort.send(msg)  # sound only from metronome track
+                        print(msg.channel)
 
                 if msg.channel == 0:  # haptic feeback for notes in Piano track
 
