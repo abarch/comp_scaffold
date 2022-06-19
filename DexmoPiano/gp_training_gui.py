@@ -6,6 +6,7 @@ import time
 import pandas
 import subprocess
 import os
+import mido
 
 import numpy as np
 import tkinter as tk
@@ -31,6 +32,9 @@ OUTPUT_FILES_STRS = [TEMP_DIR + 'output.mid', TEMP_DIR + 'output-m.mid', TEMP_DI
                      TEMP_DIR + 'output.xml']
 OUTPUT_LY_STR = TEMP_DIR + 'output.ly'
 OUTPUT_PNG_STR = TEMP_DIR + 'output.png'
+
+# copy of the selected midi file, which will be changed based on the practice mode
+CURRENT_MIDI = TEMP_DIR + 'current_midi.mid'
 
 LILYPOND_PYTHON_EXE_WIN = "c:/Program Files (x86)/LilyPond/usr/bin/python.exe"
 XMl_2_LY_WIN_FOLDER = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly"
@@ -401,10 +405,12 @@ class SelectSongState(LearningState):
             midi_file = filedialog.askopenfilename(
                 filetypes=[("Midi files", ".midi .mid")])
 
+        shutil.copy(midi_file, CURRENT_MIDI)
+
         midiProcessing.generate_metronome_and_fingers_for_midi(self.task_parameters.left,
                                                                self.task_parameters.right,
                                                                OUTPUT_FILES_STRS,
-                                                               midi_file,
+                                                               CURRENT_MIDI,
                                                                )
         self.gen_ly_for_current_task()
         subprocess.run(['lilypond', '--png', '-o', TEMP_DIR, OUTPUT_LY_STR],
@@ -535,14 +541,24 @@ class PracticeModeState(LearningState):
         task = self.scheduler.current_task_data()
         task_parameters = task.parameters
 
+        # TODO: should later be only used for timing practice mode
+        temp_midi_file = mido.MidiFile(self.midi_file, clip=True)
+
+        for i in range(len(temp_midi_file.tracks[1])):
+            if temp_midi_file.tracks[1][i].type == 'note_on':
+                temp_midi_file.tracks[1][i].note = 62
+        temp_midi_file.save(TEMP_DIR + 'current_midi.mid')
+
         midiProcessing.generate_metronome_and_fingers_for_midi(task_parameters.left,
                                                                task_parameters.right,
                                                                OUTPUT_FILES_STRS,
-                                                               self.midi_file,
+                                                               CURRENT_MIDI,
                                                                )
         self.gen_ly_for_current_task()
         subprocess.run(['lilypond', '--png', '-o', TEMP_DIR, OUTPUT_LY_STR],
                        stderr=subprocess.DEVNULL)
+
+        self.show_note_sheet(OUTPUT_PNG_STR)
 
         midiProcessing.generateMidi(task, outFiles=OUTPUT_FILES_STRS)
 
