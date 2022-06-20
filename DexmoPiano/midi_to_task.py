@@ -12,13 +12,16 @@ from task_generation.task_data import TaskData
 from task_generation.task_parameters import TaskParameters
 from task_generation.note_range_per_hand import NoteRangePerHand
 
+
 TaskNote = namedtuple("TaskNote", "start pitch duration")
 
 filepath = './songs/74a_HaKovaSheli.midi'
 
+
 if __name__ == '__main__':
     midi = mido.MidiFile(filepath, clip=True)
     print(midi.tracks)
+    messages = midi.tracks[1][1:-1]  # slice out meta information
     right, left = False, False
     if len(midi.tracks) == 2:
         right = True
@@ -36,11 +39,19 @@ if __name__ == '__main__':
 
     noOfBars = int(n_beats / time_signature[0])
 
+    notes = dict(left=[], right=[])
+
+    passed_time = 0
+    for i in range(len(messages) - 1):
+        passed_time += int(messages[i].time)
+        if messages[i].velocity != 0:
+            notes["right"].append(TaskNote(passed_time, messages[i].note, float(messages[i + 1].time) / bpm))
+
     task_parameter = TaskParameters(
         timeSignature=time_signature,
         maxNotesPerBar=16,
         noOfBars=noOfBars,
-        note_range_right=NoteRangePerHand.ONE_OCTAVE,
+        note_range_right=NoteRangePerHand.ONE_OCTAVE,  # where does this come from?
         note_range_left=NoteRangePerHand.ONE_OCTAVE,
         right=right,
         left=left,
@@ -52,6 +63,7 @@ if __name__ == '__main__':
         parameters=task_parameter,
         time_signature=time_signature,
         number_of_bars=noOfBars,
-        # TODO: Parse midi file into TaskNotes
-        bpm=bpm,
+        notes_left=notes["left"],
+        notes_right=notes["right"],
+        bpm=bpm
     )
