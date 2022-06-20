@@ -469,7 +469,7 @@ class PlayCompleteSong(LearningState):
         root.update_idletasks()
 
         self.scheduler.clear_queue()
-        task_data = self.scheduler.queue_new_target_task(task_parameters=self.task_parameters)
+        task_data = self.scheduler.queue_new_target_task_from_midi(CURRENT_MIDI)
 
         midiProcessing.generateMidi(task_data, outFiles=OUTPUT_FILES_STRS)
 

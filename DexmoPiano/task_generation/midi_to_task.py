@@ -15,13 +15,9 @@ from task_generation.note_range_per_hand import NoteRangePerHand
 
 TaskNote = namedtuple("TaskNote", "start pitch duration")
 
-filepath = './songs/74a_HaKovaSheli.midi'
-
-
-if __name__ == '__main__':
-    midi = mido.MidiFile(filepath, clip=True)
-    print(midi.tracks)
-    messages = midi.tracks[1][1:-1]  # slice out meta information
+def midi2taskdata(midifile_path):
+    midi = mido.MidiFile(midifile_path, clip=True)
+    messages = midi.tracks[1] #[1:-1]  # slice out meta information
     right, left = False, False
     if len(midi.tracks) == 2:
         right = True
@@ -41,11 +37,14 @@ if __name__ == '__main__':
 
     notes = dict(left=[], right=[])
 
-    passed_time = 0
+    passed_time = time_signature[0]
     for i in range(len(messages) - 1):
-        passed_time += int(messages[i].time)
+        if messages[i].type != 'note_on':
+            continue
+        passed_time += int(messages[i].time / midi.ticks_per_beat)
         if messages[i].velocity != 0:
-            notes["right"].append(TaskNote(passed_time, messages[i].note, float(messages[i + 1].time) / bpm))
+            notes["right"].append(
+                TaskNote(passed_time, messages[i].note, float(messages[i + 1].time) / midi.ticks_per_beat))
 
     task_parameter = TaskParameters(
         timeSignature=time_signature,
@@ -67,3 +66,9 @@ if __name__ == '__main__':
         notes_right=notes["right"],
         bpm=bpm
     )
+
+    return task_data
+
+
+if __name__ == '__main__':
+    pass
