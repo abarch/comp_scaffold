@@ -33,13 +33,13 @@ def midi2taskdata(midifile_path):
         if msg.type == 'end_of_track':
             n_beats = msg.time / midi.ticks_per_beat
 
-    noOfBars = int(n_beats / time_signature[0])
+    noOfBars = int(n_beats / time_signature[0]) + 2
 
     notes = dict(left=[], right=[])
 
     passed_time = time_signature[0]
     for i in range(len(messages) - 1):
-        if messages[i].type != 'note_on':
+        if messages[i].type != 'note_on' and messages[i].type != 'end_of_track':
             continue
         passed_time += int(messages[i].time / midi.ticks_per_beat)
         if messages[i].velocity != 0:
