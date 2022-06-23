@@ -67,7 +67,7 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
             error = errorVecRight
         else:
             error = errorVecLeft
-#        dic_error['pitch'+hand] = error.pitch
+        dic_error['pitch'+hand] = error.pitch
         dic_error['note_hold_time'+hand] = error.note_hold_time
         dic_error['timing'+hand] = error.timing
         dic_error['n_missing_notes'+hand] = error.n_missing_notes
