@@ -1,10 +1,9 @@
 import socket
 # computer specific settings
 
+print("socket ",socket.gethostname() )
 # TAU lab computer
-
-print(socket.gethostname())
-if socket.gethostname() == 'DESKTOP-17671' or socket.gethostname() == 'Homs-MacBook-Air.local':
+if socket.gethostname() == 'DESKTOP-17671' or socket.gethostname() == 'Homs-MacBook-Air.local' or socket.gethostname() =='mikzot005':
     ### CONSTANTS ###
     CHANNEL_PIANO = 0
     CHANNEL_METRO = 0  # for Nord 4, metronome has to be on the same channel
