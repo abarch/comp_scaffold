@@ -90,6 +90,48 @@ def set_tracks(mf, bpm):
 
     mf.addTempo(settings.R_TRACK, settings.TIME_AT_START, bpm)  # in file format 1, track doesn't matter
 
+def generate_metronome_for_midi(left, right, outFiles, midi_file, custom_bpm=0):
+    """
+    Adds a metronome and guidance tracks/staffs to a given MIDI file.
+    Both are created/computed individually for each file.
+
+    @param left: True if the left hand is active.
+    @param right: True if the right hand is active.
+    @param outFiles: List of output MIDI files (needs metronome and guidance).
+    @param midi_file: Input MIDI file.
+    @param custom_bpm: Custom tempo (beats per minute) if desired.
+    @return: saved task data and task settings
+    """
+    sf, measures, bpm = only_write_xml(midi_file, outFiles[3], right, left)
+    print("bpm extracted from midi: ", bpm)
+    # sf.show('text')
+    if custom_bpm > 0:
+        bpm = custom_bpm
+
+    #config.customBPM = bpm
+    #temp_mido_file = mido.MidiFile(outFiles[0])
+
+    mf = MIDIFile(numTracks=settings.TRACKS)
+
+    set_tracks(mf, bpm)
+
+    # set time signature
+
+#    set_time_signature(sf.parts[0].timeSignature.numerator, sf.parts[0].timeSignature.denominator, settings.R_TRACK, mf)
+    set_time_signature(4, 4, settings.R_TRACK, mf)
+
+    #print("number of measures extracted from midi: ", measures)
+    #add_metronome(measures + settings.INTRO_BARS, sf.parts[0].timeSignature.numerator, outFiles[1], False, mf)
+    add_metronome(measures + settings.INTRO_BARS, 4, outFiles[1], False, mf)
+    count, left_count = extract_number_of_notes(sf)
+    c_to_g = False
+    if ((len(sf.parts) <= 1) and count < 10) or (
+            (len(sf.parts) >= 2) and (count < 10 or left_count < 10)):
+        c_to_g = True
+    # print("c to g is ", c_to_g, " left is ", left, " right is ", right, " count is ", count, " left count is ", left_count)
+
+    write_midi(outFiles[2], mf)
+    #add_fingernumbers(outFiles[2], sf, True, right, left, mf, c_to_g)  # c_to_g false?
 
 def generate_metronome_and_fingers_for_midi(left, right, outFiles, midi_file, custom_bpm=0):
     """
@@ -276,9 +318,10 @@ def generateMidi(task, outFiles):
         ## i didn't write this code but I assume it wants to make sure that 
         ## if a hand is playing it has at least 8 notes.
         
-        sf, measures, bpm = generate_fingers_and_write_xml(outFiles[0], outFiles[3], right, left)
-        add_fingernumbers(outFiles[2], sf, False, right, left, mf, False)
-    
+        #sf, measures, bpm = generate_fingers_and_write_xml(outFiles[0], outFiles[3], right, left)
+        only_write_xml(outFiles[0], outFiles[3], right, left)
+        #add_fingernumbers(outFiles[2], sf, False, right, left, mf, False)
+        write_midi(outFiles[2], mf)
     else:
         def c_to_g_map(note_range):
             ## the add_fingernumbers function wants to know if the pitches 
@@ -307,7 +350,8 @@ def generateMidi(task, outFiles):
         c_to_g_r = c_to_g_map(task.parameters.note_range_right)
         c_to_g = (c_to_g_l and c_to_g_r)
         sf = converter.parse(outFiles[0])
-        add_fingernumbers(outFiles[2], sf, False, right, left, mf, c_to_g=c_to_g)
+        #add_fingernumbers(outFiles[2], sf, False, right, left, mf, c_to_g=c_to_g)
+        write_midi(outFiles[2], mf)
         only_write_xml(outFiles[0], outFiles[3], right, left)
 
  

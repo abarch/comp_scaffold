@@ -244,7 +244,7 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
     if userSelectedTask:
         chosenMidiFile = userSelectedLocation
         try:
-            midiProcessing.generate_metronome_and_fingers_for_midi(taskParameters.left, taskParameters.right, inputFileStrs,
+            midiProcessing.generate_metronome_for_midi(taskParameters.left, taskParameters.right, inputFileStrs,
                                                                    chosenMidiFile,
                                                                    custom_bpm=int(midiBPM.get("1.0", 'end-1c')))
             #midiProcessing.generate_metronome_and_fingers_for_midi(False, True, inputFileStrs,
