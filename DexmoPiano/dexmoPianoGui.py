@@ -104,8 +104,9 @@ def startTask():
 
     df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
                                                   taskParameters, note_errorString, config.participant_id,
-                                                  config.freetext)
+                                                  config.freetext, config.trial_num, config.task_num)
 
+    config.trial_num += 1
 
     # create entry containing actual notes in XML
     fileIO.createTrialEntry(outputDir, currentMidi, timestr, guidanceMode, actualNotes, errorVal)
@@ -291,6 +292,9 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
         changetask.append(len(errors))
 
     add_error_plot()
+
+    config.task_num += 1
+    config.trial_num = 1
 
 
 # def nextSavedTask(goToTask=False):
@@ -960,6 +964,9 @@ def openSavedFile():
         changetask.append(len(errors))
 
     add_error_plot()
+
+    config.task_num += 1
+    config.trial_num = 1
 
 def firstTask():
     """

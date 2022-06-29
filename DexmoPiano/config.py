@@ -16,6 +16,8 @@ guidanceMode = "At every note"
 timestr = ""
 participant_id = ""
 freetext = ""
+trial_num = 1
+task_num = 0
 
 fromFile = False #indicates if the task is from file.
 loadedFileName = "" # the loaded file name
