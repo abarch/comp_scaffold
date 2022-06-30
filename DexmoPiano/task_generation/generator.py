@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import random
 
-from task_generation.note_range_per_hand import  get_pitchlist, transpose
+from task_generation.note_range_per_hand import get_pitchlist, transpose
 from collections import namedtuple
 from collections.abc import Iterable
 from task_generation.task_parameters import TaskParameters

@@ -5,6 +5,8 @@ import copy
 import functools
 import tkinter as tk
 
+from task_generation.midi_to_task import midi2taskdata
+
 from task_generation.task_parameters import TaskParameters
 from task_generation.task import TargetTask
 from task_generation.task_data import TaskData
@@ -35,6 +37,13 @@ class Scheduler:
 
     def queue_new_target_task(self, task_parameters: TaskParameters) -> TaskData:
         target_task = TargetTask.from_task_parameters(task_parameters)
+        self.task_queue.append(target_task)
+        self.task_queue_index = len(self.task_queue) - 1
+        return self.current_task_data()
+
+    def queue_new_target_task_from_midi(self, midifile_path: str):
+        task_data = midi2taskdata(midifile_path)
+        target_task = TargetTask(task_data)
         self.task_queue.append(target_task)
         self.task_queue_index = len(self.task_queue) - 1
         return self.current_task_data()
