@@ -465,14 +465,18 @@ class PlayCompleteSong(LearningState):
 
     def _do_on_enter(self):
         self.init_training_interface()
-        self.show_note_sheet(OUTPUT_PNG_STR)
-        root.update_idletasks()
+
 
         self.scheduler.clear_queue()
         task_data = self.scheduler.queue_new_target_task_from_midi(CURRENT_MIDI)
 
         midiProcessing.generateMidi(task_data, outFiles=OUTPUT_FILES_STRS)
 
+        self.gen_ly_for_current_task()
+        subprocess.run(['lilypond', '--png', '-o', TEMP_DIR, OUTPUT_LY_STR],
+                       stderr=subprocess.DEVNULL)
+        self.show_note_sheet(OUTPUT_PNG_STR)
+        root.update_idletasks()
         # self.show_countdown(5)
 
         error = self.start_playback_and_calc_error(self.task_parameters)
