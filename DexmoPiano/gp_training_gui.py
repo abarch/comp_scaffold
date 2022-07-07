@@ -8,6 +8,8 @@ import subprocess
 import os
 import mido
 
+from collections import namedtuple
+
 import numpy as np
 import tkinter as tk
 from tkinter import filedialog
@@ -19,9 +21,10 @@ import dexmoOutput
 import midiProcessing
 import config
 import thread_handler
-import hmm_data_acquisition, fileIO
-from task_generation.gaussian_process import GaussianProcess
+import hmm_data_acquisition
+import fileIO
 
+from task_generation.gaussian_process import GaussianProcess
 from task_generation.practice_modes import PracticeMode
 from task_generation.scheduler import Scheduler
 from task_generation.task_parameters import TaskParameters
@@ -32,9 +35,6 @@ OUTPUT_FILES_STRS = [TEMP_DIR + 'output.mid', TEMP_DIR + 'output-m.mid', TEMP_DI
                      TEMP_DIR + 'output.xml']
 OUTPUT_LY_STR = TEMP_DIR + 'output.ly'
 OUTPUT_PNG_STR = TEMP_DIR + 'output.png'
-
-# copy of the selected midi file, which will be changed based on the practice mode
-CURRENT_MIDI = TEMP_DIR + 'current_midi.mid'
 
 LILYPOND_PYTHON_EXE_WIN = "c:/Program Files (x86)/LilyPond/usr/bin/python.exe"
 XMl_2_LY_WIN_FOLDER = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly"
@@ -49,7 +49,7 @@ errors = []
 change_task = []
 
 root = tk.Tk()
-root.title("Piano with Dexmo")
+root.title("AI instructed Piano Learning")
 root.geometry("1500x1000")
 
 # Tk variables
@@ -71,8 +71,10 @@ canvas = None
 
 countdown_label = None
 
-ERROR_THRESHOLD = 3
-EXIT_PRACTISE_MODE_THRESHOLD = 1
+ERROR_THRESHOLD = 0
+NUM_PRACTICE_ITERATIONS = 2
+
+TaskNote = namedtuple("TaskNote", "start pitch duration")
 
 
 class LearningState:
@@ -124,18 +126,24 @@ class LearningState:
         countdown_label.update_idletasks()
 
     def show_primary_next_state_btn(self, text, state):
-        tk.Button(root, text=text,
-                  command=lambda: statemachine.to_next_state(state)).place(
-            x=10, y=10,
-            height=50,
-            width=150)
+        tk.Button(
+            root, text=text, command=lambda: statemachine.to_next_state(state)
+        ).place(x=10, y=10, height=50, width=150)
+
+    def show_function_btn(self, text, function):
+        """
+        Adds a Button to the GUI, which can be used to trigger a function.
+        @param text: Text on the Button
+        @param function: Function that should be called when pressing the Button
+        """
+        tk.Button(
+            root, text=text, command=function
+        ).place(x=10, y=10, height=50, width=150)
 
     def show_secondary_next_state_btn(self, text, state):
-        tk.Button(root, text=text,
-                  command=lambda: statemachine.to_next_state(state)).place(
-            x=10, y=80,
-            height=50,
-            width=150)
+        tk.Button(
+            root, text=text, command=lambda: statemachine.to_next_state(state)
+        ).place(x=10, y=80, height=50, width=150)
 
     def gen_ly_for_current_task(self):
         """
@@ -302,19 +310,19 @@ class LearningState:
 class MenuState(LearningState):
 
     def _do_on_enter(self):
+        tk.Button(
+            root, text='Start gp learning', command=self.start_if_ports_are_set
+        ).place(x=675, y=560, height=50, width=150)
 
-        tk.Button(root, text='Start gp learning',
-                  command=self.start_if_ports_are_set) \
-            .place(x=675, y=560, height=50, width=150)
-        tk.Button(root, text='Quit',
-                  command=lambda: statemachine.to_next_state(statemachine.end_state)) \
-            .place(x=675, y=500, height=50, width=150)
+        tk.Button(
+            root, text='Quit', command=lambda: statemachine.to_next_state(statemachine.end_state)
+        ).place(x=675, y=500, height=50, width=150)
 
         self.create_port_drop_down_menus()
 
     def start_if_ports_are_set(self):
         if dexmoOutput.midi_interface_sound != "None" and thread_handler.portname != "None":
-            statemachine.to_next_state(statemachine.show_complete_song)
+            statemachine.to_next_state(statemachine.select_song_state)
 
     def create_port_drop_down_menus(self):
         """
@@ -394,7 +402,6 @@ class SelectSongState(LearningState):
 
     def __init__(self, scheduler: Scheduler, statemachine):
         super().__init__(scheduler, statemachine)
-        self.task_parameters = TaskParameters()
 
     def _do_on_enter(self):
         self.init_training_interface()
@@ -405,28 +412,20 @@ class SelectSongState(LearningState):
             midi_file = filedialog.askopenfilename(
                 filetypes=[("Midi files", ".midi .mid")])
 
-        shutil.copy(midi_file, CURRENT_MIDI)
+        # TODO: set left and right depending on current piece
+        midiProcessing.generate_metronome_and_fingers_for_midi(
+            left=False, right=True, outFiles=OUTPUT_FILES_STRS, midi_file=midi_file
+        )
 
-        midiProcessing.generate_metronome_and_fingers_for_midi(self.task_parameters.left,
-                                                               self.task_parameters.right,
-                                                               OUTPUT_FILES_STRS,
-                                                               CURRENT_MIDI,
-                                                               )
         self.gen_ly_for_current_task()
         subprocess.run(['lilypond', '--png', '-o', TEMP_DIR, OUTPUT_LY_STR],
                        stderr=subprocess.DEVNULL)
         self.show_note_sheet(OUTPUT_PNG_STR)
         self.check_dexmo_connected(main_window=True)
 
-        self.show_primary_next_state_btn('Play Complete Song',
-                                         PlayCompleteSong(self.scheduler, self.statemachine,
-                                                          self.task_parameters, midi_file))
-
-        tk.Button(root, text="Play Demo",
-                  command=lambda: dexmoOutput.play_demo(OUTPUT_FILES_STRS[2], guidance_mode)).place(
-            x=10, y=80,
-            height=50,
-            width=150)
+        self.statemachine.to_next_state(
+            PlayCompleteSong(self.scheduler, self.statemachine, midi_file)
+        )
 
     def check_dexmo_connected(self, main_window):
         """
@@ -457,150 +456,150 @@ class SelectSongState(LearningState):
 
 class PlayCompleteSong(LearningState):
 
-    def __init__(self, scheduler: Scheduler, statemachine, task_parameters: TaskParameters,
-                 midi_file):
+    def __init__(self, scheduler: Scheduler, statemachine, midi_file, error_before_practice=None):
         super().__init__(scheduler, statemachine)
-        self.task_parameters = task_parameters
         self.midi_file = midi_file
+        self.error_before_practice = error_before_practice
+
+    def get_next_practise_mode(self) -> PracticeMode:
+        # TODO: change to new "get_next_practice_mode" function which is based on error
+        task = self.scheduler.current_task_data()
+        task_parameters = task.parameters
+        complexity_level = self.statemachine.complexity_level
+        return self.statemachine.gaussian_process.get_best_practice_mode(complexity_level, task_parameters)
+
+    def error_diff_to_utility(self, error_pre, error_post):
+        diff_timing = error_pre.timing - error_post.timing
+        diff_pitch = error_pre.pitch - error_post.pitch
+
+        # TODO: improve error weighting
+        return (diff_timing + diff_pitch) / 2
 
     def _do_on_enter(self):
         self.init_training_interface()
 
-
         self.scheduler.clear_queue()
-        task_data = self.scheduler.queue_new_target_task_from_midi(CURRENT_MIDI)
+        task_data = self.scheduler.queue_new_target_task_from_midi(self.midi_file)
 
         midiProcessing.generateMidi(task_data, outFiles=OUTPUT_FILES_STRS)
 
         self.gen_ly_for_current_task()
         subprocess.run(['lilypond', '--png', '-o', TEMP_DIR, OUTPUT_LY_STR],
                        stderr=subprocess.DEVNULL)
+
         self.show_note_sheet(OUTPUT_PNG_STR)
         root.update_idletasks()
-        # self.show_countdown(5)
 
-        error = self.start_playback_and_calc_error(self.task_parameters)
+        self.show_function_btn('Play Piece', self.start_playback)
 
-        if ERROR_THRESHOLD > error.Summed_right + error.Summed_left:
-            self.show_primary_next_state_btn('Start learning',
-                                             PreviewNextPracticeState(self.scheduler,
-                                                                      self.statemachine,
-                                                                      self.midi_file, error))
-            self.show_secondary_next_state_btn('Select new Song', statemachine.show_complete_song)
-        else:
-            self.show_primary_next_state_btn('Select new Song', statemachine.show_complete_song)
-            self.show_secondary_next_state_btn('Start learning',
-                                               PreviewNextPracticeState(self.scheduler,
-                                                                        self.statemachine,
-                                                                        self.midi_file, error))
+        tk.Button(
+            root, text="Play Demo", command=lambda: dexmoOutput.play_demo(OUTPUT_FILES_STRS[2], guidance_mode)
+        ).place(x=10, y=140, height=50, width=150)
 
+        self.show_secondary_next_state_btn('Select new Song', statemachine.select_song_state)
 
-class PreviewNextPracticeState(LearningState):
+    def start_playback(self):
+        # TODO: check if taskparameters are necessary here
+        error = self.start_playback_and_calc_error(TaskParameters())
 
-    def __init__(self, scheduler: Scheduler, statemachine, midi_file: str,
-                 error_form_last_state: pandas.DataFrame):
-        super().__init__(scheduler, statemachine)
-        self.midi_file = midi_file
-        self.error_form_last_state = error_form_last_state
-
-    def get_next_practise_mode(self) -> PracticeMode:
-        task = self.scheduler.current_task_data()
-        task_parameters = task.parameters
-        complexity_level = self.statemachine.complexity_level
-        return self.statemachine.gaussian_process.get_best_practice_mode(complexity_level,
-                                                                         task_parameters)
-
-    def _do_on_enter(self):
-        self.init_training_interface()
-        self.show_note_sheet(OUTPUT_PNG_STR)
-        root.update_idletasks()
+        # if there is an error measurement from before practicing
+        # -> compare it and add measurement to gaussian process
+        if self.error_before_practice is not None:
+            # TODO: Update model with new data point
+            utility = self.error_diff_to_utility(self.error_before_practice, error)
+            # TODO: save datapoint
+            # self.statemachine.gaussian_process.add_data_point( self.error_last_state,
+            # task_parameters, task.practice_mode, utility)
 
         practice_mode = self.get_next_practise_mode()
 
-        self.scheduler.queue_practice_mode(practice_mode)
+        tk.Label(root, text=f"Recommended Practice-Mode:\n{practice_mode.name}").pack()
 
-        tk.Label(root, text=f"Recommended practise:\n{practice_mode.name}").place(
-            x=10, y=10,
-            height=50,
-            width=150)
-
-        self.show_secondary_next_state_btn("Start Practise",
-                                           PracticeModeState(self.scheduler, self.statemachine,
-                                                             self.midi_file,
-                                                             self.error_form_last_state))
+        # TODO: set threshold reasonably with new Errors
+        if ERROR_THRESHOLD < error.Summed_right + error.Summed_left:
+            self.show_primary_next_state_btn(
+                'Start Practice', PracticeModeState(
+                    self.scheduler, self.statemachine, self.midi_file, error, practice_mode=practice_mode
+                )
+            )
+            self.show_secondary_next_state_btn('Select new Song', statemachine.select_song_state)
+        else:
+            # TODO: add visual feedback that error was very low and learning might be finished
+            self.show_primary_next_state_btn('Select new Song', statemachine.select_song_state)
+            self.show_secondary_next_state_btn(
+                'Play Complete Piece\nonce more', PlayCompleteSong(
+                    self.scheduler, self.statemachine, self.midi_file
+                )
+            )
 
 
 class PracticeModeState(LearningState):
 
-    def __init__(self, scheduler: Scheduler, statemachine, midi_file: str,
-                 error_form_last_state):
+    def __init__(self, scheduler: Scheduler, statemachine, midi_file: str, error_from_complete_piece,
+                 practice_mode: PracticeMode):
         super().__init__(scheduler, statemachine)
         self.midi_file = midi_file
-        self.error_last_state = error_form_last_state
+        self.error_from_complete_piece = error_from_complete_piece
+        self.practice_mode = practice_mode
+        # counts the number of times user has played the piece in this practice loop
+        self.num_iterations = 0
 
     def _do_on_enter(self):
         self.init_training_interface()
-        self.show_note_sheet(OUTPUT_PNG_STR)
 
         task = self.scheduler.current_task_data()
         task_parameters = task.parameters
 
-        # TODO: should later be only used for timing practice mode
-        temp_midi_file = mido.MidiFile(self.midi_file, clip=True)
+        # for Timing Practice Mode: change displayed note sheet, so that all notes are D
+        if self.practice_mode == PracticeMode.SINGLE_NOTE:
+            task.notes_right = [TaskNote(start=note.start, pitch=62, duration=note.duration)
+                                for note in task.notes_right]
 
-        for i in range(len(temp_midi_file.tracks[1])):
-            if temp_midi_file.tracks[1][i].type == 'note_on':
-                temp_midi_file.tracks[1][i].note = 62
-        temp_midi_file.save(TEMP_DIR + 'current_midi.mid')
+            task.notes_left = [TaskNote(start=note.start, pitch=62, duration=note.duration)
+                               for note in task.notes_left]
 
-        midiProcessing.generate_metronome_and_fingers_for_midi(task_parameters.left,
-                                                               task_parameters.right,
-                                                               OUTPUT_FILES_STRS,
-                                                               CURRENT_MIDI,
-                                                               )
+        midiProcessing.generateMidi(task, outFiles=OUTPUT_FILES_STRS)
+
         self.gen_ly_for_current_task()
         subprocess.run(['lilypond', '--png', '-o', TEMP_DIR, OUTPUT_LY_STR],
                        stderr=subprocess.DEVNULL)
 
         self.show_note_sheet(OUTPUT_PNG_STR)
 
-        midiProcessing.generateMidi(task, outFiles=OUTPUT_FILES_STRS)
+        root.update_idletasks()
 
-        self.show_countdown(5)
+        self.show_function_btn('Play Piece in Practice-Mode', self.start_practice)
 
-        error_current_state = self.start_playback_and_calc_error(task_parameters)
+        self.show_secondary_next_state_btn(
+            'Return to Complete Piece', PlayCompleteSong(
+                self.scheduler, self.statemachine, self.midi_file
+            )
+        )
 
-        # TODO: Update model with new data point
-        utility = self.error_diff_to_utility(self.error_last_state, error_current_state)
-        self.statemachine.gaussian_process.add_data_point(self.error_last_state,
-                                                          task_parameters, task.practice_mode,
-                                                          utility)
+    def start_practice(self):
+        self.num_iterations += 1
 
-        if ERROR_THRESHOLD > error_current_state.Summed_right + error_current_state.Summed_left:
-            self.show_primary_next_state_btn('Resume Learning',
-                                             PreviewNextPracticeState(self.scheduler,
-                                                                      self.statemachine,
-                                                                      self.midi_file,
-                                                                      error_current_state))
-            self.show_secondary_next_state_btn('Select new Song', statemachine.show_complete_song)
+        # TODO: are TaskParameters really necessary at this point?
+        task_parameters = TaskParameters()
+        practice_error = self.start_playback_and_calc_error(task_parameters)
+
+        if self.num_iterations >= NUM_PRACTICE_ITERATIONS:
+            # TODO: add visual feedback or in between state before jumping to PlayCompleteSong State
+            self.statemachine.to_next_state(
+                PlayCompleteSong(
+                    self.scheduler, self.statemachine, self.midi_file,
+                    error_before_practice=self.error_from_complete_piece
+                )
+            )
         else:
-            self.show_primary_next_state_btn('Select new Song', statemachine.show_complete_song)
-            self.show_secondary_next_state_btn('Resume Learning',
-                                               PreviewNextPracticeState(self.scheduler,
-                                                                        self.statemachine,
-                                                                        self.midi_file,
-                                                                        error_current_state))
+            self.show_function_btn('Resume Learning', self.start_practice)
 
-    def error_diff_to_utility(self, error_last_state, error_current_state) -> float:
-
-        diff_timing = (error_last_state.timing_right + error_last_state.timing_left) - (error_current_state.timing_right + error_current_state.timing_left)
-        diff_pitch = (error_last_state.pitch_right + error_last_state.pitch_left) - (error_current_state.pitch_right + error_current_state.pitch_left)
-
-        # TODO!!! (ASYA): This is an important constant that should be estimated empirically. this default is at thm for the data that has been simulated.
-        MEAN_UTILITY = 0.75
-        utility = - (diff_timing * 1 + diff_pitch * 1) - MEAN_UTILITY
-        utility *= random.gauss(1, 0.1)
-        return utility
+            self.show_secondary_next_state_btn(
+                'Return to Complete Piece', PlayCompleteSong(
+                    self.scheduler, self.statemachine, self.midi_file,
+                    error_before_practice=self.error_from_complete_piece
+                )
+            )
 
 
 class EndState(LearningState):
@@ -616,7 +615,7 @@ class Statemachine:
         self.gaussian_process = GaussianProcess()
         self.complexity_level = 0
         self.main_menu_state = MenuState(self.scheduler, self)
-        self.show_complete_song = SelectSongState(self.scheduler, self)
+        self.select_song_state = SelectSongState(self.scheduler, self)
         self.end_state = EndState(self.scheduler, self)
 
         self.current_state = self.main_menu_state
