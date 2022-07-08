@@ -410,17 +410,9 @@ class SelectSongState(LearningState):
 
         while midi_file is None or len(midi_file) == 0:
             midi_file = filedialog.askopenfilename(
-                filetypes=[("Midi files", ".midi .mid")])
+                filetypes=[("Midi files", ".midi .mid")]
+            )
 
-        # TODO: set left and right depending on current piece
-        midiProcessing.generate_metronome_and_fingers_for_midi(
-            left=False, right=True, outFiles=OUTPUT_FILES_STRS, midi_file=midi_file
-        )
-
-        self.gen_ly_for_current_task()
-        subprocess.run(['lilypond', '--png', '-o', TEMP_DIR, OUTPUT_LY_STR],
-                       stderr=subprocess.DEVNULL)
-        self.show_note_sheet(OUTPUT_PNG_STR)
         self.check_dexmo_connected(main_window=True)
 
         self.statemachine.to_next_state(

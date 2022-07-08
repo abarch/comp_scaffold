@@ -173,6 +173,8 @@ def generateMidi(task, outFiles):
                        volume=settings.VOLUME)
             # notes are added to mf
 
+    mf_without_trailing_notes = copy.deepcopy(mf)
+
     # add 3 extra notes per hand for proper fingering numbers
     for t in range(3):
         tempTime = ((task.number_of_bars - 1) * numerator) + t + 1
@@ -188,18 +190,9 @@ def generateMidi(task, outFiles):
 
     # write 1st MIDI file (piano only)
     write_midi(outFiles[0], mf)
-    
-    ### parse the exact times back from the midi file
-    ## extremly unintuitive, but the most straight forward way i fear.
-    temp_mido_file = mido.MidiFile(outFiles[0])
-    mid_left = _midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
-    mid_right = _midi_messages_to_note_events(temp_mido_file.tracks[1], temp_mido_file)
-    
-    task.midi.register_midi_events(mid_left, mid_right)
-    
 
     ### METRONOME ###
-    add_metronome(task.number_of_bars, numerator, outFiles[1], True, mf)
+    add_metronome(task.number_of_bars - 1, numerator, outFiles[1], True, mf_without_trailing_notes)
 
     ### FINGERNUMBERS ###
     print("generated notes right: " + str(count_notes_right) + " generated notes left: " + str(count_notes_left))
@@ -210,7 +203,8 @@ def generateMidi(task, outFiles):
         ## if a hand is playing it has at least 8 notes.
         
         sf, measures, bpm = generate_fingers_and_write_xml(outFiles[0], outFiles[3], right, left)
-        add_fingernumbers(outFiles[2], sf, False, right, left, mf, False)
+        write_midi(outFiles[0], mf_without_trailing_notes)
+        add_fingernumbers(outFiles[2], sf, False, right, left, mf_without_trailing_notes, False)
     
     else:
         def c_to_g_map(note_range):
@@ -242,6 +236,14 @@ def generateMidi(task, outFiles):
         sf = converter.parse(outFiles[0])
         add_fingernumbers(outFiles[2], sf, False, right, left, mf, c_to_g=c_to_g)
         only_write_xml(outFiles[0], outFiles[3], right, left)
+
+    ### parse the exact times back from the midi file
+    ## extremly unintuitive, but the most straight forward way i fear.
+    temp_mido_file = mido.MidiFile(outFiles[0])
+    mid_left = _midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
+    mid_right = _midi_messages_to_note_events(temp_mido_file.tracks[1], temp_mido_file)
+
+    task.midi.register_midi_events(mid_left, mid_right)
 
  
 
