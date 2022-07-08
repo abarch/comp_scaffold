@@ -1,4 +1,4 @@
-from music21 import converter
+from music21 import converter, stream
 from pianoplayer.hand import Hand
 from pianoplayer.scorereader import reader, PIG2Stream
 
@@ -93,4 +93,13 @@ class PianoplayerInterface:
         @param outputfile: MusicXML file.
         @return: None
         """
+        sf_without_trailing_notes = stream.Score()
+        for index, part in enumerate(self.sf):
+            tmp_part = stream.Part()
+            for i,measure in enumerate(part):
+                if i == len(self.sf[index]) - 4:
+                    break
+                tmp_part.append(measure)
+            sf_without_trailing_notes.append(tmp_part)
+        self.sf = sf_without_trailing_notes
         self.sf.write('xml', fp=outputfile)
