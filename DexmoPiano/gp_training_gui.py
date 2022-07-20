@@ -322,7 +322,7 @@ class MenuState(LearningState):
 
     def start_if_ports_are_set(self):
         if dexmoOutput.midi_interface_sound != "None" and thread_handler.portname != "None":
-            statemachine.to_next_state(statemachine.select_song_state)
+            statemachine.to_next_state(statemachine.select_name_state)
 
     def create_port_drop_down_menus(self):
         """
@@ -396,6 +396,23 @@ class MenuState(LearningState):
         create_port_btn("Sound output", "qsynth", 760, outports,
                         dexmoOutput.set_sound_outport)
         create_port_btn("Piano input", "vmpk", 840, inports, thread_handler.set_inport)
+
+
+class SelectNameState(LearningState):
+    def __init__(self, scheduler: Scheduler, statemachine):
+        super().__init__(scheduler, statemachine)
+
+    def _do_on_enter(self):
+        tk.Label(root, text="Enter Name").grid(row=0)
+        name_entry = tk.Entry(root)
+        name_entry.grid(row=0, column=1)
+        tk.Button(root, text="Save",
+                  command=lambda: self.save_name(name_entry.get())).grid(row=0, column=3)
+
+    def save_name(self, username):
+        statemachine.username = username
+        self.statemachine.to_next_state(statemachine.select_song_state)
+        return
 
 
 class SelectSongState(LearningState):
@@ -605,9 +622,11 @@ class Statemachine:
     def __init__(self):
         self.scheduler = Scheduler()
         self.gaussian_process = GaussianProcess()
+        self.username = ""
         self.complexity_level = 0
         self.main_menu_state = MenuState(self.scheduler, self)
         self.select_song_state = SelectSongState(self.scheduler, self)
+        self.select_name_state = SelectNameState(self.scheduler, self)
         self.end_state = EndState(self.scheduler, self)
 
         self.current_state = self.main_menu_state
