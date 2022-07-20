@@ -465,10 +465,10 @@ class SelectSongState(LearningState):
 
 class PlayCompleteSong(LearningState):
 
-    def __init__(self, scheduler: Scheduler, statemachine, midi_file, error_before_practice=None):
+    def __init__(self, scheduler: Scheduler, statemachine, midi_file, practice_parameters=None):
         super().__init__(scheduler, statemachine)
         self.midi_file = midi_file
-        self.error_before_practice = error_before_practice
+        self.practice_parameters = practice_parameters
 
     def get_next_practise_mode(self) -> PracticeMode:
         # TODO: change to new "get_next_practice_mode" function which is based on error
@@ -478,8 +478,10 @@ class PlayCompleteSong(LearningState):
         return self.statemachine.gaussian_process.get_best_practice_mode(complexity_level, task_parameters)
 
     def error_diff_to_utility(self, error_pre, error_post):
-        diff_timing = error_pre.timing - error_post.timing
-        diff_pitch = error_pre.pitch - error_post.pitch
+        diff_timing = (error_pre["timing_left"] + error_pre["timing_right"]) - (
+                error_post["timing_left"] + error_post["timing_right"])
+        diff_pitch = (error_pre["pitch_left"] + error_pre["pitch_right"]) - (
+                error_post["pitch_left"] + error_post["pitch_right"])
 
         # TODO: improve error weighting
         return (diff_timing + diff_pitch) / 2
@@ -513,12 +515,11 @@ class PlayCompleteSong(LearningState):
 
         # if there is an error measurement from before practicing
         # -> compare it and add measurement to gaussian process
-        if self.error_before_practice is not None:
-            # TODO: Update model with new data point
-            utility = self.error_diff_to_utility(self.error_before_practice, error)
-            # TODO: save datapoint
-            # self.statemachine.gaussian_process.add_data_point( self.error_last_state,
-            # task_parameters, task.practice_mode, utility)
+        if self.practice_parameters is not None:
+            utility = self.error_diff_to_utility(self.practice_parameters["error_before_practice"], error)
+            statemachine.save_data_add_gaussian_process((self.practice_parameters["error_before_practice"], error),
+                                                        self.scheduler.current_task_data().parameters,
+                                                        self.practice_parameters["practice_mode"], utility)
 
         practice_mode = self.get_next_practise_mode()
 
@@ -597,7 +598,8 @@ class PracticeModeState(LearningState):
             self.statemachine.to_next_state(
                 PlayCompleteSong(
                     self.scheduler, self.statemachine, self.midi_file,
-                    error_before_practice=self.error_from_complete_piece
+                    practice_parameters={"error_before_practice": self.error_from_complete_piece,
+                                         "practice_mode": self.practice_mode}
                 )
             )
         else:
@@ -606,7 +608,8 @@ class PracticeModeState(LearningState):
             self.show_secondary_next_state_btn(
                 'Return to Complete Piece', PlayCompleteSong(
                     self.scheduler, self.statemachine, self.midi_file,
-                    error_before_practice=self.error_from_complete_piece
+                    practice_parameters={"error_before_practice": self.error_from_complete_piece,
+                                         "practice_mode": self.practice_mode}
                 )
             )
 
@@ -635,6 +638,43 @@ class Statemachine:
         self.current_state.on_exit()
         self.current_state = next_state
         self.current_state.on_enter()
+
+    def save_data_add_gaussian_process(self, error, task_parameters, practice_mode, utility):
+        """
+        needs:
+        - error: DataFrame (error.pitch_right, error.pitch_left, error.timing_right, error.timing_left) is (error_pre,error_post)
+        - task_parameters: TaskParameters
+        - practice_mode: PracticeMode
+        - utility_measurement: float
+        """
+        print("===============SAVE DATA==================")
+        print("------------------NAME--------------------")
+        print(self.username)
+        print("-----------------ERROR--------------------")
+        print("BEFORE")
+        print("-pitch")
+        print("left", error[0]["pitch_left"], ", right", error[0]["pitch_right"])
+        print("-timing")
+        print("left", error[0]["timing_left"], ", right", error[0]["timing_right"])
+        print("AFTER")
+        print("-pitch")
+        print("left", error[1]["pitch_left"], ", right", error[1]["pitch_right"])
+        print("-timing")
+        print("left", error[1]["timing_left"], ", right", error[1]["timing_right"])
+        print("----------------UTILITY-------------------")
+        print(utility)
+        print("------------TASK PARAMETERS---------------")
+        print(task_parameters)
+        print("--------------PRACTICEMODE----------------")
+        print(practice_mode)
+        print("==========================================")
+        # Save data Point to file
+        # TODO
+
+        # Save data point to gaussian process
+        # TODO Errors same as gp
+        # self.gaussian_process.add_data_point(error, task_parameters, practice_mode, utility)
+        # self.gaussian_process.update_model()
 
 
 def add_error_plot():
