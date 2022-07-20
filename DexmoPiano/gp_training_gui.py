@@ -517,7 +517,8 @@ class PlayCompleteSong(LearningState):
         # -> compare it and add measurement to gaussian process
         if self.practice_parameters is not None:
             utility = self.error_diff_to_utility(self.practice_parameters["error_before_practice"], error)
-            statemachine.save_data_add_gaussian_process((self.practice_parameters["error_before_practice"], error),
+            statemachine.save_data_add_gaussian_process(self.midi_file,
+                                                        (self.practice_parameters["error_before_practice"], error),
                                                         self.scheduler.current_task_data().parameters,
                                                         self.practice_parameters["practice_mode"], utility)
 
@@ -639,7 +640,7 @@ class Statemachine:
         self.current_state = next_state
         self.current_state.on_enter()
 
-    def save_data_add_gaussian_process(self, error, task_parameters, practice_mode, utility):
+    def save_data_add_gaussian_process(self, midi_name, error, task_parameters, practice_mode, utility):
         """
         needs:
         - error: DataFrame (error.pitch_right, error.pitch_left, error.timing_right, error.timing_left) is (error_pre,error_post)
@@ -650,6 +651,8 @@ class Statemachine:
         print("===============SAVE DATA==================")
         print("------------------NAME--------------------")
         print(self.username)
+        print("---------------MIDI-NAME------------------")
+        print(midi_name)
         print("-----------------ERROR--------------------")
         print("BEFORE")
         print("-pitch")
