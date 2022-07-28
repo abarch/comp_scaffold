@@ -72,7 +72,7 @@ def startTask():
 
     @return: None
     """
-    global currentMidi, midiSaved, errors
+    global currentMidi, midiSaved, errors, expMode
 
     timestr = getCurrentTimestamp()
 
@@ -80,6 +80,7 @@ def startTask():
 
     config.participant_id = id_textbox.get("1.0",'end-1c')
     config.freetext = freetext.get("1.0",'end-1c')
+    config.expMode = exp_mode.get()
 
     print("actual taskParameter in startTask:", taskParameters)
     targetNotes, actualNotes, errorVal, errorVecLeft, errorVecRight, task_data, note_errorString = \
@@ -104,7 +105,7 @@ def startTask():
 
     df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
                                                   taskParameters, note_errorString, config.participant_id,
-                                                  config.freetext, config.trial_num, config.task_num)
+                                                  config.freetext, config.expMode, config.trial_num, config.task_num)
 
     config.trial_num += 1
 
@@ -647,6 +648,8 @@ def load_taskButtons():
     global currentMidi, metronome
     global showScoreGuidance, showVerticalGuidance
     global id_textbox, freetext
+    global exp_mode, quickBPM
+
 
     showScoreGuidance = tk.IntVar(value=1)
     showVerticalGuidance = tk.IntVar(value=1)
@@ -713,9 +716,13 @@ def load_taskButtons():
     try:
         current_participant_id = id_textbox.get("1.0", 'end-1c')
         current_freetext = freetext.get("1.0", 'end-1c')
+        current_exp_mode = exp_mode.get()
+        current_quickBPM = quickBPM.get("1.0", 'end-1c')
     except:
         current_participant_id = "Enter ID"
         current_freetext = "Free text"
+        current_exp_mode = "None"
+        current_quickBPM = "0"
     id_textbox = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1, state=tk.NORMAL)
     id_textbox.place(x=1050, y=480, height=25, width=150)
     #id_textbox.insert(tk.INSERT, "Enter ID")
@@ -725,6 +732,28 @@ def load_taskButtons():
     freetext.place(x=1050, y=520, height=60, width=150)
     #freetext.insert(tk.INSERT, "Free text")
     freetext.insert(tk.INSERT, current_freetext)
+
+    ##  Experiment Mode
+    l = tk.Label(root, text=" Mode:")
+    l.place(x=1050, y=590, width=150, height=25)
+    exp_mode = tk.StringVar(root)
+    exp_mode.set(current_exp_mode)
+    ExpModeList = ["Test", "Calibration", "Practice","Test", "Retention"]
+    guideopt = tk.OptionMenu(root, exp_mode, *ExpModeList, command=set_expmode)
+    guideopt.place(x=1050, y=620, width=150, height=30)
+
+    ## quick bpm
+
+    quickBPM = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1, height=1, width=10,
+                      state=tk.NORMAL)
+    quickBPM.place(x=1050, y=660)
+    quickBPM.insert(tk.INSERT, current_quickBPM)
+
+    tk.Button(root, text='Generate', command=genQuickTask).place(x=1050, y=690, height=25, width=150)
+    tk.Button(root, text='Apply', command=applyQuickBPM).place(x=1050, y=720, height=25, width=150)
+
+
+
 
 difficultyScaling = False
 complex_index = 0
@@ -858,6 +887,96 @@ def set_guidance(guidance):
     """
     global guidanceMode
     guidanceMode = guidance
+
+def set_expmode(chosenExpMode):
+    """
+    Sets guidance mode globally.
+
+    @param guidance: Guidance mode.
+    @return: None
+    """
+    global expMode
+    expMode = chosenExpMode
+
+def genQuickTask():
+    """
+        Generates a task with current params but with the quick bpm.
+
+        @param None
+        @return: None
+    """
+    global quickBPM, taskParameters
+
+    quick_bpm = quickBPM.get("1.0", 'end-1c')
+    taskParameters.bpm = quick_bpm
+    scheduler.get_next_task(taskParameters=taskParameters)
+    loadUpTask()
+
+def applyQuickBPM():
+    """
+        Applies the quick bpm to current task.
+
+        @param: None
+        @return: None
+    """
+    global quickBPM, midiSaved, currentMidi, taskParameters, taskData
+
+    quick_bpm = int(quickBPM.get("1.0", 'end-1c'))
+
+    if quick_bpm > 0:
+        # change tempo to custom tempo
+        temp_mido_file0 = mido.MidiFile(inputFileStrs[0])
+        temp_mido_file0.tracks[0][1].tempo = int(60000000 / quick_bpm)  # tempo is in MicroTempo units.
+        temp_mido_file0.save(inputFileStrs[0])
+
+        temp_mido_file1 = mido.MidiFile(inputFileStrs[1])
+        temp_mido_file1.tracks[0][1].tempo = int(60000000/quick_bpm) # tempo is in MicroTempo units.
+        temp_mido_file1.save(inputFileStrs[1])
+
+        temp_mido_file2 = mido.MidiFile(inputFileStrs[2])
+        temp_mido_file2.tracks[0][1].tempo = int(60000000 / quick_bpm)  # tempo is in MicroTempo units.
+        temp_mido_file2.save(inputFileStrs[2])
+
+        taskData = scheduler.current_task_data()
+        taskData.bpm = quick_bpm
+        taskParameters.bpm = quick_bpm
+
+        # upadte midi events to taskData. The midi events changed due to the change of bpm.
+        temp_mido_file = mido.MidiFile(inputFileStrs[0]) # outFile[0] (output.mid) is already updated with the custom bpm.
+        mid_left = midiProcessing._midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
+        mid_right = midiProcessing._midi_messages_to_note_events(temp_mido_file.tracks[1], temp_mido_file)
+        taskData.midi.register_midi_events(mid_left, mid_right)
+
+    # remove XML which has the previous tempo.
+    try:
+        os.remove(inputFileStrs[3])  # removes the XML file
+    except:
+        print("xml file was not found")
+
+    #config.fromFile = True
+    #config.loadedFileName = midi_file
+    #config.customBPM = int(midiBPM.get("1.0", 'end-1c'))
+    #print("data with new bpm:", taskData, taskParameters)
+    scheduler.add_task_from_file(taskData, taskParameters)
+
+    get_ly()
+
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    # clearFrame()
+    load_notesheet(outputPngStr)
+
+    check_dexmo_connected(mainWindow=True)
+    refresh_buttons()
+    load_taskButtons()
+
+    # if task is changed remember trial to show in visualisation
+    if errors:
+        changetask.append(len(errors))
+
+    add_error_plot()
+
+    config.task_num += 1
+    config.trial_num = 1
 
 
 # open midi file user can choose

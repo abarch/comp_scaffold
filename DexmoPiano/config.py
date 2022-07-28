@@ -16,6 +16,7 @@ guidanceMode = "At every note"
 timestr = ""
 participant_id = ""
 freetext = ""
+expMode = ""
 trial_num = 1
 task_num = 0
 
