@@ -694,11 +694,14 @@ def load_taskButtons():
  #   midiBPM = tk.Scale(root, from_=0, to=250, length=150, orient=tk.HORIZONTAL)
  #   midiBPM.place(x=10, y=570)
  #   midiBPM.set(0)
-
+    try:
+        current_midiBPM = midiBPM.get("1.0", 'end-1c')
+    except:
+        current_midiBPM = 0
     midiBPM = tk.Text(root, bg="white", fg="black", relief=tk.GROOVE, bd=1, height=1, width=10,
                           state=tk.NORMAL)
     midiBPM.place(x=10, y=580)
-    midiBPM.insert(tk.INSERT, 0)
+    midiBPM.insert(tk.INSERT, current_midiBPM)
 
 
     l2 = tk.Label(root, text="0 will load BPM from MIDI")
