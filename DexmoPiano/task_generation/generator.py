@@ -30,7 +30,8 @@ class TaskParameters:
     timeSignature: tuple    = (4,4)
     noteValues: list        = dc.field(default_factory= lambda: [1 / 2, 1 / 4] )
     maxNotesPerBar: int       = 3
-    noOfBars: int           = 7
+    #noOfBars: int           = 7
+    noOfBars: int = 8
     note_range_right: NoteRangePerHand = NoteRangePerHand.TWO_NOTES
     #FIXME: debug
     note_range_left: NoteRangePerHand = NoteRangePerHand.ONE_NOTE
