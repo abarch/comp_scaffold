@@ -11,6 +11,7 @@ import mido
 from collections import namedtuple
 
 import numpy as np
+import pandas as pd
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
@@ -35,6 +36,8 @@ OUTPUT_FILES_STRS = [TEMP_DIR + 'output.mid', TEMP_DIR + 'output-m.mid', TEMP_DI
                      TEMP_DIR + 'output.xml']
 OUTPUT_LY_STR = TEMP_DIR + 'output.ly'
 OUTPUT_PNG_STR = TEMP_DIR + 'output.png'
+
+DATA_DIR = './output/data/'
 
 LILYPOND_PYTHON_EXE_WIN = "c:/Program Files (x86)/LilyPond/usr/bin/python.exe"
 XMl_2_LY_WIN_FOLDER = "c:/Program Files (x86)/LilyPond/usr/bin/musicxml2ly"
@@ -626,6 +629,7 @@ class Statemachine:
     def __init__(self):
         self.scheduler = Scheduler()
         self.gaussian_process = GaussianProcess()
+        self.data_logger = DataLogger()
         self.username = ""
         self.complexity_level = 0
         self.main_menu_state = MenuState(self.scheduler, self)
@@ -673,6 +677,16 @@ class Statemachine:
         print("==========================================")
         # Save data Point to file
         # TODO
+        self.data_logger.add_entry(
+            midi_filename=midi_name,
+            username=self.username,
+            error_before=error[0],
+            error_after=error[1],
+            practice_mode=practice_mode,
+            task_parameters=task_parameters
+        )
+
+        self.data_logger.save_database()
 
         # Save data point to gaussian process
         # TODO Errors same as gp
@@ -722,6 +736,67 @@ def add_error_plot():
                                                  command=add_error_details,
                                                  variable=show_error_details)
     show_error_details_checkbox.place(x=1050, y=440)
+
+
+class DataLogger:
+    def __init__(self):
+        if not os.path.isdir(DATA_DIR):
+            os.makedirs(DATA_DIR)
+
+        if os.path.isfile(DATA_DIR + "data.h5"):
+            self.dataframe = pd.read_hdf(DATA_DIR + "data.h5")
+        else:
+            dataframe_columns = {
+                'midi_filename': np.ndarray((0,), dtype=str),
+                'username': np.ndarray((0,), dtype=str),
+                'task_parameters': np.ndarray((0,), dtype=object),
+                'practice_mode': np.ndarray((0,), dtype=object),
+                'error_before_left_timing': np.ndarray((0,), dtype=float),
+                'error_before_right_timing': np.ndarray((0,), dtype=float),
+                'error_before_left_pitch': np.ndarray((0,), dtype=float),
+                'error_before_right_pitch': np.ndarray((0,), dtype=float),
+                'error_after_left_timing': np.ndarray((0,), dtype=float),
+                'error_after_right_timing': np.ndarray((0,), dtype=float),
+                'error_after_left_pitch': np.ndarray((0,), dtype=float),
+                'error_after_right_pitch': np.ndarray((0,), dtype=float),
+            }
+
+            self.dataframe = pd.DataFrame(dataframe_columns)
+
+    def add_entry(self, midi_filename, username, error_before, error_after, practice_mode, task_parameters):
+        entry = {
+            'midi_filename': midi_filename,
+            'username': username,
+        }
+
+        if error_before is None:
+            entry_error_before = {
+                'error_before_left_timing': None,
+                'error_before_right_timing': None,
+                'error_before_left_pitch': None,
+                'error_before_right_pitch': None,
+            }
+        else:
+            entry_error_before = {
+                'error_before_left_timing': error_before['timing_left'],
+                'error_before_right_timing': error_before['timing_right'],
+                'error_before_left_pitch': error_before['pitch_left'],
+                'error_before_right_pitch': error_before['pitch_right']
+            }
+
+        entry_error_after = {
+            'error_after_left_timing': error_before['timing_left'],
+            'error_after_right_timing': error_before['timing_right'],
+            'error_after_left_pitch': error_before['pitch_left'],
+            'error_after_right_pitch': error_before['pitch_right']
+        }
+
+        entry.update(entry_error_before)
+
+        self.dataframe = pd.concat([self.dataframe, pd.DataFrame([entry])], ignore_index=True)
+
+    def save_database(self):
+        self.dataframe.to_hdf(path_or_buf=DATA_DIR + "data.h5", key='data')
 
 
 def add_error_details():
