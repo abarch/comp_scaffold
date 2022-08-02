@@ -103,9 +103,28 @@ def startTask():
         saveMidiAndXML(targetNotes, scheduler.current_task_data(), taskParameters)
         midiSaved = True
 
+    eval_window = tk.Toplevel(root)
+    eval_window.geometry("500x200")
+    tk.Label(eval_window, text="Rate how difficult the task was for you (1-Easy, 7-Hard)").place(x=20, y=20)
+    diff_rating = tk.StringVar(root)
+    diff_rating.set('None')
+    diff_rating_list = ["1", "2", "3", "4", "5","6","7"]
+    diff_opt = tk.OptionMenu(eval_window, diff_rating, *diff_rating_list, command=set_diff_rating)
+    diff_opt.place(x=400, y=20, width=100, height=30)
+
+    tk.Label(eval_window, text="Rate your performance of the task (1-Low, 7-High)").place(x=20, y=80)
+    performace_rating = tk.StringVar(root)
+    performace_rating.set('None')
+    performace_rating_list = ["1", "2", "3", "4", "5", "6", "7"]
+    perf_opt = tk.OptionMenu(eval_window, performace_rating, *performace_rating_list, command=set_performance_rating)
+    perf_opt.place(x=400, y=80, width=100, height=30)
+
+    tk.Button(eval_window, text="Done", command = eval_window.destroy).place(x=200, y=140)
+    root.wait_window(eval_window)
+    print("after wait window")
     df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
                                                   taskParameters, note_errorString, config.participant_id,
-                                                  config.freetext, config.expMode, config.trial_num, config.task_num)
+                                                  config.freetext, config.expMode, config.trial_num, config.task_num, config.diff_rating, config.performance_rating)
 
     config.trial_num += 1
 
@@ -138,6 +157,26 @@ def startTask():
 
     refresh_buttons()
 
+def set_diff_rating(rating):
+    """
+        Sets difficulty rating globally.
+
+        @param rating: user's selected rating.
+        @return: None
+        """
+    global config
+    config.diff_rating = rating
+    print(config.diff_rating)
+
+def set_performance_rating(rating):
+    """
+            Sets performance rating globally.
+
+            @param rating: user's selected rating.
+            @return: None
+            """
+    global config
+    config.performance_rating = rating
 
 def startDemo():
     """
@@ -741,7 +780,7 @@ def load_taskButtons():
     l.place(x=1050, y=590, width=150, height=25)
     exp_mode = tk.StringVar(root)
     exp_mode.set(current_exp_mode)
-    ExpModeList = ["Test", "Calibration", "Practice","Test", "Retention"]
+    ExpModeList = ["Calibration", "Practice","Test", "Retention"]
     guideopt = tk.OptionMenu(root, exp_mode, *ExpModeList, command=set_expmode)
     guideopt.place(x=1050, y=620, width=150, height=30)
 

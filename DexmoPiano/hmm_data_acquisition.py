@@ -8,7 +8,7 @@ import pandas as pd
 import config
 
 
-def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString, user_id, free_text, phase, trial_no, task_no):
+def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString, user_id, free_text, phase, trial_no, task_no, diff_rating, perf_rating):
     """
     Prints the error (observations) for the hmm into the *_error.csv file.
     Prints note specific errors into the *_notes.csv file.
@@ -54,6 +54,8 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
     dic_error['phase'] = phase
     dic_error['task_number'] = task_no
     dic_error['trial_number'] = trial_no
+    dic_error['diff_rating'] = diff_rating
+    dic_error['perf_rating'] = perf_rating
     dic_error['saved_filename'] = config.savedFileName
     dic_error['practice_mode'] = task_data.practice_mode
     dic_error['bpm'] = taskParameters.bpm
