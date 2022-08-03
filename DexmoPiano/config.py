@@ -19,6 +19,8 @@ freetext = ""
 expMode = ""
 trial_num = 1
 task_num = 0
+diff_rating = "None"
+performance_rating = "None"
 
 fromFile = False #indicates if the task is from file.
 loadedFileName = "" # the loaded file name
