@@ -473,12 +473,12 @@ class PlayCompleteSong(LearningState):
         self.midi_file = midi_file
         self.practice_parameters = practice_parameters
 
-    def get_next_practise_mode(self) -> PracticeMode:
+    def get_next_practise_mode(self, error) -> PracticeMode:
         # TODO: change to new "get_next_practice_mode" function which is based on error
         task = self.scheduler.current_task_data()
         task_parameters = task.parameters
         complexity_level = self.statemachine.complexity_level
-        return self.statemachine.gaussian_process.get_best_practice_mode(complexity_level, task_parameters)
+        return self.statemachine.gaussian_process.get_best_practice_mode(error=error, task_parameters=task_parameters)
 
     def error_diff_to_utility(self, error_pre, error_post):
         diff_timing = (error_pre["timing_left"] + error_pre["timing_right"]) - (
@@ -525,7 +525,7 @@ class PlayCompleteSong(LearningState):
                                                         self.scheduler.current_task_data().parameters,
                                                         self.practice_parameters["practice_mode"], utility)
 
-        practice_mode = self.get_next_practise_mode()
+        practice_mode = self.get_next_practise_mode(error)
 
         tk.Label(root, text=f"Recommended Practice-Mode:\n{practice_mode.name}").pack()
 
@@ -689,9 +689,8 @@ class Statemachine:
         self.data_logger.save_database()
 
         # Save data point to gaussian process
-        # TODO Errors same as gp
-        # self.gaussian_process.add_data_point(error, task_parameters, practice_mode, utility)
-        # self.gaussian_process.update_model()
+        self.gaussian_process.add_data_point(error[0], task_parameters, practice_mode, utility)
+        self.gaussian_process.update_model()
 
 
 def add_error_plot():
