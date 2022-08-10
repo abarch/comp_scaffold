@@ -1,6 +1,5 @@
 import pathlib
 import pickle
-import random
 import shutil
 import time
 import pandas
@@ -26,7 +25,7 @@ import hmm_data_acquisition
 import fileIO
 
 from task_generation.gaussian_process import GaussianProcess
-from task_generation.practice_modes import PracticeMode
+from task_generation.gaussian_process import PracticeMode
 from task_generation.scheduler import Scheduler
 from task_generation.task_parameters import TaskParameters
 
@@ -477,7 +476,6 @@ class PlayCompleteSong(LearningState):
         # TODO: change to new "get_next_practice_mode" function which is based on error
         task = self.scheduler.current_task_data()
         task_parameters = task.parameters
-        complexity_level = self.statemachine.complexity_level
         return self.statemachine.gaussian_process.get_best_practice_mode(error=error, task_parameters=task_parameters)
 
     def error_diff_to_utility(self, error_pre, error_post):
@@ -565,12 +563,23 @@ class PracticeModeState(LearningState):
         task_parameters = task.parameters
 
         # for Timing Practice Mode: change displayed note sheet, so that all notes are D
-        if self.practice_mode == PracticeMode.SINGLE_NOTE:
+        if self.practice_mode == PracticeMode.IMP_TIMING:
             task.notes_right = [TaskNote(start=note.start, pitch=62, duration=note.duration)
                                 for note in task.notes_right]
 
             task.notes_left = [TaskNote(start=note.start, pitch=62, duration=note.duration)
                                for note in task.notes_left]
+            tk.Label(root, text=f"Practice Mode Improve Timing").place(x=1050, y=50, height=60, width=300)
+        elif self.practice_mode == PracticeMode.IMP_PITCH:
+            tk.Label(root,
+                     text=f"Practice Mode Improve Pitch\n Transition from one not to another \n when you feel confident \n that you will get the pitch right. \n Do not focus on the Timing ").place(
+                x=1050, y=50, height=300, width=300)
+        elif self.practice_mode == PracticeMode.LEFT:
+            task.notes_right = []
+            tk.Label(root, text=f"Practice Mode only Left Hand").place(x=1050, y=50, height=60, width=300)
+        elif self.practice_mode == PracticeMode.RIGHT:
+            task.notes_left = []
+            tk.Label(root, text=f"Practice Mode only Right Hand").place(x=1050, y=50, height=60, width=300)
 
         midiProcessing.generateMidi(task, outFiles=OUTPUT_FILES_STRS)
 
@@ -582,7 +591,8 @@ class PracticeModeState(LearningState):
 
         root.update_idletasks()
 
-        self.show_function_btn('Play Piece in Practice-Mode', self.start_practice)
+        if self.practice_mode != PracticeMode.IMP_PITCH:
+            self.show_function_btn('Play Piece in Practice-Mode', self.start_practice)
 
         self.show_secondary_next_state_btn(
             'Return to Complete Piece', PlayCompleteSong(

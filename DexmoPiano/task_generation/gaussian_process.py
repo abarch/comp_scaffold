@@ -137,7 +137,11 @@ class GaussianProcess:
         @param (optional) epsilon: the probability of making a random decision. set to 0 for no exploration.
         @return: chosen for given input parameters PracticeMode
         """
-        all_practice_modes = list(PracticeMode)
+
+        if task_parameters.left and task_parameters.right:
+            all_practice_modes = list(PracticeMode)
+        else:
+            all_practice_modes = [PracticeMode.IMP_PITCH, PracticeMode.IMP_TIMING]
         # epsilon-greedy
         if random.random() > epsilon:
             max_i = np.argmax([self.get_estimate(error, task_parameters, pm)
