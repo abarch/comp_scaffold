@@ -968,15 +968,27 @@ def applyQuickBPM():
     if quick_bpm > 0:
         # change tempo to custom tempo
         temp_mido_file0 = mido.MidiFile(inputFileStrs[0])
-        temp_mido_file0.tracks[0][1].tempo = int(60000000 / quick_bpm)  # tempo is in MicroTempo units.
+        for i in range(len(temp_mido_file0.tracks[0])):
+            if temp_mido_file0.tracks[0][i].type=='set_tempo':
+                found_ind = i;
+        print("found ind :", i)
+        temp_mido_file0.tracks[0][found_ind].tempo = int(60000000 / quick_bpm)  # tempo is in MicroTempo units.
         temp_mido_file0.save(inputFileStrs[0])
 
         temp_mido_file1 = mido.MidiFile(inputFileStrs[1])
-        temp_mido_file1.tracks[0][1].tempo = int(60000000/quick_bpm) # tempo is in MicroTempo units.
+        for i in range(len(temp_mido_file1.tracks[0])):
+            if temp_mido_file1.tracks[0][i].type=='set_tempo':
+                found_ind = i;
+        print("found ind :", i)
+        temp_mido_file1.tracks[0][found_ind].tempo = int(60000000/quick_bpm) # tempo is in MicroTempo units.
         temp_mido_file1.save(inputFileStrs[1])
 
         temp_mido_file2 = mido.MidiFile(inputFileStrs[2])
-        temp_mido_file2.tracks[0][1].tempo = int(60000000 / quick_bpm)  # tempo is in MicroTempo units.
+        for i in range(len(temp_mido_file2.tracks[0])):
+            if temp_mido_file2.tracks[0][i].type=='set_tempo':
+                found_ind = i;
+        print("found ind :", i)
+        temp_mido_file2.tracks[0][found_ind].tempo = int(60000000 / quick_bpm)  # tempo is in MicroTempo units.
         temp_mido_file2.save(inputFileStrs[2])
 
         taskData = scheduler.current_task_data()
