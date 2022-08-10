@@ -594,7 +594,9 @@ class PracticeModeState(LearningState):
 
         self.show_secondary_next_state_btn(
             'Return to Complete Piece', PlayCompleteSong(
-                self.scheduler, self.statemachine, self.midi_file
+                self.scheduler, self.statemachine, self.midi_file,
+                practice_parameters={"error_before_practice": self.error_from_complete_piece,
+                                     "practice_mode": self.practice_mode}
             )
         )
 
