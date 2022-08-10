@@ -2,10 +2,8 @@ import pathlib
 import pickle
 import shutil
 import time
-import pandas
 import subprocess
 import os
-import mido
 
 from collections import namedtuple
 
@@ -265,7 +263,7 @@ class LearningState:
         panel.image = img
         panel.place(x=170, y=0, width=835, height=1181)
 
-    def start_playback_and_calc_error(self, task_parameters: TaskParameters) -> pandas.DataFrame:
+    def start_playback_and_calc_error(self, task_parameters: TaskParameters) -> pd.DataFrame:
         targetNotes, actualNotes, errorVal, error_vec_left, error_vec_right, task_data, note_error_str = \
             thread_handler.start_midi_playback(OUTPUT_FILES_STRS[2], guidance_mode,
                                                self.scheduler.current_task_data(),
