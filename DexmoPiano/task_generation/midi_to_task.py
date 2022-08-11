@@ -12,19 +12,25 @@ from task_generation.task_data import TaskData
 from task_generation.task_parameters import TaskParameters
 from task_generation.note_range_per_hand import NoteRangePerHand
 
+# from task_data import TaskData
+# from task_parameters import TaskParameters
+# from note_range_per_hand import NoteRangePerHand
 
 TaskNote = namedtuple("TaskNote", "start pitch duration")
 
 def midi2taskdata(midifile_path):
     midi = mido.MidiFile(midifile_path, clip=True)
-    messages = midi.tracks[1] #[1:-1]  # slice out meta information
+    messages = []
     right, left = False, False
     if len(midi.tracks) == 2:
         right = True
+        messages.append(midi.tracks[1])  # [1:-1]  # slice out meta information
     elif len(midi.tracks) > 2:
         right, left = True, True
-
+        messages.append(midi.tracks[1])
+        messages.append(midi.tracks[2])
     bpm, time_signature, n_beats = -1, -1, -1
+
     for msg in midi.tracks[0]:
         if msg.type == 'set_tempo':
             bpm = mido.tempo2bpm(msg.tempo)
@@ -37,14 +43,19 @@ def midi2taskdata(midifile_path):
 
     notes = dict(left=[], right=[])
 
-    passed_time = time_signature[0]
-    for i in range(len(messages) - 1):
-        if messages[i].type != 'note_on' and messages[i].type != 'end_of_track':
-            continue
-        passed_time += int(messages[i].time / midi.ticks_per_beat)
-        if messages[i].velocity != 0:
-            notes["right"].append(
-                TaskNote(passed_time, messages[i].note, float(messages[i + 1].time) / midi.ticks_per_beat))
+    for track in messages:
+        passed_time = time_signature[0]
+        for i in range(len(track) - 1):
+            if track[i].type != 'note_on' and track[i].type != 'note_off':
+                continue
+            passed_time += int(track[i].time / midi.ticks_per_beat)
+            if track[i].velocity != 0 and track[i].type == 'note_on':
+                if track[i].channel == 0:
+                    notes["right"].append(
+                        TaskNote(passed_time, track[i].note, float(track[i + 1].time) / midi.ticks_per_beat))
+                elif track[i].channel == 1:
+                    notes["left"].append(
+                        TaskNote(passed_time, track[i].note, float(track[i + 1].time) / midi.ticks_per_beat))
 
     task_parameter = TaskParameters(
         timeSignature=time_signature,
