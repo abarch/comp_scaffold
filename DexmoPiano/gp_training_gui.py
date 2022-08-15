@@ -4,6 +4,7 @@ import shutil
 import time
 import subprocess
 import os
+import ntpath
 
 from collections import namedtuple
 
@@ -758,8 +759,9 @@ class DataLogger:
             dataframe_columns = {
                 'midi_filename': np.ndarray((0,), dtype=str),
                 'username': np.ndarray((0,), dtype=str),
-                'task_parameters': np.ndarray((0,), dtype=object),
-                'practice_mode': np.ndarray((0,), dtype=object),
+                # 'task_parameters': np.ndarray((0,), dtype=object),
+                'practice_mode': np.ndarray((0,), dtype=str),
+                'bpm': np.ndarray((0,), dtype=float),
                 'error_before_left_timing': np.ndarray((0,), dtype=float),
                 'error_before_right_timing': np.ndarray((0,), dtype=float),
                 'error_before_left_pitch': np.ndarray((0,), dtype=float),
@@ -774,8 +776,11 @@ class DataLogger:
 
     def add_entry(self, midi_filename, username, error_before, error_after, practice_mode, task_parameters):
         entry = {
-            'midi_filename': midi_filename,
+            'midi_filename': ntpath.basename(midi_filename),
             'username': username,
+            'practice_mode': practice_mode.name,
+            'bpm': task_parameters.bpm
+            # 'task_parameters': task_parameters
         }
 
         if error_before is None:
@@ -794,13 +799,14 @@ class DataLogger:
             }
 
         entry_error_after = {
-            'error_after_left_timing': error_before['timing_left'],
-            'error_after_right_timing': error_before['timing_right'],
-            'error_after_left_pitch': error_before['pitch_left'],
-            'error_after_right_pitch': error_before['pitch_right']
+            'error_after_left_timing': error_after['timing_left'],
+            'error_after_right_timing': error_after['timing_right'],
+            'error_after_left_pitch': error_after['pitch_left'],
+            'error_after_right_pitch': error_after['pitch_right']
         }
 
         entry.update(entry_error_before)
+        entry.update(entry_error_after)
 
         self.dataframe = pd.concat([self.dataframe, pd.DataFrame([entry])], ignore_index=True)
 
