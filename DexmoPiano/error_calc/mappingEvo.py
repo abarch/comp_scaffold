@@ -7,7 +7,7 @@ import random
 import functools
 from deap import base, creator, tools, algorithms
 
-
+random.seed(10)
 
 # IND_SIZE=3
 
