@@ -997,7 +997,9 @@ def applyQuickBPM():
 
         # upadte midi events to taskData. The midi events changed due to the change of bpm.
         temp_mido_file = mido.MidiFile(inputFileStrs[0]) # outFile[0] (output.mid) is already updated with the custom bpm.
-        mid_left = midiProcessing._midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
+        # mid_left = midiProcessing._midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
+        # mid_left = midiProcessing._midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
+        mid_left = []
         mid_right = midiProcessing._midi_messages_to_note_events(temp_mido_file.tracks[1], temp_mido_file)
         taskData.midi.register_midi_events(mid_left, mid_right)
 
@@ -1052,7 +1054,7 @@ def openSavedFile():
     """
     #loadUpTask(userSelectedTask=True,
     #           userSelectedLocation=filedialog.askopenfilename(filetypes=[("Midi files", ".midi .mid")]))
-    global midiSaved, currentMidi, taskParameters
+    global midiSaved, currentMidi, taskParameters, taskData
     delete_warning()
 
     # load saved midi
@@ -1090,15 +1092,27 @@ def openSavedFile():
     if custom_bpm > 0:
         # change tempo to custom tempo
         temp_mido_file0 = mido.MidiFile(inputFileStrs[0])
-        temp_mido_file0.tracks[0][1].tempo = int(60000000 / custom_bpm)  # tempo is in MicroTempo units.
+        for i in range(len(temp_mido_file0.tracks[0])):
+            if temp_mido_file0.tracks[0][i].type == 'set_tempo':
+                found_ind = i;
+        print("found ind :", i)
+        temp_mido_file0.tracks[0][found_ind].tempo = int(60000000 / custom_bpm)  # tempo is in MicroTempo units.
         temp_mido_file0.save(inputFileStrs[0])
 
         temp_mido_file1 = mido.MidiFile(inputFileStrs[1])
-        temp_mido_file1.tracks[0][1].tempo = int(60000000/custom_bpm) # tempo is in MicroTempo units.
+        for i in range(len(temp_mido_file1.tracks[0])):
+            if temp_mido_file1.tracks[0][i].type == 'set_tempo':
+                found_ind = i;
+        print("found ind :", i)
+        temp_mido_file1.tracks[0][found_ind].tempo = int(60000000 / custom_bpm)  # tempo is in MicroTempo units.
         temp_mido_file1.save(inputFileStrs[1])
 
         temp_mido_file2 = mido.MidiFile(inputFileStrs[2])
-        temp_mido_file2.tracks[0][1].tempo = int(60000000 / custom_bpm)  # tempo is in MicroTempo units.
+        for i in range(len(temp_mido_file2.tracks[0])):
+            if temp_mido_file2.tracks[0][i].type == 'set_tempo':
+                found_ind = i;
+        print("found ind :", i)
+        temp_mido_file2.tracks[0][found_ind].tempo = int(60000000 / custom_bpm)  # tempo is in MicroTempo units.
         temp_mido_file2.save(inputFileStrs[2])
 
         taskData.bpm = custom_bpm
@@ -1106,7 +1120,8 @@ def openSavedFile():
 
         # upadte midi events to taskData. The midi events changed due to the change of bpm.
         temp_mido_file = mido.MidiFile(inputFileStrs[0]) # outFile[0] (output.mid) is already updated with the custom bpm.
-        mid_left = midiProcessing._midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
+        #mid_left = midiProcessing._midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file) # commented due to a bug
+        mid_left = []
         mid_right = midiProcessing._midi_messages_to_note_events(temp_mido_file.tracks[1], temp_mido_file)
         taskData.midi.register_midi_events(mid_left, mid_right)
 
