@@ -48,7 +48,7 @@ def midi2taskdata(midifile_path):
         for i in range(len(track) - 1):
             if track[i].type != 'note_on' and track[i].type != 'note_off':
                 continue
-            passed_time += int(track[i].time / midi.ticks_per_beat)
+            passed_time += track[i].time / midi.ticks_per_beat
             if track[i].velocity != 0 and track[i].type == 'note_on':
                 if track[i].channel == 0:
                     notes["right"].append(
