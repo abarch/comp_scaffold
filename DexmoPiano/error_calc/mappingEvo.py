@@ -26,9 +26,11 @@ def get_eval_function(target_notes, actual_notes):
         timing_already_added = set()
         error_note_hold_time = 0
         error_pitch = 0
+        total_time_note_on = 0
 
         for target_i in range(len(target_notes)):
             target_note = target_notes[target_i]
+            total_time_note_on += target_note.note_off_time - target_note.note_on_time
 
             if mapping[target_i] != -1:
                 # print(mapping)
@@ -38,8 +40,9 @@ def get_eval_function(target_notes, actual_notes):
                 continue
 
             ## pitch error
+
             if target_note.pitch != actual_note.pitch:
-                error_pitch += 1 + abs(target_note.pitch - actual_note.pitch) * 0.1
+                error_pitch += 1 * (target_note.note_off_time - target_note.note_on_time)
 
             ## timing error
 

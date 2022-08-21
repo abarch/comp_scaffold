@@ -75,6 +75,10 @@ def get_explanation(task_data, actual, mapping,
                     ):
     target = task_data.all_notes()
     print("task_data", task_data.__dict__)
+    print("target:", target[0].note_off_time - target[0].note_on_time)
+    total_time_note_on = 0
+    for t in target:
+        total_time_note_on += t.note_off_time - t.note_on_time
 
     anchor_map = get_anchor_map(target)
     target_debug = note_info_list_add_debug(target, list(range(len(target))), anchor_map)
@@ -135,7 +139,7 @@ def get_explanation(task_data, actual, mapping,
             pitch_diff = t.pitch - a.pitch
             if abs(pitch_diff) > 0:
                 # print("WRONG PITCH", t_i, t, a_i, a)
-                error_pitch += 1
+                error_pitch += 1 * (t.note_off_time - t.note_on_time)
 
             hold_diff = t.note_hold_time - a.note_hold_time
             if abs(hold_diff) > 0:
@@ -145,7 +149,7 @@ def get_explanation(task_data, actual, mapping,
             timing_diff = t.time_after_anchor - a.time_after_anchor
             if abs(timing_diff) > 0:
                 # print("WRONG TIMING", t_i, a_i, t.time_after_anchor, a.time_after_anchor)
-                error_timing += abs(timing_diff)
+                error_timing += min(abs(timing_diff), 1.0)
 
             output_note_list.append(
                 NoteExpected(a.pitch, a.velocity, a.note_on_time, a.time_after_anchor,
@@ -159,11 +163,13 @@ def get_explanation(task_data, actual, mapping,
         else:
             number = num_notes
 
-        errors.append(Error(pitch=error_pitch / number,
+        b = (task_data.time_signature[0] / task_data.time_signature[1]) / task_data.bpm * 60 * 1000
+        errors.append(Error(pitch=error_pitch / total_time_note_on,
                             note_hold_time=error_note_hold_time / (
                                         task_data.number_of_bars * task_data.time_signature[0]),
                             # how to get on number of bars and signature(?)
-                            timing=error_timing / number,
+                            timing=error_timing * ((1 / number) * ((task_data.time_signature[0] /
+                                                              task_data.time_signature[1]) / task_data.bpm)),
                             n_missing_notes=notes_missing / number,
                             t_missing_notes=notes_missing_t / number,
                             n_extra_notes=len(extra_notes_dict[hand]) / number,
