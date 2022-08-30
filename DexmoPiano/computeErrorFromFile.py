@@ -12,9 +12,12 @@ from error_calc import functions as errorCalc
 
 cwd = os.getcwd()
 print(cwd)
-basename = '2022_08_18-17_42_30'
+basename = '2022_08_17-12_28_39'
 taskdata_filename = cwd + '\\output\\'+ basename + '-data.task'
 xmlfilename = cwd + '\\output\\'+ basename + '.xml'
+
+taskdata_filename = cwd + '/output/'+ basename + '-data.task'
+xmlfilename = cwd + '/output/'+ basename + '.xml'
 
 # read task_data
 with open(taskdata_filename, 'rb') as f:
@@ -33,9 +36,12 @@ root = tree.getroot()
 trials = root.find("trials")
 
 NoteInfo = namedtuple("NoteInfo", ["pitch", "velocity", "note_on_time", "note_off_time"])
+errors_table = []
 
 for trial in trials:
     PlayedNotes = []
+    trial_no = trial.get("trial_no")
+    print('trial no: ',trial_no)
     notes = trial.find("notes").text
     notesArray = json.loads(notes)
     # startsongtime = notesArray[0][2]
@@ -78,3 +84,7 @@ for trial in trials:
     print("ERROR LEFT: ", errorVecLeft)
     print("ERROR RIGHT:", errorVecRight)
     #print(errorVec, errorVecLeft, errorVecRight)
+    errors_table.append([trial_no, errorVecRight.pitch, errorVecRight.note_hold_time, errorVecRight.timing, errorVecRight.n_missing_notes, errorVecRight.n_extra_notes,errorVecRight.pitch + errorVecRight.timing + errorVecRight.n_missing_notes + errorVecRight.n_extra_notes])
+
+for k in range(len(errors_table)):
+    print(errors_table[k],"\n")
