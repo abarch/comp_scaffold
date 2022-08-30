@@ -4,6 +4,7 @@
 # pitch=62, duration=2.0), TaskNote(start=19, pitch=62, duration=1.0), TaskNote(start=20, pitch=62, duration=1.0),
 # TaskNote(start=21, pitch=60, duration=1.0), TaskNote(start=22, pitch=62, duration=1.0), TaskNote(start=23,
 # pitch=62, duration=1.0), TaskNote(start=24, pitch=62, duration=2.0)]
+import math
 
 import mido
 from collections import namedtuple
@@ -39,7 +40,7 @@ def midi2taskdata(midifile_path):
         if msg.type == 'end_of_track':
             n_beats = msg.time / midi.ticks_per_beat
 
-    noOfBars = int(n_beats / time_signature[0]) + 2
+    noOfBars = math.ceil(n_beats / time_signature[0]) + 2
 
     notes = dict(left=[], right=[])
 
