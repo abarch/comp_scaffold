@@ -19,6 +19,7 @@ from task_generation.note_range_per_hand import NoteRangePerHand
 
 TaskNote = namedtuple("TaskNote", "start pitch duration")
 
+
 def midi2taskdata(midifile_path):
     midi = mido.MidiFile(midifile_path, clip=True)
     messages = []
@@ -32,13 +33,22 @@ def midi2taskdata(midifile_path):
         messages.append(midi.tracks[2])
     bpm, time_signature, n_beats = -1, -1, -1
 
+    time1 = 0
+    for msg in midi.tracks[1]:
+        time1 += msg.time
+
+    time2 = 0
+    if left:
+        for msg in midi.tracks[2]:
+            time2 += msg.time
+
     for msg in midi.tracks[0]:
         if msg.type == 'set_tempo':
             bpm = mido.tempo2bpm(msg.tempo)
         if msg.type == 'time_signature':
             time_signature = (msg.numerator, msg.denominator)
         if msg.type == 'end_of_track':
-            n_beats = msg.time / midi.ticks_per_beat
+            n_beats = max(time1, time2) / midi.ticks_per_beat
 
     noOfBars = math.ceil(n_beats / time_signature[0]) + 2
 
