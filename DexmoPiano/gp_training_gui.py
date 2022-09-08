@@ -566,7 +566,7 @@ class PracticeModeState(LearningState):
             task.notes_right = [TaskNote(start=note.start, pitch=62, duration=note.duration)
                                 for note in task.notes_right]
 
-            task.notes_left = [TaskNote(start=note.start, pitch=62, duration=note.duration)
+            task.notes_left = [TaskNote(start=note.start, pitch=50, duration=note.duration)
                                for note in task.notes_left]
             tk.Label(root, text=f"Practice Mode Improve Timing").place(x=1050, y=50, height=60, width=300)
         elif self.practice_mode == PracticeMode.IMP_PITCH:
