@@ -700,7 +700,7 @@ class Statemachine:
         self.data_logger.save_database()
 
         # Save data point to gaussian process
-        self.gaussian_process.add_data_point(error[0], task_parameters, practice_mode, utility)
+        self.gaussian_process.add_data_point(error[0], task_parameters.bpm, practice_mode, utility)
         self.gaussian_process.update_model()
 
 

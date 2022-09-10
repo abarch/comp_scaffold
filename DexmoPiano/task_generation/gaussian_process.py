@@ -5,9 +5,6 @@ import enum
 import numpy as np
 
 from GPyOpt.methods import BayesianOptimization
-from pandas import DataFrame
-
-from task_generation.task_parameters import TaskParameters
 
 
 class PracticeMode(enum.Enum):
@@ -48,14 +45,14 @@ class GaussianProcess:
     def _norm_bpm(self, v: float) -> float:
         return v / self.bpm_norm_fac
 
-    def _params2domain(self, error: DataFrame, task_parameters: TaskParameters, practice_mode: PracticeMode):
+    def _params2domain(self, error, bpm: int, practice_mode: PracticeMode):
         domain_x = [
             practice_mode.value,
-            self._norm_bpm(task_parameters.bpm),
-            error.pitch_left,
-            error.pitch_right,
-            error.timing_left,
-            error.timing_right
+            self._norm_bpm(bpm),
+            error['pitch_left'],
+            error['pitch_right'],
+            error['timing_left'],
+            error['timing_right']
         ]
 
         return np.array([domain_x])
@@ -106,11 +103,11 @@ class GaussianProcess:
         self.bayes_opt.model.max_iters = 1000
         self.bayes_opt._update_model()
 
-    def get_estimate(self, error: DataFrame, task_parameters: TaskParameters, practice_mode: PracticeMode) -> float:
+    def get_estimate(self, error, bpm, practice_mode: PracticeMode) -> float:
         """
             Estimates the utility value for a given practice mode
         @param error: dataframe with the error values
-        @param task_parameters: task_parameters of the music piece
+        @param bpm: bpm of the music piece
         @param practice_mode: the practice mode for which the utility value should be estimated
         @return: gaussian process' estimate of the utility value
         """
@@ -121,47 +118,48 @@ class GaussianProcess:
 
         bayes_opt = self._get_bayes_opt()
 
-        x = self._params2domain(error, task_parameters, practice_mode)
+        x = self._params2domain(error, bpm, practice_mode)
         x = self._domain2space(x)
 
         mean, var = bayes_opt.model.predict(x)
 
         return mean[0]
 
-    def get_best_practice_mode(self, error: DataFrame, task_parameters: TaskParameters, epsilon=0.05):
+    def get_best_practice_mode(self, error, bpm, epsilon=0.05):
         """
             computes the gaussian process' estimate of the best practice mode
             for exploration: currently utilizes epsilon-greedy exploration
-        @param error: dataframe with the error values
-        @param task_parameters: task_parameters of the music piece
+        @param error: error values
+        @param bpm: bpm of the music piece
         @param (optional) epsilon: the probability of making a random decision. set to 0 for no exploration.
         @return: chosen for given input parameters PracticeMode
         """
-
-        if task_parameters.left and task_parameters.right:
+        left = False
+        right = True
+        if left and right:
             all_practice_modes = list(PracticeMode)
         else:
             all_practice_modes = [PracticeMode.IMP_PITCH, PracticeMode.IMP_TIMING]
         # epsilon-greedy
         if random.random() > epsilon:
-            max_i = np.argmax([self.get_estimate(error, task_parameters, pm)
+            max_i = np.argmax([self.get_estimate(error, bpm, pm)
                                for pm in all_practice_modes])
             return all_practice_modes[max_i]
         else:
             return np.random.choice(all_practice_modes)
 
-    def add_data_point(self, error: DataFrame, task_parameters: TaskParameters, practice_mode: PracticeMode,
+    def add_data_point(self, error, bpm: int, practice_mode: PracticeMode,
                        utility_measurement: float):
         """
             Adds a new datapoint to the dataset of the gaussian process.
             Does not update the Gaussian Process for the new training data (see: update_model)
         @param error: dataframe with the error values
-        @param task_parameters: task_parameters of the music piece
+        @param bpm: bpm of the music piece
         @param practice_mode: practice mode in which the performer practiced
         @param utility_measurement: observed utility value for the given parameters
         """
 
-        new_x = self._params2domain(error, task_parameters, practice_mode)
+        new_x = self._params2domain(error, bpm, practice_mode)
         new_y = [utility_measurement]
 
         if self.data_X is None:
