@@ -1,15 +1,15 @@
-import GPy
-import GPyOpt
-import random
 import enum
+import random
 import numpy as np
 
+import GPy
+import GPyOpt
 from GPyOpt.methods import BayesianOptimization
 
 
 class PracticeMode(enum.Enum):
     """
-        class to define all possible practice modes
+    All possible practice modes
     """
     IMP_PITCH = 0
     IMP_TIMING = 1
@@ -68,23 +68,16 @@ class GaussianProcess:
 
     def update_model(self):
         """
-            If the Gaussian Process' training data has changed, "trains" the GP on the complete data set.
+        If the Gaussian Process' training data has changed, "trains" the GP on the complete data set.
         """
-        # only calculate new model if data changed
         if self.data_X is None or self.data_X.shape == self.data_X_old_shape:
             return
 
         self.data_X_old_shape = self.data_X.shape
 
-        # TODO Choose Kernel
-
         kernel = GPy.kern.RBF(input_dim=self.space.model_dimensionality,
                               variance=0.01,
                               lengthscale=1)
-
-        # kernel = GPy.kern.Matern52(input_dim=self.space.model_dimensionality,
-        #                       variance=0.01,
-        #                       lengthscale=1)
 
         self.bayes_opt = GPyOpt.methods.BayesianOptimization(
             f=None, domain=self.domain, X=self.data_X, Y=self.data_Y,
@@ -95,25 +88,19 @@ class GaussianProcess:
         self.bayes_opt.model.max_iters = 0
         self.bayes_opt._update_model()
 
-        # self.bayes_opt.model.model.kern.variance.constrain_bounded(0.2,1,
-        #                                                            warning=False)
-        # self.bayes_opt.model.model.kern.lengthscale.constrain_bounded(1, 2,
-        #                                                            warning=False)
-
         self.bayes_opt.model.max_iters = 1000
         self.bayes_opt._update_model()
 
     def get_estimate(self, error, bpm, practice_mode: PracticeMode) -> float:
         """
-            Estimates the utility value for a given practice mode
-        @param error: dataframe with the error values
+        Estimates the utility value for a given practice mode
+        @param error: error values
         @param bpm: bpm of the music piece
         @param practice_mode: the practice mode for which the utility value should be estimated
         @return: gaussian process' estimate of the utility value
         """
         if not hasattr(self, "bayes_opt"):
-            # if there is no model yet, e.g. in the first iteration
-            # print("(GP) DATA_X IS NONE, RETURNING RANDOM NUMBER")
+            # if there is no model yet, e.g. in the first iteration return random utility
             return random.random()
 
         bayes_opt = self._get_bayes_opt()
@@ -125,10 +112,10 @@ class GaussianProcess:
 
         return mean[0]
 
-    def get_best_practice_mode(self, error, bpm, epsilon=0.05):
+    def get_best_practice_mode(self, error, bpm, epsilon=0):
         """
-            computes the gaussian process' estimate of the best practice mode
-            for exploration: currently utilizes epsilon-greedy exploration
+        computes the gaussian process' estimate of the best practice mode
+        currently utilizes epsilon-greedy exploration
         @param error: error values
         @param bpm: bpm of the music piece
         @param (optional) epsilon: the probability of making a random decision. set to 0 for no exploration.
@@ -151,9 +138,9 @@ class GaussianProcess:
     def add_data_point(self, error, bpm: int, practice_mode: PracticeMode,
                        utility_measurement: float):
         """
-            Adds a new datapoint to the dataset of the gaussian process.
-            Does not update the Gaussian Process for the new training data (see: update_model)
-        @param error: dataframe with the error values
+        Adds a new datapoint to the dataset of the gaussian process.
+        Does not update the Gaussian Process for the new training data (see: update_model)
+        @param error: error values
         @param bpm: bpm of the music piece
         @param practice_mode: practice mode in which the performer practiced
         @param utility_measurement: observed utility value for the given parameters

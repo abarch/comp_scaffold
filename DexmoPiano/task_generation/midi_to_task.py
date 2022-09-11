@@ -1,44 +1,32 @@
-# [TaskNote(start=4, pitch=62, duration=2.0), TaskNote(start=8, pitch=60, duration=1.0), TaskNote(start=9, pitch=62,
-# duration=1.0), TaskNote(start=10, pitch=60, duration=1.0), TaskNote(start=11, pitch=60, duration=1.0),
-# TaskNote(start=12, pitch=60, duration=2.0), TaskNote(start=16, pitch=60, duration=1.0), TaskNote(start=17,
-# pitch=62, duration=2.0), TaskNote(start=19, pitch=62, duration=1.0), TaskNote(start=20, pitch=62, duration=1.0),
-# TaskNote(start=21, pitch=60, duration=1.0), TaskNote(start=22, pitch=62, duration=1.0), TaskNote(start=23,
-# pitch=62, duration=1.0), TaskNote(start=24, pitch=62, duration=2.0)]
+import mido
 import math
 
-import mido
 from collections import namedtuple
 
 from task_generation.task_data import TaskData
 from task_generation.task_parameters import TaskParameters
 from task_generation.note_range_per_hand import NoteRangePerHand
 
-# from task_data import TaskData
-# from task_parameters import TaskParameters
-# from note_range_per_hand import NoteRangePerHand
-
 TaskNote = namedtuple("TaskNote", "start pitch duration")
 
 
 def midi2taskdata(midifile_path):
-    midi = mido.MidiFile(midifile_path, clip=True)
-    messages = []
-    right, left = False, False
-    if len(midi.tracks) == 2:
-        right = True
-        messages.append(midi.tracks[1])  # [1:-1]  # slice out meta information
-    elif len(midi.tracks) > 2:
-        right, left = True, True
-        messages.append(midi.tracks[1])
-        messages.append(midi.tracks[2])
-    bpm, time_signature, n_beats = -1, -1, -1
+    """
+    function to create TaskData from midifile
+    @param midifile_path: path to the midifile to be transformed
+    @return: generated TaskData
+    """
 
+    # load midifile
+    midi = mido.MidiFile(midifile_path, clip=True)
+
+    bpm, time_signature, n_beats = -1, -1, -1
     time1 = 0
     for msg in midi.tracks[1]:
         time1 += msg.time
 
     time2 = 0
-    if left:
+    if len(midi.tracks) > 2:
         for msg in midi.tracks[2]:
             time2 += msg.time
 
@@ -47,13 +35,24 @@ def midi2taskdata(midifile_path):
             bpm = mido.tempo2bpm(msg.tempo)
         if msg.type == 'time_signature':
             time_signature = (msg.numerator, msg.denominator)
-        if msg.type == 'end_of_track':
-            n_beats = max(time1, time2) / midi.ticks_per_beat
 
-    noOfBars = math.ceil(n_beats / time_signature[0]) + 2
+    # calculate the total number of bars from the sum of midi ticks and the time signature
+    n_beats = max(time1, time2) / midi.ticks_per_beat
+    no_of_bars = math.ceil(n_beats / time_signature[0]) + 2
 
+    # set left and right hand
+    right, left = len(midi.tracks) >= 2, len(midi.tracks) > 2
+
+    # extract messages related to notes in right and left hand
+    messages = []
+    if len(midi.tracks) == 2:
+        messages.append(midi.tracks[1])
+    elif len(midi.tracks) > 2:
+        messages.append(midi.tracks[1])
+        messages.append(midi.tracks[2])
+
+    # create TaskNotes from midi tracks
     notes = dict(left=[], right=[])
-
     for track in messages:
         passed_time = time_signature[0]
         for i in range(len(track) - 1):
@@ -68,10 +67,11 @@ def midi2taskdata(midifile_path):
                     notes["left"].append(
                         TaskNote(passed_time, track[i].note, float(track[i + 1].time) / midi.ticks_per_beat))
 
+    # parse extracted information to TaskParameters
     task_parameter = TaskParameters(
         timeSignature=time_signature,
         maxNotesPerBar=16,
-        noOfBars=noOfBars,
+        noOfBars=no_of_bars,
         note_range_right=NoteRangePerHand.ONE_OCTAVE,  # where does this come from?
         note_range_left=NoteRangePerHand.ONE_OCTAVE,
         right=right,
@@ -83,14 +83,10 @@ def midi2taskdata(midifile_path):
     task_data = TaskData(
         parameters=task_parameter,
         time_signature=time_signature,
-        number_of_bars=noOfBars,
+        number_of_bars=no_of_bars,
         notes_left=notes["left"],
         notes_right=notes["right"],
         bpm=bpm
     )
 
     return task_data
-
-
-if __name__ == '__main__':
-    pass
