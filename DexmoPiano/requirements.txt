@@ -1,5 +1,6 @@
 pianoplayer~=2.2.0
 
+python-rtmidi
 MIDIUtil~=1.2.1
 mido~=1.2.9
 music21~=6.1.0
