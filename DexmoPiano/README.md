@@ -1,92 +1,81 @@
-# Learning to play piano
+# README
+## 1. How to get started
 
-This project teaches a novice to play piano through the use of various practice modes.
+### 1.1. Required software/packages
+1. setup an environment with Python 3.9.5  
+2. install  [libjack-dev](https://packages.debian.org/de/sid/libjack-dev)  
+	```bash
+	sudo apt-get install -y libjack-dev
+	```
+3. install [LilyPond](https://lilypond.org/index.en.html) (available in ubuntu bionic packages)
+	```bash
+	sudo apt-get install lilypond
+	```
+4. if the keyboard does not have its own audio output install [Qsynth](https://qsynth.sourceforge.io/qsynth-index.html#Intro) (available in ubuntu bionic packages)
+	```bash
+	sudo apt-get install -y qsynth
+	```
+5. if you dont have a physical keyboard you can install a virtuall keybord e.g. [vmpk](https://vmpk.sourceforge.io/) (available in ubuntu bionic packages)
+	```bash
+	sudo apt-get install vmpk
+	```
+6. Debian/Ubuntu package [libasound-dev](https://packages.debian.org/de/sid/libasound-dev) might be required (if error "Cannot find alsa/asoundlib.h" occurs)
+	```bash
+	sudo apt-get install -y libasound2-dev
+	```
 
-If there are any questions/problems feel free to contact Nina.
-
-
-## Required software/packages
-* Python 3.9.5
-* python-rtmidi v1.4.1 (via PIP3, needs Debian/Ubuntu package *libjack-dev*)
-* LilyPond [v2.18.2](http://lilypond.org/download/binaries/) (available in ubuntu bionic packages)
-* python3-tk v3.6.9-1\~18.04 (available in ubuntu bionic packages)
-* Qsynth v0.5.0-2 (available in ubuntu bionic packages) - e.g. if the keyboard does not have its own audio output
-* vmpk v0.4.0-3 (available in ubuntu bionic packages) - virtual midi keyboard, if no physical one is available
-* Debian/Ubuntu package *libasound-dev* might be required (if error "Cannot find alsa/asoundlib.h" occurs)
-
-### requirements.txt
-includes required python packages:
-* pianoplayer v2.1.0
-* MIDIUtil v1.2.1
-* mido v1.2.9
-* music21 v6.1.0
-
-in order to install the packages run: 
-```
-$ pip3 install -r requirements.txt
-```
-
-## Prerequisites
-* Properly connect keyboard/piano (the ports can be checked with the `aconnect` command)
-* If used, Qsynth should be running beforehand
-
-
-## Running the code
-Starting the "main" program:
-```
-$ python3 DexmoPiano/dexmoPianoGui.py
+### 1.2. Install requirements
+The requirements can be installed under  _comp_scaffold/DexmoPiano/requirements.txt_ via
+```bash
+pip install -r requirements.txt
 ```
 
-## Recording data for HMM Generation
-Each task is started, by clicking on *Start Task* and playing the shown piece.
-1) Click on *difficulty scaling* to generate iteratively more difficult pieces and 
-   play them until the system tells you to practice this piece more.
-2) Play the current piece in different practice modes by clicking *Generate New Task* and then 
-   the desired practice mode. For optimal learning use the following order:
-   * right hand - left hand - single note - slower - identity
-3) You can manually increase your complexity level by clicking *Generate New Task* and then *New Complexity Level*
+## 2. Usage of the Program
 
-Your error values and played notes are automatically saved as two csv file in folder hmm_data. The name of the generated
-file consists of the current date and then either "errors" for the error values or "notes" for the target and actually
-played notes. No matter the practice mode or if you closed the GUI in between, all practice opportunities of one day
-will be stored in the same file. If you wish to have separate files, for example for different study participants on the
-same day, you should rename those files in between sessions.
+### 2.1. Prerequisites
+- Properly connect keyboard/piano (the ports can be checked with the `aconnect` command)  
+- If used, Qsynth should be running beforehand
 
-In the **error file** each row shows the error data of one practice opportunity with the following column values: 
-* **Practice Mode**
-* **Triple of Task Parameters** Note Picthes, Note values, used hand(s)
+### 2.2. Running the code
+Starting the "main" program:  
+``` bash
+python DexmoPiano/gp_training_gui.py  
+```
 
-And then first for the right hand, then the left hand:
-* **pitch error** The number of times, that the wrong key (wrong pitch) was played.
-* **note_hold_time error**The sum over all absolute deviations from the correct holding time, meaning the span of time 
-  in which the key is pressed down. 
-* **timing error** The sum over all absolute deviations from the correct starting time of a note. This represents the 
-  cumulative value for notes that were played to early or too late, measured from the start of the previous note.
-* **n_missing_notes error** The number of notes that the player forgot or didn't manage to play
-* **n_extra_notes error** The number of extra notes, that were falsely played. 
-* **summed error value** The sum of all above mentioned error values.
+### 2.3. GUI interaction
+The interface is split into two states. The main state  and the practice mode state.
 
-In the **note file** each row represents one practice opportunity and has only one column with a string. That string 
-contains the Expected notes and the actual played notes.
+After selecting which ports are used for piano input and sound output the user can optionally enter his name so that data points can be attributed to him. Then the user can select the midi file of a music piece he wants to practice and is forwarded to the main state.
 
-## Generating a new piece
-New music pieces can be specified by adjusting the settings in the option window (click on *Specify next Task*) and 
-generated by clicking on *Generate new Task*.
+In the main state the user is only presented with the possibilities to play the piece, select a new song or play a demo of the piece. When clicking on the "Play Piece" button a metronome signals the playback speed starting with one empty bar. When finished the user is presented with the error measurements and the recommended practice mode is shown at the top center of the window. By selecting "Start Practice" the user can enter the presented practice mode and is forwarded to the practice mode state.
 
-| Argument | Explanation |
-| ---: |  :--- |
-| noteValues |  "Lengths" of the notes (e.g. 1, 1/2 etc.) |
-| notesPerBar | Amounts of notes that a bar can contain |
-| noOfBars |  Number of bars (plus initial empty bar for metronome) |
-| bpm | Beats per minute |
-| pitches | Note pitches that the piece can contain|
-| left | generate notes for left hand |
-| right |  generate notes for right hand |
-| alternating | generates notes for both hands alternately, instead of simultaneously |
+There are currently two practice modes implemented. One of them is the pitch practice mode. Here the user is not guided by a metronome and prompted to play note after note while focusing to hit the correct pitches while disregarding the timing. The other one is the timing practice mode. Here the user is guided by the metronome but all notes are mapped to the same key on the piano. 
 
-## License
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+After playing in the practice mode the user can either choose to return to the main state or practice again in the practice mode. Currently practice is automatically ended for timing practice mode after two iterations.
 
+### 2.4. Data collection
+While running the program data points are added in the main state by comparing the error created by playing in the main state before and after practicing in the practice mode. 
+#### Data format
+Datapoints are saved in an _*.h5_ format. 
+Fields of the file are:
+- midi_filename
+- username
+- practice_mode
+- bpm
+- error_before_left_timing
+- error_before_right_timing
+- error_before_left_pitch
+- error_before_right_pitch
+- error_after_left_timing
+- error_after_right_timing
+- error_after_left_pitch
+- error_after_right_pitch
 
-## Background
-Bachelor Thesis by Nina Ziegenbein (Bielefeld University). Large part of code is based on a previous Masters project.
+## 3. Evaluation of the data
+The Gaussian process is implemented under _[comp_scaffold/DexmoPiano/task_generation/gaussian_process.py](./task_generation/gaussian_process.py)_
+To evaluate the collected data received from the gaussian process, all collected _\*.h5_ files need to be  put under _comp_scaffold/DexmoPiano/practice_data_. Then the jupyter notebook _[comp_scaffold/DexmoPiano/gaussian_process_evaluation.ipynb](gaussian_process_evaluation.ipynb)_ can be started. 
+The utility measure can be changed under section 3.
+
+## License  
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](../LICENSE) file for details.
+
