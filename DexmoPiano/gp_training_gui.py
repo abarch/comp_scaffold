@@ -514,6 +514,7 @@ class PlayCompleteSong(BaseState):
 
     def start_playback(self):
         error = self.start_playback_and_calc_error(TaskParameters())
+        errors.append(error)
 
         # if there is an error measurement from before practicing
         # -> calculate the utility and add the measurement to Gaussian process
@@ -823,9 +824,10 @@ def add_error_plot():
     np.linspace(0, 10, 1000)
 
     x_values = []
-    for i in range(len(errors)):
-        x_values.append(i + 1)
-    axis.plot(x_values, errors, label="General error", marker='o')
+    # for i in range(len(errors)):
+    #     x_values.append(i + 1)
+    # axis.plot(x_values, errors, label="General error", marker='o')
+    axis.plot(x_values, [], label="General error", marker='o')
 
     if change_task:
         for i in change_task:
@@ -835,8 +837,8 @@ def add_error_plot():
     axis.axhline(y=0.2, color="red", linestyle="--")
 
     axis.set_xticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    axis.set_yticks([0, 1, 2, 3])
-    axis.set_ylim(0, 4)
+    axis.set_yticks([0, 1])
+    axis.set_ylim(0, 1)
     axis.set_xlabel("Trials")
     axis.set_ylabel("Error")
     axis.grid()
@@ -861,12 +863,16 @@ def add_error_details():
     global canvas
     fig = Figure(figsize=(9, 6), facecolor="white")
     axis = fig.add_subplot(111)
-    x = np.linspace(0, 10, 1000)
+    x = np.linspace(0, 1, 10)
+
 
     x_values = []
     for i in range(len(errors)):
         x_values.append(i + 1)
-    axis.plot(x_values, errors, label="General error", marker='o')
+    timing_error_right = [err[10] for err in errors]
+    pitch_error_right = [err[8] for err in errors]
+    axis.plot(x_values, pitch_error_right, "-r", label="Pitch Error", marker='o')
+    axis.plot(x_values, timing_error_right, "-b", label="Timing Error", marker='o')
 
     if change_task:
         for i in change_task:
@@ -874,14 +880,14 @@ def add_error_details():
             axis.text(i + 0.5, 4.05, "new task", rotation=45, fontsize=8)
 
     axis.set_xticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    axis.set_yticks([0, 1, 2, 3])
-    axis.set_ylim(0, 4)
+    axis.set_yticks([0, 1])
+    axis.set_ylim(0, 1)
     axis.set_xlabel("Trials")
     axis.set_ylabel("Error")
 
-    axis.plot(x, np.sin(x), "-r", label="Tempo")
-    axis.plot(x, np.cos(x), "-g", label="Notes")
-    axis.plot(x, np.tan(x), "--y", label="etc")
+    # axis.plot(x, np.sin(x), "-r", label="Tempo")
+    # axis.plot(x, np.cos(x), "-g", label="Notes")
+    # axis.plot(x, np.tan(x), "--y", label="etc")
 
     axis.legend(loc='upper right')
     axis.grid()
