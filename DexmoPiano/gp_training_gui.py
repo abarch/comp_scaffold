@@ -260,7 +260,7 @@ class BaseState:
         # create entry containing actual notes in XML
         fileIO.create_trial_entry(OUTPUT_DIR, timestamp, timestamp, guidance_mode, actualNotes,
                                   errorVal)
-        add_error_plot()
+
 
         return df_error
 
@@ -515,6 +515,7 @@ class PlayCompleteSong(BaseState):
     def start_playback(self):
         error = self.start_playback_and_calc_error(TaskParameters())
         errors.append(error)
+        add_error_plot()
 
         # if there is an error measurement from before practicing
         # -> calculate the utility and add the measurement to Gaussian process
@@ -824,23 +825,27 @@ def add_error_plot():
     np.linspace(0, 10, 1000)
 
     x_values = []
-    # for i in range(len(errors)):
-    #     x_values.append(i + 1)
-    # axis.plot(x_values, errors, label="General error", marker='o')
-    axis.plot(x_values, [], label="General error", marker='o')
+    for i in range(len(errors)):
+        x_values.append(i + 1)
+    timing_error_right = [err[10] for err in errors]
+    pitch_error_right = [err[8] for err in errors]
+    axis.plot(x_values, pitch_error_right, "-r", label="Pitch Error", marker='o')
+    axis.plot(x_values, timing_error_right, "-b", label="Timing Error", marker='o')
 
     if change_task:
         for i in change_task:
             axis.axvline(x=i + 0.5, color="black")
             axis.text(i + 0.5, 4.05, "new task", rotation=45, fontsize=8)
 
-    axis.axhline(y=0.2, color="red", linestyle="--")
+    # axis.axhline(y=0.2, color="red", linestyle="--")
 
     axis.set_xticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     axis.set_yticks([0, 1])
     axis.set_ylim(0, 1)
     axis.set_xlabel("Trials")
     axis.set_ylabel("Error")
+
+    axis.legend(loc='upper right')
     axis.grid()
 
     canvas = FigureCanvasTkAgg(fig, master=root)
@@ -850,12 +855,14 @@ def add_error_plot():
     show_error_details_checkbox = tk.Checkbutton(root, text='show error show_error_details',
                                                  command=add_error_details,
                                                  variable=show_error_details)
-    show_error_details_checkbox.place(x=1050, y=440)
+    # show_error_details_checkbox.place(x=1050, y=440)
 
 
 def add_error_details():
     """
     Adds descriptions and show_error_details concerning the user's error to the error plot.
+    Unsure which details should be displayed, in the scope of the current project this method will not be used
+    since the checkbox that switches to the details is deactivated.
 
     @return: None
     """
@@ -901,7 +908,7 @@ def add_error_details():
     show_error_details_checkbox = tk.Checkbutton(root, text='show error show_error_details',
                                                  command=add_error_plot,
                                                  variable=show_error_details)
-    show_error_details_checkbox.place(x=1050, y=440)
+    # show_error_details_checkbox.place(x=1050, y=440)
 
 
 def set_guidance(guidance):
