@@ -5,6 +5,7 @@ import sys
 import pickle
 import pathlib
 import os
+import csv
 from collections import namedtuple, defaultdict
 from error_calc import functions as errorCalc
 
@@ -12,7 +13,18 @@ from error_calc import functions as errorCalc
 
 cwd = os.getcwd()
 print(cwd)
+basename = '2022_08_17-12_15_57'
 basename = '2022_08_17-12_28_39'
+basename = '2022_08_17-12_38_38'
+basename = '2022_08_17-12_43_05'
+basename = '2022_08_17-12_47_07'
+basename = '2022_08_17-12_59_30'
+basename = '2022_08_17-14_33_09'
+basename = '2022_08_17-14_51_42'
+basename = '2022_08_17-15_09_19'
+basename = '2022_08_17-16_08_18'
+basename = '2022_08_17-16_42_04'
+basename = '2022_08_17-12_47_07'
 taskdata_filename = cwd + '\\output\\'+ basename + '-data.task'
 xmlfilename = cwd + '\\output\\'+ basename + '.xml'
 
@@ -42,6 +54,8 @@ for trial in trials:
     PlayedNotes = []
     trial_no = trial.get("trial_no")
     print('trial no: ',trial_no)
+    timestamp = trial.get("timestamp")
+    print('timestamp: ', timestamp)
     notes = trial.find("notes").text
     notesArray = json.loads(notes)
     # startsongtime = notesArray[0][2]
@@ -84,7 +98,15 @@ for trial in trials:
     print("ERROR LEFT: ", errorVecLeft)
     print("ERROR RIGHT:", errorVecRight)
     #print(errorVec, errorVecLeft, errorVecRight)
-    errors_table.append([trial_no, errorVecRight.pitch, errorVecRight.note_hold_time, errorVecRight.timing, errorVecRight.n_missing_notes, errorVecRight.n_extra_notes,errorVecRight.pitch + errorVecRight.timing + errorVecRight.n_missing_notes + errorVecRight.n_extra_notes])
+    errors_table.append([trial_no, timestamp, errorVecRight.pitch, errorVecRight.note_hold_time, errorVecRight.timing, errorVecRight.n_missing_notes, errorVecRight.n_extra_notes,errorVecRight.pitch + errorVecRight.timing + errorVecRight.n_missing_notes + errorVecRight.n_extra_notes])
 
 for k in range(len(errors_table)):
     print(errors_table[k],"\n")
+
+error_file = f"../stats/{basename}_error_fix.csv"
+f = open(error_file,'a')
+writer = csv.writer(f)
+writer.writerow(['trial_no', 'timestamp', 'pitch', 'note_hold_time', 'timing', 'n_missing_notes', 'n_extra_notes', 'Summed'])
+for k in range(len(errors_table)):
+    writer.writerow(errors_table[k])
+f.close()
