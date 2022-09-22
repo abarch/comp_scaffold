@@ -124,7 +124,7 @@ def startTask():
     print("after wait window")
     df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
                                                   taskParameters, note_errorString, config.participant_id,
-                                                  config.freetext, config.expMode, config.trial_num, config.task_num, config.diff_rating, config.performance_rating)
+                                                  config.freetext, config.expMode, config.trial_num, config.task_num, config.diff_rating, config.performance_rating, dexmoOutput.metronome)
 
     config.trial_num += 1
 
