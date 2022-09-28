@@ -1151,6 +1151,16 @@ def openSavedFile():
     print("data with new bpm:", taskData, taskParameters)
     scheduler.add_task_from_file(taskData, taskParameters)
 
+    task = scheduler.current_task_data()
+
+    # new xml file is not correctly created -> bug must be in generateMidi
+    midiProcessing.generateMidi(task,
+                                outFiles=inputFileStrs)
+
+    currentMidi = None
+    midiSaved = False
+    chosenMidiFile = inputFileStrs[0]
+
     get_ly()
 
     subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
