@@ -208,46 +208,142 @@ def plot_task(phase, task_number, plot_title, plot_ind, fig, axs, legend = True)
 #############
 #
 # Par. 1 's Pilot
+#
+# df = pd.read_csv('2022-08-17_error_fixed2.csv')
+# df = df[(df.user_id == '1')]
+# fig, axs = plt.subplots(2,4, sharey='row')
+# fig.suptitle('calibration par.1', fontsize=10)
+# axs[0,0].set_ylim([0, 0.75])
+# axs[1,0].set_ylim([1, 7])
+# plot_task('Calibration', 6, 'ex1', 0, fig, axs)
+# plot_task('Calibration', 7, 'ex2', 1, fig, axs, legend = False)
+# plot_task('Calibration', 8, 'ex3', 2, fig, axs, legend = False)
+#
+# fig, axs = plt.subplots(2,10, sharey='row')
+# fig.suptitle('practice par.1')
+# axs[0,0].set_ylim([0, 0.75])
+# axs[1,0].set_ylim([1, 7])
+#
+# plot_task('Practice', 9, 'ex1', 0, fig, axs)
+# plot_task('Test', 10, 'test1', 1, fig, axs, legend = False)
+# plot_task('Test', 11, 'trans', 2, fig, axs, legend = False)
+#
+# plot_task('Practice', 12, 'ex3', 4, fig, axs, legend = False)
+# plot_task('Test', 13, 'test3', 5, fig, axs, legend = False)
+# plot_task('Practice', 14, 'ex4', 6, fig, axs, legend = False)
+# plot_task('Test', 15, 'test4', 7, fig, axs, legend = False)
+# plot_task('Practice', 16, 'ex5', 8, fig, axs, legend = False)
+# plot_task('Test', 17, 'test5', 9, fig, axs, legend = False)
+# axs[0,0].set_ylim([0, 0.75])
+# axs[1,0].set_ylim([1, 7])
+#
+# fig, axs = plt.subplots(2,5, sharey='row')
+# fig.suptitle('Retention par.1')
+# # axs[0].set_ylim([0, 0.75])
+#
+# plot_task('Retention', 18, 'ex1', 0, fig, axs)
+# plot_task('Retention', 19, 'ex2', 1, fig, axs, legend = False)
+# plot_task('Retention', 20, 'ex3', 2, fig, axs, legend = False)
+# plot_task('Retention', 21, 'ex4', 3, fig, axs, legend = False)
+# plot_task('Retention', 22, 'ex5', 4, fig, axs, legend = False)
+# axs[0,0].set_ylim([0, 0.5])
+# axs[1,0].set_ylim([1, 7])
+
+
+# Par. 2 's Pilot
+#
+# df = pd.read_csv('2022-08-17_error_fixed2.csv')
+# df = df[(df.user_id == '2')]
+# fig, axs = plt.subplots(2,4, sharey='row')
+# fig.suptitle('calibration par.2', fontsize=10)
+# axs[0,0].set_ylim([0, 0.75])
+# axs[1,0].set_ylim([1, 7])
+# plot_task('Calibration', 3, 'ex1', 0, fig, axs)
+# plot_task('Calibration', 4, 'ex2', 1, fig, axs, legend = False)
+# plot_task('Calibration', 5, 'ex3', 2, fig, axs, legend = False)
+#
+# fig, axs = plt.subplots(2,10, sharey='row')
+# fig.suptitle('practice par.2')
+# axs[0,0].set_ylim([0, 0.75])
+# axs[1,0].set_ylim([1, 7])
+#
+# plot_task('Practice', 6, 'ex1', 0, fig, axs)
+# plot_task('Test', 7, 'test1', 1, fig, axs, legend = False)
+# plot_task('Test', 8, 'trans', 2, fig, axs, legend = False)
+#
+# plot_task('Practice', 9, 'ex3', 4, fig, axs, legend = False)
+# plot_task('Test', 11, 'test3', 5, fig, axs, legend = False)
+# plot_task('Practice', 12, 'ex4', 6, fig, axs, legend = False)
+# plot_task('Test', 13, 'test4', 7, fig, axs, legend = False)
+# plot_task('Practice', 14, 'ex5', 8, fig, axs, legend = False)
+# plot_task('Test', 15, 'test5', 9, fig, axs, legend = False)
+# axs[0,0].set_ylim([0, 0.75])
+# axs[1,0].set_ylim([1, 7])
+#
+# fig, axs = plt.subplots(2,5, sharey='row')
+# fig.suptitle('Retention par.2')
+# # axs[0].set_ylim([0, 0.75])
+#
+# plot_task('Retention', 18, 'ex1', 0, fig, axs)
+# plot_task('Retention', 19, 'ex2', 1, fig, axs, legend = False)
+# plot_task('Retention', 20, 'ex3', 2, fig, axs, legend = False)
+# plot_task('Retention', 21, 'ex4', 3, fig, axs, legend = False)
+# plot_task('Retention', 22, 'ex5', 4, fig, axs, legend = False)
+# axs[0,0].set_ylim([0, 0.5])
+# axs[1,0].set_ylim([1, 7])
+#
+
+# Par. 3 's Pilot
+
+tasks_num = [[6,7,8],[[9,10],11,[12,13],[14,15],[16,17]],[18,19,20,21,22],'par. 1','1']
+
+#tasks_num = [[3,4,5],[[6,7],8,[9,11],[12,13],[14,15]],[18,19,20,21,22],'par. 2','2']
+
+#tasks_num = [[3,4,5],[[6,7],8,[9,11],[12,12],[13,None]],[14,15,16,17,18],'par. 3','3']
 
 df = pd.read_csv('2022-08-17_error_fixed2.csv')
-df = df[(df.user_id == '1')]
+df = df[(df.user_id == tasks_num[4])]
 fig, axs = plt.subplots(2,4, sharey='row')
-fig.suptitle('calibration par.1', fontsize=10)
-axs[0,0].set_ylim([0, 0.75])
+fig.suptitle('Calibration ' + tasks_num[3], fontsize=10)
+axs[0,0].set_ylim([0, 1.75])
 axs[1,0].set_ylim([1, 7])
-plot_task('Calibration', 6, 'ex1', 0, fig, axs)
-plot_task('Calibration', 7, 'ex2', 1, fig, axs, legend = False)
-plot_task('Calibration', 8, 'ex3', 2, fig, axs, legend = False)
+plot_task('Calibration', tasks_num[0][0], 'ex1', 0, fig, axs)
+plot_task('Calibration', tasks_num[0][1], 'ex2', 1, fig, axs, legend = False)
+plot_task('Calibration', tasks_num[0][2], 'ex3', 2, fig, axs, legend = False)
 
 fig, axs = plt.subplots(2,10, sharey='row')
-fig.suptitle('practice par.1')
-axs[0,0].set_ylim([0, 0.75])
+fig.suptitle('practice ' + tasks_num[3])
+axs[0,0].set_ylim([0, 1.75])
 axs[1,0].set_ylim([1, 7])
 
-plot_task('Practice', 9, 'ex1', 0, fig, axs)
-plot_task('Test', 10, 'test1', 1, fig, axs, legend = False)
-plot_task('Test', 11, 'trans', 2, fig, axs, legend = False)
+plot_task('Practice', tasks_num[1][0][0], 'ex1', 0, fig, axs)
+plot_task('Test', tasks_num[1][0][1], 'test1', 1, fig, axs, legend = False)
+plot_task('Test', tasks_num[1][1], 'trans', 2, fig, axs, legend = False)
 
-plot_task('Practice', 12, 'ex3', 4, fig, axs, legend = False)
-plot_task('Test', 13, 'test3', 5, fig, axs, legend = False)
-plot_task('Practice', 14, 'ex4', 6, fig, axs, legend = False)
-plot_task('Test', 15, 'test4', 7, fig, axs, legend = False)
-plot_task('Practice', 16, 'ex5', 8, fig, axs, legend = False)
-plot_task('Test', 17, 'test5', 9, fig, axs, legend = False)
-axs[0,0].set_ylim([0, 0.75])
+plot_task('Practice', tasks_num[1][2][0], 'ex3', 4, fig, axs, legend = False)
+plot_task('Test', tasks_num[1][2][1], 'test3', 5, fig, axs, legend = False)
+plot_task('Practice', tasks_num[1][3][0], 'ex4', 6, fig, axs, legend = False)
+plot_task('Test', tasks_num[1][3][1], 'test4', 7, fig, axs, legend = False)
+plot_task('Practice', tasks_num[1][4][0], 'ex5', 8, fig, axs, legend = False)
+try:
+    plot_task('Test', tasks_num[1][4][1], 'test5', 9, fig, axs, legend = False)
+except:
+    print("missing data")
+axs[0,0].set_ylim([0, 1.75])
 axs[1,0].set_ylim([1, 7])
 
 fig, axs = plt.subplots(2,5, sharey='row')
-fig.suptitle('Retention par.1')
+fig.suptitle('Retention ' + tasks_num[3])
 # axs[0].set_ylim([0, 0.75])
 
-plot_task('Retention', 18, 'ex1', 0, fig, axs)
-plot_task('Retention', 19, 'ex2', 1, fig, axs, legend = False)
-plot_task('Retention', 20, 'ex3', 2, fig, axs, legend = False)
-plot_task('Retention', 21, 'ex4', 3, fig, axs, legend = False)
-plot_task('Retention', 22, 'ex5', 4, fig, axs, legend = False)
-axs[0,0].set_ylim([0, 0.5])
+plot_task('Retention', tasks_num[2][0], 'ex1', 0, fig, axs)
+plot_task('Retention', tasks_num[2][1], 'ex2', 1, fig, axs, legend = False)
+plot_task('Retention', tasks_num[2][2], 'ex3', 2, fig, axs, legend = False)
+plot_task('Retention', tasks_num[2][3], 'ex4', 3, fig, axs, legend = False)
+plot_task('Retention', tasks_num[2][4], 'ex5', 4, fig, axs, legend = False)
+axs[0,0].set_ylim([0, 1.5])
 axs[1,0].set_ylim([1, 7])
+
 
 plt.show()
 
