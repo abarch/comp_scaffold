@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 
-def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString, user_id, free_text) -> pd.DataFrame:
+def save_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_errorString, user_id, free_text) -> pd.DataFrame:
     """
     Prints the error (observations) for the hmm into the *_error.csv file.
     Prints note specific errors into the *_notes.csv file.
@@ -29,11 +29,11 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
         hand = "both"
     complexityLevel = (taskParameters.note_range_left, taskParameters.note_range_right,  taskParameters.noteValues, hand)
 
-    nf = open(notes_file, 'a', newline='')
-    nf_writer = csv.writer(nf, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    nf_writer.writerow(note_errorString)
-    nf_writer.writerow("\n")
-    nf.close()
+    #nf = open(notes_file, 'a', newline='')
+    #nf_writer = csv.writer(nf, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    #nf_writer.writerow(note_errorString)
+    #nf_writer.writerow("\n")
+    #nf.close()
 
     # create dictionary with error values
     dic_error = {}
@@ -61,7 +61,7 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
     ds = pd.Series(dic_error)
     df = pd.DataFrame(columns=ds.index)
     df = df.append(ds, ignore_index=True)
-    df.to_csv(error_file, mode='a', header=False, index=False)
+    #df.to_csv(error_file, mode='a', header=False, index=False)
 
     #returns pandas Series of error values
     return ds

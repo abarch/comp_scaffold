@@ -24,12 +24,13 @@ import fileIO
 import dexmoOutput
 import midiProcessing
 import thread_handler
-import hmm_data_acquisition
+
 
 from task_generation.scheduler import Scheduler
 from task_generation.task_parameters import TaskParameters
 from task_generation.gaussian_process import GaussianProcess
 from task_generation.gaussian_process import PracticeMode
+import data_acquisition
 
 # directory constants
 DATA_DIR = './output/data/'
@@ -251,7 +252,7 @@ class BaseState:
             thread_handler.start_midi_playback(OUTPUT_FILES_STRS[2], guidance_mode,
                                                self.scheduler.current_task_data(),
                                                use_visual_attention=use_visual_attention.get())
-        df_error = hmm_data_acquisition.save_hmm_data(error_vec_left, error_vec_right, task_data,
+        df_error = data_acquisition.save_data(error_vec_left, error_vec_right, task_data,
                                                       task_parameters, note_error_str,
                                                       config.participant_id, config.free_text)
 
