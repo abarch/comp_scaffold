@@ -1,7 +1,0 @@
-score1,score2,pm,level,pitch_right,note_hold_time_right,timing_right,n_missing_notes_right,n_extra_notes_right,summed_right,pitch_left,note_hold_time_left,timing_left,n_missing_notes_left,n_extra_notes_left,summed_left
-4.0,2.0,single note,"(<NoteRangePerHand.C_TO_G: 5>, [0.5, 0.25, 1, 0.125], 'right')",1.10344827586207,3.602,0.193379310344828,0.0,0.0,4.8988275862069,0.0,0.0,0.0,0.0,0.0,0.0
-5.0,4.0,single note,"(<NoteRangePerHand.C_TO_G: 5>, [0.5, 0.25, 1, 0.125], 'right')",0.96551724137931,2.3365,0.055551724137931,0.137931034482759,0.0,3.4955,0.0,0.0,0.0,0.0,0.0,0.0
-4.0,3.0,single note,"(<NoteRangePerHand.C_TO_G: 5>, [0.5, 0.25, 1, 0.125], 'right')",0.896551724137931,2.659,0.079862068965517,0.206896551724138,0.0,3.84231034482759,0.0,0.0,0.0,0.0,0.0,0.0
-3.0,2.0,single note,"(<NoteRangePerHand.C_TO_G: 5>, [0.5, 0.25, 1, 0.125], 'right')",1.10344827586207,2.8455,0.043206896551724,0.0,0.0,3.99215517241379,0.0,0.0,0.0,0.0,0.0,0.0
-2.0,1.0,single note,"(<NoteRangePerHand.C_TO_G: 5>, [0.5, 0.25, 1, 0.125], 'right')",0.0,2.724,0.032379310344828,0.03448275862069,0.0,2.79086206896551,0.0,0.0,0.0,0.0,0.0,0.0
-1.0,1.0,single note,"(<NoteRangePerHand.C_TO_G: 5>, [0.5, 0.25, 1, 0.125], 'right')",0.0,2.557,0.032517241379311,0.0,0.0,2.58951724137931,0.0,0.0,0.0,0.0,0.0,0.0
