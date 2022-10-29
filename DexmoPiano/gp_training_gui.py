@@ -85,6 +85,7 @@ class BaseState:
         self.scheduler = scheduler
         self.statemachine = statemachine
 
+
     def _do_on_enter(self):
         pass
 
@@ -140,6 +141,7 @@ class BaseState:
             root, text=text, command=function
         ).place(x=10, y=10, height=50, width=150)
 
+
     @staticmethod
     def init_training_interface():
         """
@@ -171,6 +173,8 @@ class BaseState:
         tk.Button(
             root, text='Back to Menu', command=lambda: statemachine.to_next_state(statemachine.main_menu_state)
         ).place(x=10, y=940, height=50, width=150)
+
+
 
     @staticmethod
     def show_note_sheet(png_file: str):
@@ -412,22 +416,28 @@ class SelectSongState(BaseState):
 
     def __init__(self, scheduler: Scheduler, statemachine):
         super().__init__(scheduler, statemachine)
+        self.midi_file = None
+
+
 
     def _do_on_enter(self):
         self.init_training_interface()
 
-        midi_file = None
+        self.midi_file = None
 
-        while midi_file is None or len(midi_file) == 0:
-            midi_file = filedialog.askopenfilename(
+        while self.midi_file is None or len(self.midi_file) == 0:
+            self.midi_file = filedialog.askopenfilename(
                 filetypes=[("Midi files", ".midi .mid")]
             )
-
+        print (self.midi_file)
         self.check_dexmo_connected(main_window=True)
 
+
+
         self.statemachine.to_next_state(
-            PlayCompleteSong(self.scheduler, self.statemachine, midi_file)
+            PlayCompleteSong(self.scheduler, self.statemachine, self.midi_file)
         )
+
 
     def check_dexmo_connected(self, main_window):
         """
@@ -461,16 +471,22 @@ class PlayCompleteSong(BaseState):
     Main state where the original music piece is played.
     """
 
-    def __init__(self, scheduler: Scheduler, statemachine, midi_file, practice_parameters=None):
+    def __init__(self, scheduler: Scheduler, statemachine, midi_file, bpm=None, practice_parameters=None):
         super().__init__(scheduler, statemachine)
         self.midi_file = midi_file
+        self.bpm=bpm
         self.practice_parameters = practice_parameters
 
-    def _do_on_enter(self):
-        self.init_training_interface()
 
-        self.scheduler.clear_queue()
+
+
+    def _load_with_bpm(self, bpm):
+        bpm = int(bpm)
+        self.bpm = bpm
         task_data = self.scheduler.queue_new_target_task_from_midi(self.midi_file)
+
+        self.scheduler.current_task_data().bpm = bpm
+        print("changed task bpm ", task_data.bpm)
 
         midiProcessing.generateMidi(task_data, outFiles=OUTPUT_FILES_STRS)
 
@@ -489,6 +505,25 @@ class PlayCompleteSong(BaseState):
 
         self.show_secondary_next_state_btn('Select new Song', statemachine.select_song_state)
 
+
+
+    def _do_on_enter(self):
+        self.init_training_interface()
+
+        self.scheduler.clear_queue()
+
+        midiBPM = tk.Scale(root, from_=0, to=250, length=150, orient=tk.HORIZONTAL, command=self._load_with_bpm)
+        midiBPM.place(x=10, y=570)
+        if (self.bpm!=None):
+            midiBPM.set(self.bpm)
+
+
+
+               
+        
+
+    
+            
     def get_next_practise_mode(self, error) -> PracticeMode:
         """
         Find the practice mode the Gaussian process recommends.
@@ -535,7 +570,7 @@ class PlayCompleteSong(BaseState):
         if ERROR_THRESHOLD < error.Summed_right + error.Summed_left:
             self.show_primary_next_state_btn(
                 'Start Practice', PracticeModeState(
-                    self.scheduler, self.statemachine, self.midi_file, error, practice_mode=practice_mode
+                    self.scheduler, self.statemachine, self.midi_file, error, self.bpm, practice_mode=practice_mode
                 )
             )
             self.show_secondary_next_state_btn('Select new Song', statemachine.select_song_state)
@@ -544,7 +579,7 @@ class PlayCompleteSong(BaseState):
             self.show_primary_next_state_btn('Select new Song', statemachine.select_song_state)
             self.show_secondary_next_state_btn(
                 'Play Complete Piece\nonce more', PlayCompleteSong(
-                    self.scheduler, self.statemachine, self.midi_file
+                    self.scheduler, self.statemachine, self.midi_file, self.bpm
                 )
             )
 
@@ -554,7 +589,7 @@ class PracticeModeState(BaseState):
     Practice mode state where the music piece can be practiced in selected practice mode.
     """
 
-    def __init__(self, scheduler: Scheduler, statemachine, midi_file: str, error_from_complete_piece,
+    def __init__(self, scheduler: Scheduler, statemachine, midi_file: str, error_from_complete_piece, bpm :int,
                  practice_mode: PracticeMode):
         super().__init__(scheduler, statemachine)
         self.midi_file = midi_file
@@ -562,6 +597,7 @@ class PracticeModeState(BaseState):
         self.practice_mode = practice_mode
         # counts the number of times user has played the piece in this practice loop
         self.num_iterations = 0
+        self.bpm = bpm
 
     def _do_on_enter(self):
         self.init_training_interface()
@@ -609,7 +645,7 @@ class PracticeModeState(BaseState):
 
         self.show_secondary_next_state_btn(
             'Return to Complete Piece', PlayCompleteSong(
-                self.scheduler, self.statemachine, self.midi_file,
+                self.scheduler, self.statemachine, self.midi_file, self.bpm,
                 practice_parameters={"error_before_practice": self.error_from_complete_piece,
                                      "practice_mode": self.practice_mode}
             )
@@ -633,7 +669,7 @@ class PracticeModeState(BaseState):
 
             self.show_secondary_next_state_btn(
                 'Return to Complete Piece', PlayCompleteSong(
-                    self.scheduler, self.statemachine, self.midi_file,
+                    self.scheduler, self.statemachine, self.midi_file, self.bpm,
                     practice_parameters={"error_before_practice": self.error_from_complete_piece,
                                          "practice_mode": self.practice_mode}
                 )
