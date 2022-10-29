@@ -435,7 +435,9 @@ class SelectSongState(BaseState):
 
 
         self.statemachine.to_next_state(
-            PlayCompleteSong(self.scheduler, self.statemachine, self.midi_file)
+            PlayCompleteSong(self.scheduler, self.statemachine, self.midi_file,
+                             practice_parameters= {"bpm": None, "error_before_practice": None, "practice_mode": None})
+
         )
 
 
@@ -471,10 +473,10 @@ class PlayCompleteSong(BaseState):
     Main state where the original music piece is played.
     """
 
-    def __init__(self, scheduler: Scheduler, statemachine, midi_file, bpm=None, practice_parameters=None):
+    def __init__(self, scheduler: Scheduler, statemachine, midi_file,  practice_parameters=None):
         super().__init__(scheduler, statemachine)
         self.midi_file = midi_file
-        self.bpm=bpm
+
         self.practice_parameters = practice_parameters
 
 
@@ -482,7 +484,7 @@ class PlayCompleteSong(BaseState):
 
     def _load_with_bpm(self, bpm):
         bpm = int(bpm)
-        self.bpm = bpm
+        self.practice_parameters["bpm"]=bpm
         task_data = self.scheduler.queue_new_target_task_from_midi(self.midi_file)
 
         self.scheduler.current_task_data().bpm = bpm
@@ -514,8 +516,8 @@ class PlayCompleteSong(BaseState):
 
         midiBPM = tk.Scale(root, from_=0, to=250, length=150, orient=tk.HORIZONTAL, command=self._load_with_bpm)
         midiBPM.place(x=10, y=570)
-        if (self.bpm!=None):
-            midiBPM.set(self.bpm)
+        if (self.practice_parameters["bpm"]!=None):
+            midiBPM.set(self.practice_parameters["bpm"])
 
 
 
@@ -555,7 +557,10 @@ class PlayCompleteSong(BaseState):
 
         # if there is an error measurement from before practicing
         # -> calculate the utility and add the measurement to Gaussian process
-        if self.practice_parameters is not None:
+
+        if self.practice_parameters["error_before_practice"] is not None:
+            #FIXME: hacky
+            self.scheduler.current_task_data().parameters.bpm = self.practice_parameters["bpm"]
             utility = self.error_diff_to_utility(self.practice_parameters["error_before_practice"], error)
             statemachine.save_data_point_and_add_to_gaussian_process(self.midi_file, (
                 self.practice_parameters["error_before_practice"], error),
@@ -570,7 +575,7 @@ class PlayCompleteSong(BaseState):
         if ERROR_THRESHOLD < error.Summed_right + error.Summed_left:
             self.show_primary_next_state_btn(
                 'Start Practice', PracticeModeState(
-                    self.scheduler, self.statemachine, self.midi_file, error, self.bpm, practice_mode=practice_mode
+                    self.scheduler, self.statemachine, self.midi_file, error, self.practice_parameters, practice_mode=practice_mode
                 )
             )
             self.show_secondary_next_state_btn('Select new Song', statemachine.select_song_state)
@@ -579,7 +584,7 @@ class PlayCompleteSong(BaseState):
             self.show_primary_next_state_btn('Select new Song', statemachine.select_song_state)
             self.show_secondary_next_state_btn(
                 'Play Complete Piece\nonce more', PlayCompleteSong(
-                    self.scheduler, self.statemachine, self.midi_file, self.bpm
+                    self.scheduler, self.statemachine, self.midi_file, self.practice_parameters
                 )
             )
 
@@ -589,7 +594,7 @@ class PracticeModeState(BaseState):
     Practice mode state where the music piece can be practiced in selected practice mode.
     """
 
-    def __init__(self, scheduler: Scheduler, statemachine, midi_file: str, error_from_complete_piece, bpm :int,
+    def __init__(self, scheduler: Scheduler, statemachine, midi_file: str, error_from_complete_piece, practice_parameters,
                  practice_mode: PracticeMode):
         super().__init__(scheduler, statemachine)
         self.midi_file = midi_file
@@ -597,7 +602,7 @@ class PracticeModeState(BaseState):
         self.practice_mode = practice_mode
         # counts the number of times user has played the piece in this practice loop
         self.num_iterations = 0
-        self.bpm = bpm
+        self.practice_parameters = practice_parameters
 
     def _do_on_enter(self):
         self.init_training_interface()
@@ -645,9 +650,10 @@ class PracticeModeState(BaseState):
 
         self.show_secondary_next_state_btn(
             'Return to Complete Piece', PlayCompleteSong(
-                self.scheduler, self.statemachine, self.midi_file, self.bpm,
+                self.scheduler, self.statemachine, self.midi_file,
                 practice_parameters={"error_before_practice": self.error_from_complete_piece,
-                                     "practice_mode": self.practice_mode}
+                                     "practice_mode": self.practice_mode,
+                                     "bpm": self.practice_parameters ["bpm"]}
             )
         )
 
@@ -661,7 +667,9 @@ class PracticeModeState(BaseState):
                 PlayCompleteSong(
                     self.scheduler, self.statemachine, self.midi_file,
                     practice_parameters={"error_before_practice": self.error_from_complete_piece,
-                                         "practice_mode": self.practice_mode}
+                                         "practice_mode": self.practice_mode,
+                                         "bpm": self.practice_parameters["bpm"]
+                                         }
                 )
             )
         else:
@@ -669,9 +677,11 @@ class PracticeModeState(BaseState):
 
             self.show_secondary_next_state_btn(
                 'Return to Complete Piece', PlayCompleteSong(
-                    self.scheduler, self.statemachine, self.midi_file, self.bpm,
+                    self.scheduler, self.statemachine, self.midi_file,
                     practice_parameters={"error_before_practice": self.error_from_complete_piece,
-                                         "practice_mode": self.practice_mode}
+                                         "practice_mode": self.practice_mode,
+                                         "bpm": self.practice_parameters ["bpm"]
+                                         }
                 )
             )
 
