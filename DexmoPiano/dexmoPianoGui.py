@@ -118,7 +118,6 @@ def startTask():
     performace_rating_list = ["1", "2", "3", "4", "5", "6", "7"]
     perf_opt = tk.OptionMenu(eval_window, performace_rating, *performace_rating_list, command=set_performance_rating)
     perf_opt.place(x=400, y=80, width=100, height=30)
-
     tk.Button(eval_window, text="Done", command = eval_window.destroy).place(x=200, y=140)
     root.wait_window(eval_window)
     print("after wait window")
