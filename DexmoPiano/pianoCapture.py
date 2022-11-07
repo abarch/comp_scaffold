@@ -88,8 +88,8 @@ def nextTask(finishAfterSong, userSelectedTask=False, userSelectedLocation=confi
         cursorThread.start()
 
     # run in a thread with queue in order to get returned values
-    recPlayThread = Thread(target=lambda q, arg1, arg2, arg3: q.put(threadHandler.startThreads(arg1, arg2, arg3)),
-                           args=(que, midiFileLocation, guidance, finishAfterSong))
+    recPlayThread = Thread(target=lambda q, arg1, arg2, arg3, arg4: q.put(threadHandler.startThreadsPianoCapture(arg1, arg2, arg3, arg4)),
+                           args=(que, midiFileLocation, guidance,None, finishAfterSong))
 
     # run the thread
     recPlayThread.start()
