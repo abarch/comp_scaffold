@@ -559,7 +559,7 @@ class PlayCompleteSong(BaseState):
         # -> calculate the utility and add the measurement to Gaussian process
 
         if self.practice_parameters["error_before_practice"] is not None:
-            #FIXME: hacky
+            #FIXME: hacky - add practice prameters and not task parameters to the gp saving
             self.scheduler.current_task_data().parameters.bpm = self.practice_parameters["bpm"]
             utility = self.error_diff_to_utility(self.practice_parameters["error_before_practice"], error)
             statemachine.save_data_point_and_add_to_gaussian_process(self.midi_file, (
