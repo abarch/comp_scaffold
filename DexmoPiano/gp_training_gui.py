@@ -436,7 +436,7 @@ class SelectSongState(BaseState):
 
         self.statemachine.to_next_state(
             PlayCompleteSong(self.scheduler, self.statemachine, self.midi_file,
-                             practice_parameters= {"bpm": None, "error_before_practice": None, "practice_mode": None})
+                             practice_parameters= {"bpm": 70, "error_before_practice": None, "practice_mode": None})
 
         )
 
@@ -476,13 +476,14 @@ class PlayCompleteSong(BaseState):
     def __init__(self, scheduler: Scheduler, statemachine, midi_file,  practice_parameters=None):
         super().__init__(scheduler, statemachine)
         self.midi_file = midi_file
-
         self.practice_parameters = practice_parameters
 
 
-
-
     def _load_with_bpm(self, bpm):
+        """
+        Procedure  used to  load a piece
+        with the bpm selected within the slider
+        """
         bpm = int(bpm)
         self.practice_parameters["bpm"]=bpm
         task_data = self.scheduler.queue_new_target_task_from_midi(self.midi_file)
@@ -508,10 +509,8 @@ class PlayCompleteSong(BaseState):
         self.show_secondary_next_state_btn('Select new Song', statemachine.select_song_state)
 
 
-
     def _do_on_enter(self):
         self.init_training_interface()
-
         self.scheduler.clear_queue()
 
         midiBPM = tk.Scale(root, from_=0, to=250, length=150, orient=tk.HORIZONTAL, command=self._load_with_bpm)
