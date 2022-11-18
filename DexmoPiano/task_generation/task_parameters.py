@@ -25,7 +25,7 @@ class TaskParameters:
     left: bool = False
     right: bool = True
     alternating: bool = True
-    bpm: float = 100
+    bpm: float = None
 
     def astuple(self):
         return astuple(self)

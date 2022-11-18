@@ -27,7 +27,7 @@ def getTime():
     """
     Returns current time in milliseconds.
 
-    @return: Current time [ms].
+    @return: Current time [s.ms].
     """
     return round(time.time() - startTime, ROUND_DIGITS)
 

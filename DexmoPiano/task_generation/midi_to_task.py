@@ -66,7 +66,7 @@ def midi2taskdata(midifile_path):
                 elif track[i].channel == 1:
                     notes["left"].append(
                         TaskNote(passed_time, track[i].note, float(track[i + 1].time) / midi.ticks_per_beat))
-
+    
     # parse extracted information to TaskParameters
     task_parameter = TaskParameters(
         timeSignature=time_signature,
@@ -77,7 +77,7 @@ def midi2taskdata(midifile_path):
         right=right,
         left=left,
         alternating=False,
-        bpm=bpm
+        bpm=None # bpm
     )
 
     task_data = TaskData(
@@ -86,7 +86,7 @@ def midi2taskdata(midifile_path):
         number_of_bars=no_of_bars,
         notes_left=notes["left"],
         notes_right=notes["right"],
-        bpm=bpm
+        bpm=None # bpm
     )
 
     return task_data

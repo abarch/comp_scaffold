@@ -139,7 +139,9 @@ def get_explanation(task_data, actual, mapping,
             pitch_diff = t.pitch - a.pitch
             if abs(pitch_diff) > 0:
                 # print("WRONG PITCH", t_i, t, a_i, a)
-                error_pitch += 1 * (t.note_off_time - t.note_on_time)
+                # fixme: superwierd! at least the name is extremely non-suitable
+                # in the current implementation the pitch error is calculated as a sum or durations of the wrongly played notes
+                error_pitch += (t.note_off_time - t.note_on_time)
 
             hold_diff = t.note_hold_time - a.note_hold_time
             if abs(hold_diff) > 0:
@@ -162,12 +164,17 @@ def get_explanation(task_data, actual, mapping,
             number = 1
         else:
             number = num_notes
-        b = (task_data.time_signature[0] / task_data.time_signature[1]) / task_data.bpm * 60 * 1000
+        # fixme: what is this?
+        #b = (task_data.time_signature[0] / task_data.time_signature[1]) / task_data.bpm * 60 * 1000
+        print("number of notes missing", notes_missing)
+        print("error_timing ", error_timing)
+        print ("task data bpm ", task_data.bpm)
+
         errors.append(Error(pitch=error_pitch / total_time_note_on,
                             note_hold_time=error_note_hold_time / (
                                         task_data.number_of_bars * task_data.time_signature[0]),
                             # how to get on number of bars and signature(?)
-                            timing=error_timing * (1 / number),
+                            timing=error_timing / (number - notes_missing), #   number),
                             n_missing_notes=notes_missing / number,
                             t_missing_notes=notes_missing_t / number,
                             n_extra_notes=len(extra_notes_dict[hand]) / number,

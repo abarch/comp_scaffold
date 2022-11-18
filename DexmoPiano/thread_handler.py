@@ -143,7 +143,7 @@ def start_midi_playback(midiFileLocation, guidance, task_data, use_visual_attent
     output_note_list, errorVec, errorVecLeft, errorVecRight = \
         functions.computeErrorEvo(task_data, actualTimes,
                                   inject_explanation=True,
-                                  plot=False)
+                                  plot=True)
     print("task data", task_data.__dict__)
     print("\n\n--- ERRORS ---")
     print("\nNOTE_ERRORS:")

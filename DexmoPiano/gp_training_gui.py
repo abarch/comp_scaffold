@@ -489,7 +489,8 @@ class PlayCompleteSong(BaseState):
         task_data = self.scheduler.queue_new_target_task_from_midi(self.midi_file)
 
         self.scheduler.current_task_data().bpm = bpm
-        print("changed task bpm ", task_data.bpm)
+        print("changed task bpm ", task_data.bpm,  "debug task parameters ", task_data.parameters.bpm)
+
 
         midiProcessing.generateMidi(task_data, outFiles=OUTPUT_FILES_STRS)
 

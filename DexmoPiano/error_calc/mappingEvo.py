@@ -8,6 +8,7 @@ import functools
 from deap import base, creator, tools, algorithms
 
 
+
 # IND_SIZE=3
 
 def get_eval_function(target_notes, actual_notes):
@@ -89,7 +90,8 @@ def get_eval_function(target_notes, actual_notes):
 
         if verbose:
             print("UNUSED NOTES:", actual_notes_unused)
-            print([actual_notes[i] for i in actual_notes_unused])
+            print("notes played by the user", [actual_notes[i] for i in actual_notes_unused])
+            print ("timing error ", error_timing)
         return (error_timing, error_note_hold_time, error_pitch,
                 len(actual_notes_unused), mapping.count(-1))
 
@@ -272,7 +274,7 @@ def find_best_mapping(target_notes, actual_notes, interactive=False):
 
     # print(best_ones)
     best = best_ones[0]
-    print(best)
+    print("best", best)
     eval_function(best, verbose=True)
 
     if interactive:
@@ -297,5 +299,6 @@ def find_best_mapping(target_notes, actual_notes, interactive=False):
 def get_mapping(task_data, actualNoteInfoList, interactive=False):
     mapping = find_best_mapping(task_data.all_notes(), actualNoteInfoList,
                                 interactive=interactive)
-
+    print ("played notes", task_data.all_notes())
+    print ("actual notes", actualNoteInfoList)
     return mapping

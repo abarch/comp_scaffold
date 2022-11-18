@@ -38,9 +38,9 @@ elif socket.gethostname() == 'pertinax':
     INSTRUM_DRUMS = 0 #9
     INSTRUM_DEXMO = 0
 
-    PITCH_METRO_HI = 39
-    PITCH_METRO_LO = 42
-    VOLUME = 100
+    PITCH_METRO_HI = 22
+    PITCH_METRO_LO = 22
+    VOLUME = 10
     TIME_AT_START = 0  # start at the beginning
 
     INTRO_BARS = 1  # no. of empty first bars for metronome intro
