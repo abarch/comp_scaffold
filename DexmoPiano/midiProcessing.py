@@ -419,6 +419,40 @@ def add_metronome(bars, numerator, outFile, writeFile, mf):
         # write 2nd MIDI file (with metronome)
         write_midi(outFile, mf)
 
+def add_accompany(bars, numerator, outFile, writeFile, mf):
+    """
+    Adds metronome notes to the respective staff in a MIDIUtil object.
+
+    @param bars: Total number of bars.
+    @param numerator: Numerator of the time signature.
+    @param outFile: Output MIDI files.
+    @param writeFile: True for writing the MIDIUtil object to a MIDI file.
+    @param mf: MIDIUtil object.
+    @return: None
+    """
+
+    mf.addProgramChange(settings.M_TRACK, settings.CHANNEL_METRO, settings.TIME_AT_START, settings.INSTRUM_DRUMS)
+
+    for t in range(bars * numerator):
+
+        # decide if downbeat or 'other' note
+        if (t % numerator) == 0:
+            # first beat in bar
+            pitch = settings.PITCH_METRO_HI
+        else:
+            pitch = settings.PITCH_METRO_LO
+
+        mf.addNote(track=settings.M_TRACK,
+                   channel=settings.CHANNEL_METRO,
+                   pitch=pitch,
+                   time=t,
+                   duration=1,
+                   volume=settings.VOLUME)
+        print("met channel: ",settings.CHANNEL_METRO)
+
+    if writeFile:
+        # write 2nd MIDI file (with metronome)
+        write_midi(outFile, mf)
 
 def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left):
     """
