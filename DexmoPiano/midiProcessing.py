@@ -384,7 +384,7 @@ def _midi_messages_to_note_events(messages, mido_file):
         
     return out
 
-def add_metronome(bars, numerator, outFile, writeFile, mf):
+def add_metronome2(bars, numerator, outFile, writeFile, mf):
     """
     Adds metronome notes to the respective staff in a MIDIUtil object.
 
@@ -419,7 +419,8 @@ def add_metronome(bars, numerator, outFile, writeFile, mf):
         # write 2nd MIDI file (with metronome)
         write_midi(outFile, mf)
 
-def add_accompany(bars, numerator, outFile, writeFile, mf):
+#def add_accompany(bars, numerator, outFile, writeFile, mf):
+def add_metronome(bars, numerator, outFile, writeFile, mf):
     """
     Adds metronome notes to the respective staff in a MIDIUtil object.
 
@@ -433,21 +434,33 @@ def add_accompany(bars, numerator, outFile, writeFile, mf):
 
     mf.addProgramChange(settings.M_TRACK, settings.CHANNEL_METRO, settings.TIME_AT_START, settings.INSTRUM_DRUMS)
 
+    bass_note = 48
+    chord_note_triad = 52
+    chord_note_fifth = 55
     for t in range(bars * numerator):
 
         # decide if downbeat or 'other' note
-        if (t % numerator) == 0:
-            # first beat in bar
-            pitch = settings.PITCH_METRO_HI
+        if (t % 2) == 0:
+            # first beat in 2 beats
+            mf.addNote(track=settings.M_TRACK,
+                       channel=settings.CHANNEL_METRO,
+                       pitch=bass_note,
+                       time=t,
+                       duration=1,
+                       volume=settings.VOLUME)
         else:
-            pitch = settings.PITCH_METRO_LO
-
-        mf.addNote(track=settings.M_TRACK,
-                   channel=settings.CHANNEL_METRO,
-                   pitch=pitch,
-                   time=t,
-                   duration=1,
-                   volume=settings.VOLUME)
+            mf.addNote(track=settings.M_TRACK,
+                       channel=settings.CHANNEL_METRO,
+                       pitch=chord_note_triad,
+                       time=t,
+                       duration=1,
+                       volume=settings.VOLUME)
+            mf.addNote(track=settings.M_TRACK,
+                       channel=settings.CHANNEL_METRO,
+                       pitch=chord_note_fifth,
+                       time=t,
+                       duration=1,
+                       volume=settings.VOLUME)
         print("met channel: ",settings.CHANNEL_METRO)
 
     if writeFile:
