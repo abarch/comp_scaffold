@@ -115,7 +115,7 @@ def calcAggregByVar(all_participants, variable):
         #print(par[1][par[5][0]][1])
 
     return var_no_tempo, var_tempo_slow, var_tempo_med, var_tempo_high
-
+some_participants_indexes = [4,5,8,10,12,13,14,15,16,17,18]
 some_participants = [all_participants[index] for index in [4,5,8,10,12,13,14,15,16,17,18]]
 diff_tempo1, diff_tempo2, diff_tempo3, diff_tempo4 = calcAggreg(some_participants)
 print(diff_tempo3)
@@ -129,3 +129,38 @@ print(np.mean(diff_tempo1))
 print(np.mean(diff_tempo2))
 print(np.mean(diff_tempo3))
 print(np.mean(diff_tempo4))
+
+diff_no_tempo_test, diff_tempo_slow_test, diff_tempo_med_test, diff_tempo_high_test = calcAggregByVar(some_participants, 'diff_rating')
+perf_no_tempo_test, perf_tempo_slow_test, perf_tempo_med_test, perf_tempo_high_test = calcAggregByVar(some_participants, 'perf_rating')
+err_no_tempo_test, err_tempo_slow_test, err_tempo_med_test, err_tempo_high_test = calcAggregByVar(some_participants, 'Summed_right')
+
+df_par = pd.DataFrame({'id':some_participants_indexes,
+                       'diff_no_tempo_test':diff_no_tempo_test,
+                       'perf_no_tempo_test':perf_no_tempo_test,
+                       'err_no_tempo_test':err_no_tempo_test,
+                       'diff_tempo_slow_test':diff_tempo_slow_test,
+                       'perf_tempo_slow_test':perf_tempo_slow_test,
+                       'err_tempo_slow_test':err_tempo_slow_test,
+                       'diff_tempo_med_test':diff_tempo_med_test,
+                       'perf_tempo_med_test':perf_tempo_med_test,
+                       'err_tempo_med_test':err_tempo_med_test,
+                       'diff_tempo_high_test':diff_tempo_high_test,
+                       'perf_tempo_high_test':perf_tempo_high_test,
+                       'err_tempo_high_test':err_tempo_high_test})
+
+df_par.to_csv('participants_proc.csv')
+
+df = pd.read_csv('all_participants.csv')
+df_filter = df[(df['diff_rating']!='None') & (df['perf_rating']!='None')]
+df_1= df_filter['diff_rating'].astype('int')
+df_2 = df_filter['perf_rating'].astype('int')
+
+#df['diff_rating'] = df[df['diff_rating']!='None']['diff_rating'].astype('int')
+
+hist = df_1.hist(bins=100)
+plt.figure()
+plt.hist2d(df_1, df_2)
+
+#df.plot(x='diff_rating', y='perf_rating', marker='o')
+
+plt.show()
