@@ -436,7 +436,7 @@ class SelectSongState(BaseState):
 
         self.statemachine.to_next_state(
             PlayCompleteSong(self.scheduler, self.statemachine, self.midi_file,
-                             practice_parameters= {"bpm": 70, "error_before_practice": None, "practice_mode": None})
+                             practice_parameters= {"bpm": 75, "error_before_practice": None, "practice_mode": None})
 
         )
 

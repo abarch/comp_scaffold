@@ -2,7 +2,8 @@ import socket
 # computer specific settings
 
 # TAU lab computer
-if socket.gethostname() == 'DESKTOP-17671':
+if socket.gethostname() == 'mikzot005':
+    #'DESKTOP-17671'
     ### CONSTANTS ###
     CHANNEL_PIANO = 0
     CHANNEL_METRO = 0  # for Nord 4, metronome has to be on the same channel
