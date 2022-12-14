@@ -32,11 +32,14 @@ from task_generation.gaussian_process import GaussianProcess
 from task_generation.gaussian_process import PracticeMode
 import data_acquisition
 
+#IF 0 THAN EXPERT MODE, IF 1 GP MODE
+GUI_STATE =1
 # directory constants
 DATA_DIR = './output/data/'
 
 OUTPUT_DIR = './output/'
 TEMP_DIR = './output/temp/'
+EXPERT_DIR = "data_expert.csv"
 OUTPUT_FILES_STRS = [TEMP_DIR + 'output.mid', TEMP_DIR + 'output-m.mid', TEMP_DIR + 'output-md.mid',
                      TEMP_DIR + 'output.xml']
 OUTPUT_LY_STR = TEMP_DIR + 'output.ly'
@@ -535,6 +538,25 @@ class PlayCompleteSong(BaseState):
         task = self.scheduler.current_task_data()
         return self.statemachine.gaussian_process.get_best_practice_mode(error=error, bpm=task.parameters.bpm)
 
+    def get_next_practise_mode_expert(self) -> PracticeMode:
+        """
+        get the practice mode as input from user.
+        @param error: error input
+        @return: PracticeMode: the chosen practice mode
+        """
+        task = self.scheduler.current_task_data()
+        input_exp = input("which practice mode? t\p:\n")
+        while (input_exp != 't' and input_exp != 'p'):
+            input_exp = input("which practice mode? t\p:\n")
+        if input_exp == 'p':
+            return PracticeMode.IMP_PITCH
+        if input_exp == 't':
+            return PracticeMode.IMP_TIMING
+
+
+
+
+
     @staticmethod
     def error_diff_to_utility(error_pre, error_post):
         """
@@ -566,8 +588,13 @@ class PlayCompleteSong(BaseState):
                 self.practice_parameters["error_before_practice"], error),
                                                                      self.scheduler.current_task_data().parameters,
                                                                      self.practice_parameters["practice_mode"], utility)
+        if GUI_STATE==0:
+            # in the expert mode-
+            practice_mode = self.get_next_practise_mode_expert()
+        else:
+            #gp mode
+            practice_mode = self.get_next_practise_mode(error)
 
-        practice_mode = self.get_next_practise_mode(error)
 
         tk.Label(root, text=f"Recommended Practice-Mode:\n{practice_mode.name}").pack()
 
@@ -766,8 +793,10 @@ class Statemachine:
             practice_mode=practice_mode,
             task_parameters=task_parameters
         )
-
-        self.data_logger.save_database()
+        if GUI_STATE ==0:
+            self.data_logger.save_database_expert()
+        else:
+            self.data_logger.save_database()
 
         # Save data point to gaussian process
         self.gaussian_process.add_data_point(error[0], task_parameters.bpm, practice_mode, utility)
@@ -782,9 +811,17 @@ class DataLogger:
     def __init__(self):
         if not os.path.isdir(DATA_DIR):
             os.makedirs(DATA_DIR)
+        if GUI_STATE ==0:
+            dir = EXPERT_DIR
+        else:
+            dir = "data.h5"
 
-        if os.path.isfile(DATA_DIR + "data.h5"):
-            self.dataframe = pd.read_hdf(DATA_DIR + "data.h5")
+        if os.path.isfile(DATA_DIR + dir):
+            if GUI_STATE ==0:
+                self.dataframe = pd.read_csv(DATA_DIR + EXPERT_DIR)
+            else:
+                self.dataframe = pd.read_hdf(DATA_DIR + "data.h5")
+
         else:
             dataframe_columns = {
                 'midi_filename': np.ndarray((0,), dtype=str),
@@ -854,6 +891,13 @@ class DataLogger:
         Saves the current database to .h5 file.
         """
         self.dataframe.to_hdf(path_or_buf=DATA_DIR + "data.h5", key='data')
+
+    def save_database_expert(self):
+        """
+        Saves the current database to .CSV file.
+        """
+        #self.dataframe.to_hdf(path_or_buf=DATA_DIR + "data_expert.h5", key='data')
+        self.dataframe.to_csv(DATA_DIR+EXPERT_DIR)
 
 
 def add_error_plot():
