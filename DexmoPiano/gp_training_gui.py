@@ -33,13 +33,14 @@ from task_generation.gaussian_process import PracticeMode
 import data_acquisition
 
 #IF 0 THAN EXPERT MODE, IF 1 GP MODE
-GUI_STATE =1
+GUI_STATE =0
 # directory constants
 DATA_DIR = './output/data/'
 
 OUTPUT_DIR = './output/'
 TEMP_DIR = './output/temp/'
-EXPERT_DIR = "data_expert.csv"
+#EXPERT_DIR = "data_expert.csv"
+EXPERT_DIR = "data_expert.h5"
 OUTPUT_FILES_STRS = [TEMP_DIR + 'output.mid', TEMP_DIR + 'output-m.mid', TEMP_DIR + 'output-md.mid',
                      TEMP_DIR + 'output.xml']
 OUTPUT_LY_STR = TEMP_DIR + 'output.ly'
@@ -818,7 +819,8 @@ class DataLogger:
 
         if os.path.isfile(DATA_DIR + dir):
             if GUI_STATE ==0:
-                self.dataframe = pd.read_csv(DATA_DIR + EXPERT_DIR)
+
+                self.dataframe = pd.read_hdf(DATA_DIR + EXPERT_DIR)
             else:
                 self.dataframe = pd.read_hdf(DATA_DIR + "data.h5")
 
@@ -894,10 +896,14 @@ class DataLogger:
 
     def save_database_expert(self):
         """
-        Saves the current database to .CSV file.
+        Saves the current database to .expert h5 file.
         """
-        #self.dataframe.to_hdf(path_or_buf=DATA_DIR + "data_expert.h5", key='data')
-        self.dataframe.to_csv(DATA_DIR+EXPERT_DIR)
+        if os.path.isfile(DATA_DIR + "data_expert.h5"):
+            self.dataframe.to_hdf(path_or_buf=DATA_DIR + "data_expert.h5", key='data')
+
+        else:
+            self.dataframe.to_hdf(DATA_DIR + "data_expert.h5", key='data', mode ='w')
+
 
 
 def add_error_plot():
