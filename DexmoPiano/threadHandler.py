@@ -110,7 +110,7 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
 
     # MIDI PLAYER THREAD
     # initialize MIDI file player thread
-    playerThread = Thread(target=dexmoOutput.practice_task,  # target=outputThread.playMidi (PL)
+    playerThread = Thread(target=dexmoOutput.practice_task_with_midi,  # target=outputThread.playMidi (PL)
                           args=(midiFileLocation, targetTemp, targetTimes, guidance))
     playerThread.start()
 

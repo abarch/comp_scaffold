@@ -221,6 +221,70 @@ def practice_task(midiFile, noteInfoTemp, noteInfoList, guidanceMode, showVertic
         stop_all_forces(dexmoPort)
         dexmoPort.close()
 
+# Practice with task played, will be used for ear training test
+def practice_task_with_midi(midiFile, noteInfoTemp, noteInfoList, guidanceMode, showVerticalGuidance=None):
+    """
+    Starts the practice task by playing only the metronome (if chosen)
+    and giving the according haptic feedback with Dexmo (depending on guidance mode).
+
+    @param midiFile: MIDI file of the task.
+    @param noteInfoTemp: Temporary list containing each possible note's current state.
+    @param noteInfoList: List of all notes played by the user.
+    @param guidanceMode: Current guidance Mode (Dexmo).
+    @return: None
+    """
+    if (guidanceMode != "None"):
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        log = "/tmp/DexmoPiano/" + timestr + ".log"
+        logging.basicConfig(filename=log,level=logging.DEBUG,format='%(asctime)s %(message)s', datefmt='%d/%m/%Y %H:%M:%S')
+
+
+        logging.info("")
+        logging.info("TASK from " + timestr)
+
+    if (midi_interface != "None"):
+        dexmoPort = mido.open_output(midi_interface)
+    with mido.open_output(midi_interface_sound) as soundPort:
+        noteCounter = 1
+
+        # set start time
+        nh.initTime()
+
+        for msg in MidiFile(midiFile):
+            if not msg.is_meta:
+                # do not play all notes at once
+                time.sleep(msg.time)
+# for Nord 4: since Metronome and piano are both on channel 0, then metronome is defined by pitch < 48.
+                if (msg.type == 'note_on') or (msg.type == 'note_off'):
+                    #if msg.note < 59 and metronome == True:
+                    soundPort.send(msg)  # sound only from metronome track
+                        #print(msg.note)
+# Code not for Nord: metronome is on channel 9
+#                if msg.channel == 9 and metronome == True:
+#                    soundPort.send(msg)  # sound only from metronome track
+#                    print(msg.channel)
+
+                if msg.channel == 0:  # haptic feeback for notes in Piano track
+
+                    ##____________________HANDLE note_____________________________##
+                    if (msg.type == 'note_on') or (msg.type == 'note_off'):
+                        # handle note
+                        noteInfo = nh.handleNote(msg.type, msg.note, msg.velocity, noteInfoTemp, noteInfoList)
+
+                        if type(noteInfo) == list:
+                            print("TARGET:", noteCounter, "\t", noteInfo)
+                            noteCounter += 1
+                # haptic feedback on dexmo for right (channel 10) and left hand (channel 11)
+                if msg.channel != 0 and msg.channel != 9:
+                    if guidanceMode != "None":
+                        if msg.type == 'note_on':
+                            dexmo_action(msg=msg, outport=dexmoPort)
+                        elif msg.type == 'note_off':
+                            dexmo_action(msg=msg, outport=dexmoPort)
+
+    if (midi_interface != "None"):
+        stop_all_forces(dexmoPort)
+        dexmoPort.close()
 
 if __name__ == '__main__':
     # start_music()
