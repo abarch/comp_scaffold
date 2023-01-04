@@ -256,8 +256,8 @@ def practice_task_with_midi(midiFile, noteInfoTemp, noteInfoList, guidanceMode, 
                 time.sleep(msg.time)
 # for Nord 4: since Metronome and piano are both on channel 0, then metronome is defined by pitch < 48.
                 if (msg.type == 'note_on') or (msg.type == 'note_off'):
-                    #if msg.note < 59 and metronome == True:
-                    soundPort.send(msg)  # sound only from metronome track
+                    if msg.note > 58: # and metronome == True:
+                        soundPort.send(msg)  # sound only from metronome track
                         #print(msg.note)
 # Code not for Nord: metronome is on channel 9
 #                if msg.channel == 9 and metronome == True:
