@@ -74,35 +74,99 @@ def calcShortTable(all_participants):
 
     for par in all_participants:
         df_user = df[(df.user_id == par[4])]
-        user_id.append(par[4])
         ret = par[2][0]
         df_task = df_user[(df_user.phase == 'Retention') & (df_user.task_number == ret)]
         y = df_task['bpm']
-        tempo.append(int(y.values[0]))
-        order.append(0) # first practice
-        diff.append(par[5][0])
-        tempo1_task = par[1][0][0]
-        df_task = df_user[(df_user.phase == 'Practice') & (df_user.task_number == tempo1_task)]
-        y = df_task['Summed_right']
-        prac1_err.append(y.values[0].astype(float))
-        prac2_err.append(y.values[1].astype(float))
-        prac3_err.append(y.values[2].astype(float))
-        prac4_err.append(y.values[3].astype(float))
-        prac5_err.append(y.values[4].astype(float))
-        y = df_task['diff_rating']
-        prac1_diff.append(y.values[0].astype(float))
-        prac2_diff.append(y.values[1].astype(float))
-        prac3_diff.append(y.values[2].astype(float))
-        prac4_diff.append(y.values[3].astype(float))
-        prac5_diff.append(y.values[4].astype(float))
-        y = df_task['perf_rating']
-        prac1_perf.append(y.values[0].astype(float))
-        prac2_perf.append(y.values[1].astype(float))
-        prac3_perf.append(y.values[2].astype(float))
-        prac4_perf.append(y.values[3].astype(float))
-        prac5_perf.append(y.values[4].astype(float))
+        bpm = int(y.values[0])
+        prac_indexes = [0,2,3,4]
+        for k in [0, 1, 2, 3]:
+            user_id.append(par[4])
+            order.append(k) # first practice
+            diff.append(par[5][k])
+            tempo.append(bpm)
+            tempo1_task = par[1][prac_indexes[k]][0]
+            df_task = df_user[(df_user.phase == 'Practice') & (df_user.task_number == tempo1_task)]
+            y = df_task['Summed_right']
+            prac1_err.append(y.values[0].astype(float))
+            prac2_err.append(y.values[1].astype(float))
+            prac3_err.append(y.values[2].astype(float))
+            prac4_err.append(y.values[3].astype(float))
+#            prac5_err.append(y.values[4].astype(float))
+            y = df_task['diff_rating']
+            prac1_diff.append(int(y.values[0]))
+            prac2_diff.append(int(y.values[1]))
+            prac3_diff.append(int(y.values[2]))
+            prac4_diff.append(int(y.values[3]))
+#            prac5_diff.append(int(y.values[4]))
+            y = df_task['perf_rating']
+            prac1_perf.append(int(y.values[0]))
+            prac2_perf.append(int(y.values[1]))
+            prac3_perf.append(int(y.values[2]))
+            prac4_perf.append(int(y.values[3]))
+#            prac5_perf.append(int(y.values[4]))
+
+            tempo1_test = par[1][prac_indexes[k]][1]
+            df_task = df_user[(df_user.phase == 'Test') & (df_user.task_number == tempo1_test)]
+            y = df_task['Summed_right']
+            test_err.append(y.values[0].astype(float))
+            y = df_task['diff_rating']
+            test_diff.append(int(y.values[0]))
+            y = df_task['perf_rating']
+            test_perf.append(int(y.values[0]))
+
+            task_retention = par[2][prac_indexes[k]]
+            df_task = df_user[(df_user.phase == 'Retention') & (df_user.task_number == task_retention)]
+            y = df_task['Summed_right']
+            ret1_err.append(y.values[0].astype(float))
+            ret2_err.append(y.values[1].astype(float))
+#            ret3_err.append(y.values[2].astype(float))
+            y = df_task['diff_rating']
+            ret1_diff.append(int(y.values[0]))
+            ret2_diff.append(int(y.values[1]))
+#            ret3_diff.append(int(y.values[2]))
+            y = df_task['perf_rating']
+            ret1_perf.append(int(y.values[0]))
+            ret2_perf.append(int(y.values[1]))
+ #           ret3_perf.append(int(y.values[2]))
+
+    df_par = pd.DataFrame({'id': user_id,
+                           'mid_tempo': tempo,
+                           'order': order,
+                           'diff': diff,
+                         #  'complexity': complexity,
+                           'prac1_diff': prac1_diff,
+                           'prac1_perf': prac1_perf,
+                           'prac1_err': prac1_err,
+                           'prac2_diff': prac2_diff,
+                           'prac2_perf': prac2_perf,
+                           'prac2_err': prac2_err,
+                           'prac3_diff': prac3_diff,
+                           'prac3_perf': prac3_perf,
+                           'prac3_err': prac3_err,
+                           'prac4_diff': prac4_diff,
+                           'prac4_perf': prac4_perf,
+                           'prac4_err': prac4_err,
+  #                         'prac5_diff': prac5_diff,
+   #                        'prac5_perf': prac5_perf,
+    #                       'prac5_err': prac5_err,
+                           'test_diff': test_diff,
+                           'test_err':  test_err,
+                           'test_perf': test_perf,
+                           'ret1_diff': ret1_diff,
+                           'ret1_err': ret1_err,
+                           'ret1_perf': ret1_perf,
+                           'ret2_diff': ret2_diff,
+                           'ret2_err': ret2_err,
+                           'ret2_perf': ret2_perf
+    #                       'ret3_diff': ret3_diff,
+     #                      'ret3_err': ret3_err,
+      #                     'ret3_perf': ret3_perf
 
 
+
+                           })
+
+    df_par.to_csv('participants_short.csv')
 
 
 def calcAggreg(all_participants):
@@ -512,6 +576,8 @@ print(np.mean(diff_tempo4))
 
 mid_tempo = getMidTempo(some_participants)
 complex = getComplexity(some_participants)
+
+calcShortTable(some_participants)
 
 diff_no_tempo_test, diff_tempo_slow_test, diff_tempo_med_test, diff_tempo_high_test = calcAggregTestByVar(some_participants, 'diff_rating')
 perf_no_tempo_test, perf_tempo_slow_test, perf_tempo_med_test, perf_tempo_high_test = calcAggregTestByVar(some_participants, 'perf_rating')
