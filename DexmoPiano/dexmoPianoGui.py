@@ -256,11 +256,47 @@ def generateNextTask():
     else:
         raise ValueError(f"Unexpected choice {repr(choice)}!")
 
+def generateEmptyTask():
+    from task_generation.scheduler import choosePracticeMode
+    from task_generation.practice_modes import PracticeMode
+   # choice = choosePracticeMode(root)
+    choice = "EMPTY"
+
+    def inEnum(val, enum):
+        try:
+            return val in enum
+        except:
+            return False
+
+    if choice == "EMPTY":
+        nextEmptyTask()
+        update_complexity_index('?')
+        return
+    elif choice == "NEW_TASK":
+        nextTask()
+        update_complexity_index('?')
+        return
+    elif choice == "TEST_MOVEMENT_1":
+        scheduler.new_task_forced_practice_sequence_prior(taskParameters,
+                                                          [PracticeMode.SINGLE_NOTE])
+        loadUpTask()
+    elif choice == "NEXT_LEVEL":
+        new_complexity_level()
+    elif inEnum(choice, PracticeMode):
+        scheduler.queue_practice_mode(choice)
+        loadUpTask()
+    elif choice == "X":
+        print("The window to generate a new task was closed without specifing a new task.")
+    else:
+        raise ValueError(f"Unexpected choice {repr(choice)}!")
 
 def nextTask():
     scheduler.get_next_task(taskParameters=taskParameters)
     loadUpTask()
 
+def nextEmptyTask():
+    scheduler.get_next_task(taskParameters=taskParameters)
+    loadUpTask()
 
 def previousTask():
     scheduler.get_previous_task()
@@ -700,6 +736,7 @@ def load_taskButtons():
     node_params = tk.StringVar()
     node_params.set("")
     tk.Label(root, textvariable=node_params, font=("Courier", 12)).place(x=10, y=40)
+    tk.Button(root, text='Generate Empty Task', command=generateEmptyTask).place(x=10, y=30, height=50, width=150)
     tk.Button(root, text='Start Task', command=startTask).place(x=10, y=90, height=50, width=150)
     tk.Button(root, text='Start Demo', command=startDemo).place(x=10, y=150, height=50, width=150)
 
