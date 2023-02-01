@@ -296,7 +296,7 @@ def nextTask():
 
 def nextEmptyTask():
     scheduler.get_next_task(taskParameters=taskParameters)
-    loadUpTask()
+    loadUpEmptyTask()
 
 def previousTask():
     scheduler.get_previous_task()
@@ -346,6 +346,156 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
 
         # new xml file is not correctly created -> bug must be in generateMidi
         midiProcessing.generateMidi(task,
+                                    outFiles=inputFileStrs)
+
+        currentMidi = None
+        midiSaved = False
+        chosenMidiFile = inputFileStrs[0]
+
+    get_ly()
+
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    # clearFrame()
+    load_notesheet(outputPngStr)
+
+    check_dexmo_connected(mainWindow=True)
+    refresh_buttons()
+    load_taskButtons()
+
+    # if task is changed remember trial to show in visualisation
+    if errors:
+        changetask.append(len(errors))
+
+    add_error_plot()
+
+    config.task_num += 1
+    config.trial_num = 1
+
+
+# def nextSavedTask(goToTask=False):
+#     """
+#     Loads the next (newer) saved MIDI file if it exists.
+
+#     @param goToTask: True for switching to next task immediately.
+#     @return: False if no next task is found.
+#     """
+#     global midiSaved, currentMidi, errors, changetask
+#     if currentMidi == None:
+#         return False
+
+#     files = getTimeSortedMidiFiles()
+#     # if the current file is already the newest or there are none, there is no next task
+#     if len(files) < 1 or (files.index(currentMidi) + 1) == len(files):
+#         return False
+
+#     newMidi = files[files.index(currentMidi) + 1]
+
+#     if (goToTask == True):
+#         # TODO: delete? and add errors from xml in GUI
+#         errors = []
+#         changetask = []
+
+#         midiSaved = True
+#         currentMidi = newMidi
+#         loadUpTask(userSelectedTask=True, userSelectedLocation=outputDir + newMidi + '.mid')
+
+
+# def previousTask(goToTask=False):
+#     """
+#     Loads the previous (older) saved MIDI file if it exists.
+
+#     @param goToTask: True for switching to next task immediately.
+#     @return: False if no previous task is found.
+#     """
+#     global midiSaved, currentMidi, errors, changetask
+
+#     files = getTimeSortedMidiFiles()
+#     # if there are no midi files return false
+#     if len(files) < 1:
+#         return False
+
+#     # if the current is already the oldest, there is no previous task
+#     if (currentMidi != None):
+#         if files.index(currentMidi) == 0:
+#             return False
+
+#     # if actual task is already saved, use second newest to go back
+#     if midiSaved:
+#         newMidi = files[files.index(currentMidi) - 1]
+#     else:
+#         newMidi = files[len(files) - 1]
+
+#     if (goToTask == True):
+#         # TODO: delete? and add errors from xml in GUI
+#         errors = []
+#         changetask = []
+
+#         midiSaved = True
+#         currentMidi = newMidi
+#         loadUpTask(userSelectedTask=True, userSelectedLocation=outputDir + newMidi + '.mid')
+
+
+def check_dexmo_connected(mainWindow):
+    """
+    Checks if Dexmo is connected and changes the list of feasible guidance modes accordingly.
+
+    @param mainWindow: True if the current window is the main window.
+    @return: None
+    """
+    # TODO: Make dexmo_port not global?
+    global GuidanceModeList, guidanceMode, dexmo_port
+    if (dexmo_port.get() == "None"):
+        GuidanceModeList = ["None"]
+        guidanceMode = "None"
+        if (mainWindow):
+            add_Dexmo_Warning()
+    else:
+        GuidanceModeList = ["None", "At every note", "Individual"]
+
+
+def loadUpEmptyTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
+    """
+    Generates a new MIDI file considering the current settings or opens a user-selected one.
+    In each case, a metronome track and fingering numbers are added (if possible).
+    The resulting file (MIDI or MusicXML) is converted to a sheet music (png) using LilyPond.
+
+    @param userSelectedTask: True if the task is user-selected, False otherwise.
+    @param userSelectedLocation: Location of the user-selected MIDI file (if chosen).
+    @return: None
+    """
+    global midiSaved, currentMidi, taskParameters, leftHand, rightHand
+    delete_warning()
+
+    # load saved midi
+    if userSelectedTask:
+        chosenMidiFile = userSelectedLocation
+        try:
+            midiProcessing.generate_metronome_for_midi(taskParameters.left, taskParameters.right, inputFileStrs,
+                                                                   chosenMidiFile,
+                                                                   custom_bpm=int(midiBPM.get("1.0", 'end-1c')))
+            #midiProcessing.generate_metronome_and_fingers_for_midi(False, True, inputFileStrs,
+            #                                                       chosenMidiFile, custom_bpm=midiBPM.get("1.0",'end-1c'))
+            #taskData, taskParameters = midiProcessing.generate_metronome_and_fingers_for_midi(taskParameters.left, taskParameters.right, inputFileStrs,
+            #                                                       chosenMidiFile, custom_bpm=int(midiBPM.get("1.0",'end-1c')))
+        except:
+            add_both_hands_warning()
+            return
+
+    # generate new midi
+    else:
+        # files = os.listdir(tempDir)
+        # for item in files:
+        #     if item.endswith('.xml'):
+        #         os.remove(os.path.join(tempDir, item))
+
+        # new task is correctly created
+        config.fromFile = False
+        config.fileName = ""
+
+        task = scheduler.current_task_data()
+
+        # new xml file is not correctly created -> bug must be in generateMidi
+        midiProcessing.generateEmptyMidi(task,
                                     outFiles=inputFileStrs)
 
         currentMidi = None
