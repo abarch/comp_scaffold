@@ -156,6 +156,97 @@ def startTask():
 
     refresh_buttons()
 
+def startEarTest():
+    """
+    Starts practice task which only has metronome output (if chosen) and haptic
+    impulse from Dexmo for every note.
+
+    @return: None
+    """
+    global currentMidi, midiSaved, errors, expMode
+
+    timestr = getCurrentTimestamp()
+
+    # use MIDI file with metronome staff
+
+    config.participant_id = id_textbox.get("1.0",'end-1c')
+    config.freetext = freetext.get("1.0",'end-1c')
+    config.expMode = exp_mode.get()
+
+    print("actual taskParameter in startTask:", taskParameters)
+    targetNotes, actualNotes, errorVal, errorVecLeft, errorVecRight, task_data, note_errorString = \
+        threadHandler.startThreadsEarTest(inputFileStrs[2], guidanceMode,
+                                   scheduler.current_task_data(), taskParameters,
+                                   useVisualAttention=useVisualAttention.get())
+    #df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
+    #                                              taskParameters, note_errorString, config.participant_id, config.freetext)
+    if difficultyScaling:
+        next_level = difficulty.thresholds(df_error)
+        print("Next Level", next_level)
+        if next_level:
+            new_complexity_level()
+        else:
+            get_threshold_info()
+
+#    scheduler.register_error(errorVal)
+
+    if not midiSaved:
+        saveMidiAndXML(targetNotes, scheduler.current_task_data(), taskParameters)
+        midiSaved = True
+
+    eval_window = tk.Toplevel(root)
+    eval_window.geometry("500x200")
+    tk.Label(eval_window, text="Rate how difficult the task was for you (1-Easy, 7-Hard)").place(x=20, y=20)
+    diff_rating = tk.StringVar(root)
+    diff_rating.set('None')
+    diff_rating_list = ["1", "2", "3", "4", "5","6","7"]
+    diff_opt = tk.OptionMenu(eval_window, diff_rating, *diff_rating_list, command=set_diff_rating)
+    diff_opt.place(x=400, y=20, width=100, height=30)
+
+    tk.Label(eval_window, text="Rate your performance of the task (1-Low, 7-High)").place(x=20, y=80)
+    performace_rating = tk.StringVar(root)
+    performace_rating.set('None')
+    performace_rating_list = ["1", "2", "3", "4", "5", "6", "7"]
+    perf_opt = tk.OptionMenu(eval_window, performace_rating, *performace_rating_list, command=set_performance_rating)
+    perf_opt.place(x=400, y=80, width=100, height=30)
+    tk.Button(eval_window, text="Done", command = eval_window.destroy).place(x=200, y=140)
+    root.wait_window(eval_window)
+    print("after wait window")
+    df_error = hmm_data_acquisition.save_hmm_data(errorVecLeft, errorVecRight, task_data,
+                                                  taskParameters, note_errorString, config.participant_id,
+                                                  config.freetext, config.expMode, config.trial_num, config.task_num, config.diff_rating, config.performance_rating, dexmoOutput.metronome)
+
+    config.trial_num += 1
+
+    # create entry containing actual notes in XML
+    fileIO.createTrialEntry(outputDir, currentMidi, timestr, guidanceMode, actualNotes, errorVal)
+    ###TODO: remove (testing)
+    fileIO.printXML(outputDir + currentMidi + ".xml", True)
+
+    # errorVal = threadHandler.get_errors()
+    errors.append(abs(errorVal))
+    add_error_plot()
+
+    ## if there is a score with errors, show it in a new window
+    if  True: # not difficultyScaling:
+        score_with_error = Path(tempDir) / "output_with_errors.png"
+
+        # Remove display of score with errors for tempo experiment
+
+        # if score_with_error.exists():
+        #     new_window = tk.Toplevel(root)
+        #     new_window.geometry("835x1181")
+        #     background = Image.open(score_with_error)
+        #     background = background.convert("RGBA")
+        #
+        #     img = ImageTk.PhotoImage(background)
+        #
+        #     panel = tk.Label(new_window, image=img)
+        #     panel.image = img
+        #     panel.place(x=0, y=0, width=835, height=1181)
+
+    refresh_buttons()
+
 def set_diff_rating(rating):
     """
         Sets difficulty rating globally.
@@ -888,7 +979,7 @@ def load_taskButtons():
     tk.Label(root, textvariable=node_params, font=("Courier", 12)).place(x=10, y=40)
     tk.Button(root, text='Generate Empty Task', command=generateEmptyTask).place(x=10, y=30, height=50, width=150)
     tk.Button(root, text='Start Task', command=startTask).place(x=10, y=90, height=50, width=150)
-    tk.Button(root, text='Start Demo', command=startDemo).place(x=10, y=150, height=50, width=150)
+    tk.Button(root, text='Play Ear Test', command=startEarTest).place(x=10, y=150, height=50, width=150)
 
     # add button to disable metronome sound
     metronome = tk.BooleanVar()
