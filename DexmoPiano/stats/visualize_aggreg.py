@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
+from sklearn.linear_model import LinearRegression
+
 
 import pandas as pd
 all_participants = [
@@ -39,6 +41,7 @@ all_participants = [
 def calcShortTable(all_participants):
     df = pd.read_csv('all_participants.csv')
 
+
     user_id = []
     tempo = []
     order = []
@@ -59,6 +62,12 @@ def calcShortTable(all_participants):
     prac5_err = []
     prac5_diff = []
     prac5_perf = []
+    prac_coef_err = []
+    prac_intercept_err = []
+    prac_coef_diff = []
+    prac_intercept_diff = []
+    prac_coef_perf = []
+    prac_intercept_perf = []
     test_err = []
     test_diff = []
     test_perf = []
@@ -78,32 +87,104 @@ def calcShortTable(all_participants):
         df_task = df_user[(df_user.phase == 'Retention') & (df_user.task_number == ret)]
         y = df_task['bpm']
         bpm = int(y.values[0])
+        y = df_task['complexityLevel']
+        if y.values[0].find('C_TO_G') > 0:
+            comp = 5
+        else:
+            comp = 3
         prac_indexes = [0,2,3,4]
         for k in [0, 1, 2, 3]:
             user_id.append(par[4])
             order.append(k) # first practice
             diff.append(par[5][k])
             tempo.append(bpm)
+            complexity.append(comp)
             tempo1_task = par[1][prac_indexes[k]][0]
             df_task = df_user[(df_user.phase == 'Practice') & (df_user.task_number == tempo1_task)]
             y = df_task['Summed_right']
-            prac1_err.append(y.values[0].astype(float))
-            prac2_err.append(y.values[1].astype(float))
-            prac3_err.append(y.values[2].astype(float))
-            prac4_err.append(y.values[3].astype(float))
-#            prac5_err.append(y.values[4].astype(float))
+            if len(y)>0:
+                prac1_err.append(y.values[0].astype(float))
+            else:
+                prac1_err.append('NA')
+            if len(y)>1:
+                prac2_err.append(y.values[1].astype(float))
+            else:
+                prac2_err.append('NA')
+            if len(y)>2:
+                prac3_err.append(y.values[2].astype(float))
+            else:
+                prac3_err.append('NA')
+            if len(y)>3:
+                prac4_err.append(y.values[3].astype(float))
+            else:
+                prac4_err.append('NA')
+            if len(y)>4:
+                prac5_err.append(y.values[4].astype(float))
+                reg = LinearRegression().fit(np.reshape([0,1,2,3,4], (-1,1)), [prac1_err[-1], prac2_err[-1], prac3_err[-1], prac4_err[-1], prac5_err[-1]])
+                prac_coef_err.append(reg.coef_[0])
+                prac_intercept_err.append(reg.intercept_)
+            else:
+                prac5_err.append('NA')
+                prac_coef_err.append('NA')
+                prac_intercept_err.append('NA')
+
             y = df_task['diff_rating']
-            prac1_diff.append(int(y.values[0]))
-            prac2_diff.append(int(y.values[1]))
-            prac3_diff.append(int(y.values[2]))
-            prac4_diff.append(int(y.values[3]))
-#            prac5_diff.append(int(y.values[4]))
+            if len(y)>0:
+                prac1_diff.append(int(y.values[0]))
+            else:
+                prac1_diff.append('NA')
+            if len(y)>1:
+                prac2_diff.append(int(y.values[1]))
+            else:
+                prac2_diff.append('NA')
+            if len(y)>2:
+                prac3_diff.append(int(y.values[2]))
+            else:
+                prac3_diff.append('NA')
+            if len(y)>3:
+                prac4_diff.append(int(y.values[3]))
+            else:
+                prac4_diff.append('NA')
+            if len(y)>4:
+                prac5_diff.append(int(y.values[4]))
+                reg = LinearRegression().fit(np.reshape([0, 1, 2, 3, 4], (-1, 1)),
+                                             [prac1_diff[-1], prac2_diff[-1], prac3_diff[-1], prac4_diff[-1],
+                                              prac5_diff[-1]])
+                prac_coef_diff.append(reg.coef_[0])
+                prac_intercept_diff.append(reg.intercept_)
+            else:
+                prac5_diff.append('NA')
+                prac_coef_diff.append('NA')
+                prac_intercept_diff.append('NA')
+
             y = df_task['perf_rating']
-            prac1_perf.append(int(y.values[0]))
-            prac2_perf.append(int(y.values[1]))
-            prac3_perf.append(int(y.values[2]))
-            prac4_perf.append(int(y.values[3]))
-#            prac5_perf.append(int(y.values[4]))
+            if len(y)>0:
+                prac1_perf.append(int(y.values[0]))
+            else:
+                prac1_perf.append('NA')
+            if len(y)>1:
+                prac2_perf.append(int(y.values[1]))
+            else:
+                prac2_perf.append('NA')
+            if len(y)>2:
+                prac3_perf.append(int(y.values[2]))
+            else:
+                prac3_perf.append('NA')
+            if len(y)>3:
+                prac4_perf.append(int(y.values[3]))
+            else:
+                prac4_perf.append('NA')
+            if len(y)>4:
+                prac5_perf.append(int(y.values[4]))
+                reg = LinearRegression().fit(np.reshape([0, 1, 2, 3, 4], (-1, 1)),
+                                             [prac1_perf[-1], prac2_perf[-1], prac3_perf[-1], prac4_perf[-1],
+                                              prac5_perf[-1]])
+                prac_coef_perf.append(reg.coef_[0])
+                prac_intercept_perf.append(reg.intercept_)
+            else:
+                prac5_perf.append('NA')
+                prac_coef_perf.append('NA')
+                prac_intercept_perf.append('NA')
 
             tempo1_test = par[1][prac_indexes[k]][1]
             df_task = df_user[(df_user.phase == 'Test') & (df_user.task_number == tempo1_test)]
@@ -117,23 +198,52 @@ def calcShortTable(all_participants):
             task_retention = par[2][prac_indexes[k]]
             df_task = df_user[(df_user.phase == 'Retention') & (df_user.task_number == task_retention)]
             y = df_task['Summed_right']
-            ret1_err.append(y.values[0].astype(float))
-            ret2_err.append(y.values[1].astype(float))
-#            ret3_err.append(y.values[2].astype(float))
+            if len(y)>0:
+                ret1_err.append(y.values[0].astype(float))
+            else:
+                ret1_err.append('NA')
+            if len(y)>1:
+                ret2_err.append(y.values[1].astype(float))
+            else:
+                ret2_err.append('NA')
+            if len(y)>2:
+                ret3_err.append(y.values[2].astype(float))
+            else:
+                ret3_err.append('NA')
+
             y = df_task['diff_rating']
-            ret1_diff.append(int(y.values[0]))
-            ret2_diff.append(int(y.values[1]))
-#            ret3_diff.append(int(y.values[2]))
+            if len(y)>0:
+                ret1_diff.append(int(y.values[0]))
+            else:
+                ret1_diff.append('NA')
+            if len(y)>1:
+                ret2_diff.append(int(y.values[1]))
+            else:
+                ret2_diff.append('NA')
+            if len(y)>2:
+                ret3_diff.append(int(y.values[2]))
+            else:
+                ret3_diff.append('NA')
+
             y = df_task['perf_rating']
-            ret1_perf.append(int(y.values[0]))
-            ret2_perf.append(int(y.values[1]))
- #           ret3_perf.append(int(y.values[2]))
+            if len(y)>0:
+                ret1_perf.append(int(y.values[0]))
+            else:
+                ret1_perf.append('NA')
+            if len(y)>1:
+                ret2_perf.append(int(y.values[1]))
+            else:
+                ret2_perf.append('NA')
+            if len(y)>2:
+                ret3_perf.append(int(y.values[2]))
+            else:
+                ret3_perf.append('NA')
 
     df_par = pd.DataFrame({'id': user_id,
                            'mid_tempo': tempo,
                            'order': order,
                            'diff': diff,
-                         #  'complexity': complexity,
+                           'complexity': complexity,
                            'prac1_diff': prac1_diff,
                            'prac1_perf': prac1_perf,
                            'prac1_err': prac1_err,
@@ -146,9 +256,15 @@ def calcShortTable(all_participants):
                            'prac4_diff': prac4_diff,
                            'prac4_perf': prac4_perf,
                            'prac4_err': prac4_err,
-  #                         'prac5_diff': prac5_diff,
-   #                        'prac5_perf': prac5_perf,
-    #                       'prac5_err': prac5_err,
+                           'prac5_diff': prac5_diff,
+                           'prac5_perf': prac5_perf,
+                           'prac5_err': prac5_err,
+                           'prac_coef_diff': prac_coef_diff,
+                           'prac_intecept_diff': prac_intercept_diff,
+                           'prac_coef_perf': prac_coef_perf,
+                           'prac_intecept_perf': prac_intercept_perf,
+                           'prac_coef_err': prac_coef_err,
+                           'prac_intecept_err': prac_intercept_err,
                            'test_diff': test_diff,
                            'test_err':  test_err,
                            'test_perf': test_perf,
@@ -157,10 +273,10 @@ def calcShortTable(all_participants):
                            'ret1_perf': ret1_perf,
                            'ret2_diff': ret2_diff,
                            'ret2_err': ret2_err,
-                           'ret2_perf': ret2_perf
-    #                       'ret3_diff': ret3_diff,
-     #                      'ret3_err': ret3_err,
-      #                     'ret3_perf': ret3_perf
+                           'ret2_perf': ret2_perf,
+                           'ret3_diff': ret3_diff,
+                           'ret3_err': ret3_err,
+                           'ret3_perf': ret3_perf
 
 
 
