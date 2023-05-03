@@ -1,6 +1,7 @@
 from midiutil.MidiFile import MIDIFile
 from music21 import converter
 
+import random
 import copy
 import os
 #import random
@@ -351,6 +352,147 @@ def generateMidi(task, outFiles):
         c_to_g = (c_to_g_l and c_to_g_r)
         sf = converter.parse(outFiles[0])
         #add_fingernumbers(outFiles[2], sf, False, right, left, mf, c_to_g=c_to_g)
+        write_midi(outFiles[2], mf)
+        only_write_xml(outFiles[0], outFiles[3], right, left)
+
+
+def generateEarTestMidi(task, outFiles):
+    """
+    Generates a MIDI file for ear test.
+
+    @param noteValues: Possible durations of the notes (e.g. 1, 1/2 etc.).
+    @param notesPerBar: Amounts of notes that a bar can contain.
+    @param noOfBars: Total number of bars (plus initial empty bar for metronome).
+    @param pitches: A NoteRangePerHand object, declaring the allowed pitches for each hand.
+    @param bpm: Tempo (beats per minute).
+    @param left: True for generating notes for the left hand.
+    @param right: True for generating notes for the right hand.
+    @param outFiles: Output MIDI files.
+    @return: None
+    """
+    ## from init here: tracknumber, tempo etc
+
+    rand_list = []
+    for k in range(20):
+        rand_list.append(random.randint(0,2))
+    print(rand_list)
+    notes_right = []
+    for k in range(len(rand_list)):
+        notes_right = notes_right + [(4*k,60,1),(4*k,64,1),(4*k,67,1),(4*k+2, 60+rand_list[k]*2,1)]
+
+    #notes_right = [(1, 60, 1), (1,64,1), (1,67,1), (3, 60, 1),
+    #               (5, 60, 1), (5,64,1), (5,67,1), (7, 62, 1)]
+    notes_left = []
+    right = len(notes_right) > 0
+    left = len(notes_left) > 0
+
+    mf = MIDIFile(numTracks=settings.TRACKS)
+
+    bpm = 60
+    set_tracks(mf, bpm)
+
+    if right:
+        mf.addProgramChange(settings.R_TRACK, settings.CHANNEL_PIANO, settings.TIME_AT_START, settings.INSTRUM_PIANO)
+    if left:
+        mf.addProgramChange(settings.L_TRACK, settings.CHANNEL_PIANO, settings.TIME_AT_START, settings.INSTRUM_PIANO)
+
+    numerator, denominator = 4,4 #task.time_signature
+    set_time_signature(numerator, denominator, settings.R_TRACK, mf)
+
+    count_notes_left = 0
+    count_notes_right = 0
+    lastPitch = [None, None]
+
+    for handTrack, notes in [(settings.L_TRACK, notes_left),
+                             (settings.R_TRACK, notes_right)]:
+        for (start, pitch, duration) in notes:
+            # choose right/left hand, split at C4 (MIDI: pitch 60)
+            if left and ((not right) or (pitch < 60)):
+                handTrack = settings.L_TRACK
+                count_notes_left += 1
+                lastPitch[0] = (handTrack, pitch)
+            else:
+                handTrack = settings.R_TRACK
+                count_notes_right += 1
+                lastPitch[1] = (handTrack, pitch)
+
+            # print("original note pitches: " + str(pitch))
+            mf.addNote(track=handTrack,
+                       channel=settings.CHANNEL_PIANO,
+                       pitch=pitch,
+                       time=start,
+                       duration=duration,
+                       volume=settings.VOLUME)
+            # notes are added to mf
+
+    # add 3 extra notes per hand for proper fingering numbers
+    # for t in range(3):
+    #     tempTime = ((task.number_of_bars - 1) * numerator) + t + 1
+    #     # count_notes += 1
+    #     for hSide in range(2):
+    #         if lastPitch[hSide]:
+    #             mf.addNote(track=lastPitch[hSide][0],
+    #                        channel=settings.CHANNEL_PIANO,
+    #                        pitch=lastPitch[hSide][1],
+    #                        time=tempTime,
+    #                        duration=1,
+    #                        volume=settings.VOLUME)
+
+    # write 1st MIDI file (piano only)
+    write_midi(outFiles[0], mf)
+
+    ### parse the exact times back from the midi file
+    ## extremly unintuitive, but the most straight forward way i fear.
+    temp_mido_file = mido.MidiFile(outFiles[0])
+    mid_left = _midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
+    mid_right = _midi_messages_to_note_events(temp_mido_file.tracks[1], temp_mido_file)
+
+    task.midi.register_midi_events(mid_left, mid_right)
+
+    ### METRONOME ###
+    number_of_bars = 10
+    add_metronome(number_of_bars, numerator, outFiles[1], True, mf)
+
+    ### FINGERNUMBERS ###
+    print("generated notes right: " + str(count_notes_right) + " generated notes left: " + str(count_notes_left))
+    if (((left and not right) and count_notes_left > 7) or
+            ((right and not left) and count_notes_right > 7) or
+            (left and right and count_notes_left > 7 and count_notes_right > 7)):
+        ## i didn't write this code but I assume it wants to make sure that
+        ## if a hand is playing it has at least 8 notes.
+
+        # sf, measures, bpm = generate_fingers_and_write_xml(outFiles[0], outFiles[3], right, left)
+        only_write_xml(outFiles[0], outFiles[3], right, left)
+        # add_fingernumbers(outFiles[2], sf, False, right, left, mf, False)
+        write_midi(outFiles[2], mf)
+    else:
+        # def c_to_g_map(note_range):
+        #     ## the add_fingernumbers function wants to know if the pitches
+        #     ## allow for a c_to_g mapping, for dexmo purposes.
+        #
+        #     # FIXME: debug this
+        #     if note_range in [
+        #         NoteRangePerHand.ONE_NOTE,
+        #         NoteRangePerHand.TWO_NOTES,
+        #         NoteRangePerHand.THREE_NOTES,
+        #         NoteRangePerHand.FOUR_NOTES,
+        #         NoteRangePerHand.C_TO_G]:
+        #         return True
+        #     elif note_range in [
+        #         NoteRangePerHand.ONE_OCTAVE,
+        #         NoteRangePerHand.C_DUR,
+        #         NoteRangePerHand.BLUES,
+        #         NoteRangePerHand.ONE_OCTAVE_BLACK]:
+        #         return False
+        #
+        #     else:
+        #         raise ValueError(f"Please specify whether {repr(note_range)} allows for c_to_g dexmo mapping.")
+
+        #c_to_g_l = c_to_g_map(task.parameters.note_range_left)
+        #c_to_g_r = c_to_g_map(task.parameters.note_range_right)
+        #c_to_g = (c_to_g_l and c_to_g_r)
+        #sf = converter.parse(outFiles[0])
+        # add_fingernumbers(outFiles[2], sf, False, right, left, mf, c_to_g=c_to_g)
         write_midi(outFiles[2], mf)
         only_write_xml(outFiles[0], outFiles[3], right, left)
 

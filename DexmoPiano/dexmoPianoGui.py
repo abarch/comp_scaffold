@@ -381,6 +381,41 @@ def generateEmptyTask():
     else:
         raise ValueError(f"Unexpected choice {repr(choice)}!")
 
+def generateEarTestTask():
+    from task_generation.scheduler import choosePracticeMode
+    from task_generation.practice_modes import PracticeMode
+   # choice = choosePracticeMode(root)
+    choice = "EARTEST"
+
+    def inEnum(val, enum):
+        try:
+            return val in enum
+        except:
+            return False
+
+    if choice == "EARTEST":
+        nextEarTestTask()
+        update_complexity_index('?')
+        return
+    elif choice == "NEW_TASK":
+        nextTask()
+        update_complexity_index('?')
+        return
+    elif choice == "TEST_MOVEMENT_1":
+        scheduler.new_task_forced_practice_sequence_prior(taskParameters,
+                                                          [PracticeMode.SINGLE_NOTE])
+        loadUpTask()
+    elif choice == "NEXT_LEVEL":
+        new_complexity_level()
+    elif inEnum(choice, PracticeMode):
+        scheduler.queue_practice_mode(choice)
+        loadUpTask()
+    elif choice == "X":
+        print("The window to generate a new task was closed without specifing a new task.")
+    else:
+        raise ValueError(f"Unexpected choice {repr(choice)}!")
+
+
 def nextTask():
     scheduler.get_next_task(taskParameters=taskParameters)
     loadUpTask()
@@ -388,6 +423,10 @@ def nextTask():
 def nextEmptyTask():
     scheduler.get_next_task(taskParameters=taskParameters)
     loadUpEmptyTask()
+
+def nextEarTestTask():
+    scheduler.get_next_task(taskParameters=taskParameters)
+    loadUpEarTestTask()
 
 def previousTask():
     scheduler.get_previous_task()
@@ -612,6 +651,73 @@ def loadUpEmptyTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0
     config.task_num += 1
     config.trial_num = 1
 
+def loadUpEarTestTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
+    """
+    Generates a new MIDI file considering the current settings or opens a user-selected one.
+    In each case, a metronome track and fingering numbers are added (if possible).
+    The resulting file (MIDI or MusicXML) is converted to a sheet music (png) using LilyPond.
+
+    @param userSelectedTask: True if the task is user-selected, False otherwise.
+    @param userSelectedLocation: Location of the user-selected MIDI file (if chosen).
+    @return: None
+    """
+    global midiSaved, currentMidi, taskParameters, leftHand, rightHand
+    delete_warning()
+
+    # load saved midi
+    if userSelectedTask:
+        chosenMidiFile = userSelectedLocation
+        try:
+            midiProcessing.generate_metronome_for_midi(taskParameters.left, taskParameters.right, inputFileStrs,
+                                                                   chosenMidiFile,
+                                                                   custom_bpm=int(midiBPM.get("1.0", 'end-1c')))
+            #midiProcessing.generate_metronome_and_fingers_for_midi(False, True, inputFileStrs,
+            #                                                       chosenMidiFile, custom_bpm=midiBPM.get("1.0",'end-1c'))
+            #taskData, taskParameters = midiProcessing.generate_metronome_and_fingers_for_midi(taskParameters.left, taskParameters.right, inputFileStrs,
+            #                                                       chosenMidiFile, custom_bpm=int(midiBPM.get("1.0",'end-1c')))
+        except:
+            add_both_hands_warning()
+            return
+
+    # generate new midi
+    else:
+        # files = os.listdir(tempDir)
+        # for item in files:
+        #     if item.endswith('.xml'):
+        #         os.remove(os.path.join(tempDir, item))
+
+        # new task is correctly created
+        config.fromFile = False
+        config.fileName = ""
+
+        task = scheduler.current_task_data()
+
+        # new xml file is not correctly created -> bug must be in generateMidi
+        midiProcessing.generateEarTestMidi(task,
+                                    outFiles=inputFileStrs)
+
+        currentMidi = None
+        midiSaved = False
+        chosenMidiFile = inputFileStrs[0]
+
+    get_ly()
+
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    # clearFrame()
+    load_notesheet(outputPngStr)
+
+    check_dexmo_connected(mainWindow=True)
+    refresh_buttons()
+    load_taskButtons()
+
+    # if task is changed remember trial to show in visualisation
+    if errors:
+        changetask.append(len(errors))
+
+    add_error_plot()
+
+    config.task_num += 1
+    config.trial_num = 1
 
 # def nextSavedTask(goToTask=False):
 #     """
@@ -977,7 +1083,8 @@ def load_taskButtons():
     node_params = tk.StringVar()
     node_params.set("")
     tk.Label(root, textvariable=node_params, font=("Courier", 12)).place(x=10, y=40)
-    tk.Button(root, text='Generate Empty Task', command=generateEmptyTask).place(x=10, y=30, height=50, width=150)
+    tk.Button(root, text='Gen. Empty Task', command=generateEmptyTask).place(x=10, y=30, height=50, width=150)
+    tk.Button(root, text='Gen. EarTest Task', command=generateEarTestTask).place(x=10, y=60, height=50, width=150)
     tk.Button(root, text='Start Task', command=startTask).place(x=10, y=90, height=50, width=150)
     tk.Button(root, text='Play Ear Test', command=startEarTest).place(x=10, y=150, height=50, width=150)
 
