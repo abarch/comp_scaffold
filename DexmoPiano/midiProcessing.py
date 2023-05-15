@@ -371,17 +371,26 @@ def generateEarTestMidi(task, outFiles):
     @return: None
     """
     ## from init here: tracknumber, tempo etc
+    number_notes = 5
+    trials_num = 20
+    if number_notes ==3:
+        rand_list = []
+        for k in range(trials_num):
+            rand_list.append(random.randint(0,2))
+        print(rand_list)
+        notes_right = []
+        for k in range(len(rand_list)):
+            notes_right = notes_right + [(4*k,60,1),(4*k,64,1),(4*k,67,1),(4*k+2, 60+rand_list[k]*2,1)]
+    if number_notes == 5:
+        rand_list = []
+        for k in range(trials_num):
+            rand_list.append(random.randint(0,4))
+        print(rand_list)
+        notes_right = []
+        notes_mapping = [60+12, 62+12, 64+12, 65+12, 67+12]
+        for k in range(len(rand_list)):
+            notes_right = notes_right + [(8*k,60,1),(8*k,64,1),(8*k,67,1),(8*k+2, notes_mapping[rand_list[k]],1)]
 
-    rand_list = []
-    for k in range(20):
-        rand_list.append(random.randint(0,2))
-    print(rand_list)
-    notes_right = []
-    for k in range(len(rand_list)):
-        notes_right = notes_right + [(4*k,60,1),(4*k,64,1),(4*k,67,1),(4*k+2, 60+rand_list[k]*2,1)]
-
-    #notes_right = [(1, 60, 1), (1,64,1), (1,67,1), (3, 60, 1),
-    #               (5, 60, 1), (5,64,1), (5,67,1), (7, 62, 1)]
     notes_left = []
     right = len(notes_right) > 0
     left = len(notes_left) > 0
@@ -515,6 +524,7 @@ def generateEmptyMidi(task, outFiles):
 
     task.notes_left = []
     task.notes_right = []
+    task.number_of_bars = 80
 
     right = len(task.notes_right) > 0
     left = len(task.notes_left) > 0

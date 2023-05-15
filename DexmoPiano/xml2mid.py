@@ -2,6 +2,7 @@ from midiutil.MidiFile import MIDIFile
 import xml.etree.ElementTree as ET
 import json
 import sys
+import settings
 
 
 def xml2mid(xmlfilename, midfilename):
@@ -24,7 +25,7 @@ def xml2mid(xmlfilename, midfilename):
     track = 0
     channel = 0
     time = 0
-    volume = 100
+    volume = settings.VOLUME
     tempo = 60  # In BPM -  use 60 so that time is just in seconds
 
     mymidi = MIDIFile(1)  # One track, defaults to format 1 (tempo track is created

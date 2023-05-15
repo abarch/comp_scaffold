@@ -1083,10 +1083,11 @@ def load_taskButtons():
     node_params = tk.StringVar()
     node_params.set("")
     tk.Label(root, textvariable=node_params, font=("Courier", 12)).place(x=10, y=40)
-    tk.Button(root, text='Gen. Empty Task', command=generateEmptyTask).place(x=10, y=30, height=50, width=150)
-    tk.Button(root, text='Gen. EarTest Task', command=generateEarTestTask).place(x=10, y=60, height=50, width=150)
-    tk.Button(root, text='Start Task', command=startTask).place(x=10, y=90, height=50, width=150)
-    tk.Button(root, text='Play Ear Test', command=startEarTest).place(x=10, y=150, height=50, width=150)
+    tk.Button(root, text='Gen. EarTest Task', command=generateEarTestTask).place(x=10, y=30, height=50, width=150)
+    tk.Button(root, text='Play Ear Test', command=startEarTest).place(x=10, y=70, height=50, width=150)
+
+    tk.Button(root, text='Gen. Accomp. Task', command=generateEmptyTask).place(x=10, y=120, height=50, width=150)
+    tk.Button(root, text='Start Task', command=startTask).place(x=10, y=160, height=50, width=150)
 
     # add button to disable metronome sound
     metronome = tk.BooleanVar()

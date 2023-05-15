@@ -162,6 +162,8 @@ def startThreads(midiFileLocation, guidance, task_data, taskParameters, useVisua
     # print("\nACTUAl TIME:", timeSums[1])
     # print("\nDIFFERENCE: ", errorDiff)
 
+    return targetTimes, actualTimes, 99, 99, 99, task_data, 'No notes were played' #don't compute error
+
     import imp
     imp.reload(errorCalc)
 
@@ -276,6 +278,8 @@ def startThreadsEarTest(midiFileLocation, guidance, task_data, taskParameters, u
     # print("\nTARGET TIME:", timeSums[0])
     # print("\nACTUAl TIME:", timeSums[1])
     # print("\nDIFFERENCE: ", errorDiff)
+
+    return targetTimes, actualTimes, 99, 99, 99, task_data, 'No notes were played' #don't compute error
 
     import imp
     imp.reload(errorCalc)

@@ -17,6 +17,7 @@ cwd = os.getcwd()
 print(cwd)
 basename = '2022_08_17-12_28_39'
 basename = '2022_06_29-14_01_22'
+basename = '2023_04_24-16_38_57'
 taskdata_filename = cwd + '\\output\\'+ basename + '-data.task'
 xmlfilename = cwd + '\\output\\'+ basename + '.xml'
 
@@ -42,7 +43,7 @@ trials = root.find("trials")
 NoteInfo = namedtuple("NoteInfo", ["pitch", "velocity", "note_on_time", "note_off_time"])
 errors_table = []
 
-s = (1950 , len(trials)*100)
+s = (10950 , len(trials)*100)
 im = Image.new('RGBA', s, (255, 255, 255, 255))
 draw = ImageDraw.Draw(im)
 trial_offset = -50
