@@ -355,6 +355,11 @@ def generateMidi(task, outFiles):
         write_midi(outFiles[2], mf)
         only_write_xml(outFiles[0], outFiles[3], right, left)
 
+def has_no_consecutive_duplicates(lst):
+    for i in range(len(lst) - 1):
+        if lst[i] == lst[i + 1]:
+            return False
+    return True
 
 def generateEarTestMidi(task, outFiles):
     """
@@ -382,9 +387,12 @@ def generateEarTestMidi(task, outFiles):
         for k in range(len(rand_list)):
             notes_right = notes_right + [(4*k,60,1),(4*k,64,1),(4*k,67,1),(4*k+2, 60+rand_list[k]*2,1)]
     if number_notes == 5:
-        rand_list = []
-        for k in range(trials_num):
-            rand_list.append(random.randint(0,4))
+        rand_list = 4*[0]+4*[1]+4*[2]+4*[3]+4*[4]
+        while not has_no_consecutive_duplicates(rand_list):
+            random.shuffle(rand_list)
+
+        #for k in range(trials_num):
+        #    rand_list.append(random.randint(0,4))
         print(rand_list)
         notes_right = []
         notes_mapping = [60+12, 62+12, 64+12, 65+12, 67+12]
