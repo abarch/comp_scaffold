@@ -1699,7 +1699,7 @@ from task_generation.scheduler import Scheduler, threshold_info, complexity_erro
 scheduler = Scheduler(loadUpTask)
 
 # create file output folder if it does not already exist
-subprocess.run(['mkdir', '-p', tempDir], stderr=subprocess.DEVNULL)
+subprocess.run(['mkdir', '-p', tempDir], stderr=subprocess.DEVNULL, shell=True)
 # Create a window and title
 root = tk.Tk()
 root.title("Piano with Dexmo")
