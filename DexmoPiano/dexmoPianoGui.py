@@ -15,6 +15,7 @@ import time
 import os
 import pickle
 import mido
+import socket
 
 import dexmoOutput
 import fileIO
@@ -484,7 +485,7 @@ def loadUpTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0]):
 
     get_ly()
 
-    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.STDOUT, shell=True)
     # clearFrame()
     load_notesheet(outputPngStr)
 
@@ -634,7 +635,7 @@ def loadUpEmptyTask(userSelectedTask=False, userSelectedLocation=inputFileStrs[0
 
     get_ly()
 
-    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.STDOUT, shell=True)
     # clearFrame()
     load_notesheet(outputPngStr)
 
@@ -702,7 +703,7 @@ def loadUpEarTestTask(userSelectedTask=False, userSelectedLocation=inputFileStrs
 
     get_ly()
 
-    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL, shell=True)
     # clearFrame()
     load_notesheet(outputPngStr)
 
@@ -849,21 +850,21 @@ def get_ly():
     # or from midi without finger numbers, if to less notes are generated
     if xmlGenerated:
         delete_no_fingernumbers_warning()
-        if os.name == 'nt':
+        if os.name == 'nt' and socket.gethostname() != 'DESKTOP-EHPFMKI':
             subprocess.run([windowsLilyPondPythonExe, windowsmusicxml2ly,
-                             inputFileStrs[3], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
+                             inputFileStrs[3], '--output=' + outputLyStr], stderr = subprocess.DEVNULL, shell=True)
         else:
             subprocess.run(['musicxml2ly',
-                             inputFileStrs[3], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
+                             inputFileStrs[3], '--output=' + outputLyStr], stderr = subprocess.DEVNULL, shell=True)
 
     else:
         add_no_fingernumbers_warning()
-        if os.name == 'nt':
+        if os.name == 'nt' and socket.gethostname() != 'DESKTOP-EHPFMKI':
             subprocess.run([windowsLilyPondPythonExe, windowsmidi2ly,
-                            inputFileStrs[0], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
+                            inputFileStrs[0], '--output=' + outputLyStr], stderr = subprocess.DEVNULL, shell=True)
         else:
             subprocess.run(['midi2ly',
-                            inputFileStrs[0], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
+                            inputFileStrs[0], '--output=' + outputLyStr], stderr = subprocess.DEVNULL, shell=True)
 
 
 def showGuidanceNotesheet():
@@ -873,17 +874,17 @@ def showGuidanceNotesheet():
     @return: None
     """
     if (showGuidance.get()):  # output_md anzeigen
-        if os.name == 'nt':
+        if os.name == 'nt' and socket.gethostname() != 'DESKTOP-EHPFMKI':
             subprocess.run([windowsLilyPondPythonExe, windowsmidi2ly,
-                            inputFileStrs[2], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
+                            inputFileStrs[2], '--output=' + outputLyStr], stderr = subprocess.STDOUT, shell=True)
         else:
             subprocess.run(['midi2ly',
-                            inputFileStrs[2], '--output=' + outputLyStr], stderr = subprocess.DEVNULL)
+                            inputFileStrs[2], '--output=' + outputLyStr], stderr = subprocess.STDOUT, shell=True)
 
     else:  # output xml oder midi
         get_ly()
 
-    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.STDOUT, shell=True)
     load_notesheet(outputPngStr)
 
 
@@ -1416,7 +1417,7 @@ def applyQuickBPM():
 
     get_ly()
 
-    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL, shell=True)
     # clearFrame()
     load_notesheet(outputPngStr)
 
@@ -1548,7 +1549,7 @@ def openSavedFile():
 
     get_ly()
 
-    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL)
+    subprocess.run(['lilypond', '--png', '-o', tempDir, outputLyStr], stderr=subprocess.DEVNULL, shell=True)
     # clearFrame()
     load_notesheet(outputPngStr)
 
@@ -1573,6 +1574,7 @@ def firstTask():
     """
     load_taskButtons()
     if not os.path.exists("/tmp/DexmoPiano"):
+        os.mkdir("/tmp")
         os.mkdir("/tmp/DexmoPiano")
     # try:
     #    os.mkdir("/tmp/DexmoPiano")
