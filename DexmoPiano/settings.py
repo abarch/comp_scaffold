@@ -18,7 +18,7 @@ if socket.gethostname() == 'DESKTOP-17671' or socket.gethostname() == 'Homs-MacB
     PITCH_METRO_HI = 42
     PITCH_METRO_LO = 42
 
-    VOLUME = 60
+    VOLUME = 40
     TIME_AT_START = 0  # start at the beginning
 
     INTRO_BARS = 1  # no. of empty first bars for metronome intro
