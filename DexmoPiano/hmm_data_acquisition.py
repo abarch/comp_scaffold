@@ -73,13 +73,13 @@ def save_hmm_data(errorVecLeft, errorVecRight, task_data, taskParameters, note_e
             error = errorVecRight
         else:
             error = errorVecLeft
-        dic_error['pitch'+hand] = error.pitch
-        dic_error['note_hold_time'+hand] = error.note_hold_time
-        dic_error['timing'+hand] = error.timing
-        dic_error['n_missing_notes'+hand] = error.n_missing_notes
-        dic_error['n_extra_notes'+hand] = error.n_extra_notes
+        dic_error['pitch'+hand] = 0 #error.pitch
+        dic_error['note_hold_time'+hand] = 0 #error.note_hold_time
+        dic_error['timing'+hand] = 0 #error.timing
+        dic_error['n_missing_notes'+hand] = 0 #error.n_missing_notes
+        dic_error['n_extra_notes'+hand] = 0 #error.n_extra_notes
        # dic_error['Summed'+hand] = error.pitch + error.note_hold_time + error.timing + error.n_missing_notes + error.n_extra_notes
-        dic_error['Summed'+hand] = error.pitch + error.timing + error.n_missing_notes + error.n_extra_notes # removed note_hold_time from sum
+        dic_error['Summed'+hand] = 0 #error.pitch + error.timing + error.n_missing_notes + error.n_extra_notes # removed note_hold_time from sum
 
     # write dictionary into a csv file
     ds = pd.Series(dic_error)
