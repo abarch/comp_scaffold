@@ -379,13 +379,22 @@ def generateEarTestMidi(task, outFiles):
     number_notes = 5
     trials_num = 20
     if number_notes ==3:
-        rand_list = []
-        for k in range(trials_num):
-            rand_list.append(random.randint(0,2))
+        rand_list = 7 * [0] + 7 * [1] + 7 * [2]
+        while not has_no_consecutive_duplicates(rand_list):
+            random.shuffle(rand_list)
+
+        # for k in range(trials_num):
+        #    rand_list.append(random.randint(0,4))
         print(rand_list)
         notes_right = []
+        notes_mapping = [60 + 12, 62 + 12, 64 + 12, 65 + 12, 67 + 12]
         for k in range(len(rand_list)):
-            notes_right = notes_right + [(4*k,60,1),(4*k,64,1),(4*k,67,1),(4*k+2, 60+rand_list[k]*2,1)]
+            notes_right = notes_right + [(8 * k, 60, 1), (8 * k, 64, 1), (8 * k, 67, 1),
+                                         (8 * k + 2, notes_mapping[rand_list[k]], 1)]
+        # add extra note and ignore later because last played note is not saved.
+        k = len(rand_list)
+        notes_right = notes_right + [(8 * k, 60, 1), (8 * k, 64, 1), (8 * k, 67, 1),
+                                     (8 * k + 2, notes_mapping[rand_list[0]], 1)]
     if number_notes == 5:
         rand_list = 4*[0]+4*[1]+4*[2]+4*[3]+4*[4]
         while not has_no_consecutive_duplicates(rand_list):
@@ -398,7 +407,10 @@ def generateEarTestMidi(task, outFiles):
         notes_mapping = [60+12, 62+12, 64+12, 65+12, 67+12]
         for k in range(len(rand_list)):
             notes_right = notes_right + [(8*k,60,1),(8*k,64,1),(8*k,67,1),(8*k+2, notes_mapping[rand_list[k]],1)]
-
+        # add extra note and ignore later because last played note is not saved.
+        k = len(rand_list)
+        notes_right = notes_right + [(8 * k, 60, 1), (8 * k, 64, 1), (8 * k, 67, 1),
+                                     (8 * k + 2, notes_mapping[rand_list[0]], 1)]
     notes_left = []
     right = len(notes_right) > 0
     left = len(notes_left) > 0
