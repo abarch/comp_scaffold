@@ -257,6 +257,150 @@ def drawParticipant(list_task_num):
     drawTrials(basename, 'ret 5 '+'task:'+ str(task_num))
     plt.figure()
 
+def drawParticipantChrono(list_task_num):
+    df = pd.read_csv('./stats/all_participants.csv')
+    df = df[(df.user_id == list_task_num[4])]
+    df1 = df[(df.task_number == list_task_num[0][0])]
+    #basename_ext = df1['saved_filename'].values[0]
+    #basename = os.path.splitext(basename_ext)[0]
+#    basename = os.path.splitext(df1['saved_filename'].values[0])[0] # use two above lines together
+
+    task_num = list_task_num[0][0]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'calib 1 ' + 'task:' + str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[0][1]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'calib 2 ' + 'task:' + str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[0][2]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'calib 3 ' + 'task:' + str(task_num))
+    plt.figure()
+
+
+    task_num = list_task_num[1][0][0]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'prac 1 '+'task:'+ str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[1][0][1]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'test 1 '+'task:'+ str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[1][1]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'trans 2 '+'task:'+ str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[1][2][0]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'prac 3 '+'task:'+ str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[1][2][1]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'test 3 '+'task:'+ str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[1][3][0]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'prac 4 '+'task:'+ str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[1][3][1]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'test 4 '+'task:'+ str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[1][4][0]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'prac 5 '+'task:'+ str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[1][4][1]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'test 5 '+'task:'+ str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[2][0]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'ret 1 ' + 'task:' + str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[2][1]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'ret 2 ' + 'task:' + str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[2][2]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'ret 3 ' + 'task:' + str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[2][3]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'ret 4 ' + 'task:' + str(task_num))
+    plt.figure()
+
+    task_num = list_task_num[2][4]
+    df1 = df[(df.task_number == task_num)]
+    basename = os.path.splitext(df1['saved_filename'].values[0])[0]
+    drawTrials(basename, 'ret 5 '+'task:'+ str(task_num))
+    plt.figure()
+
+
+all_participants = [
+[[6,7,8],[[9,10],11,[12,13],[14,15],[16,17]],[18,19,20,21,22],'par. 1','1', [0,2,3,4]],
+[[3,4,5],[[6,7],8,[9,11],[12,13],[14,15]],[18,19,20,21,22],'par. 2','2', [4,0,2,3]],
+[[3,4,5],[[6,7],8,[9,11],[12,12],[13,13]],[14,15,16,17,18],'par. 3','3', [3,4,0,2]], #last test was missing
+[[4,5,6],[[8,9],11,[13,14],[15,17],[18,19]],[21,22,24,25,26],'par. 4','4', [2,3,4,0]],
+[[4,5,6],[[7,8],9,[10,11],[12,13],[14,15]],[18,20,22,24,26],'par. 5','5', [0,2,3,4]],
+[[3,4,5],[[6,8],9,[10,10],[13,14],[16,17]],[18,19,20,21,22],'par. 6','6', [4,0,2,3]],
+[[4,5,7],[[8,8],9,[10,11],[12,12],[13,14]],[15,16,19,22,23],'par. 7','7', [3,4,0,2]],
+[[2,3,4],[[6,7],8,[9,10],[11,12],[14,15]],[17,20,21,22,24],'par. 8','8', [2,3,4,0]],
+[[3,4,5],[[7,8],9,[11,13],[15,16],[18,19]],[21,22,24,25,28],'par. 9','9', [0,2,3,4]],
+[[3,7,8],[[4,6],7,[8,9],[11,13],[15,16]],[18,20,22,25,27],'par. 10','10', [4,0,2,3]],
+[[2,3,4],[[5,6],7,[8,9],[11,12],[14,16]],[18,19,21,23,24],'par. 11','11', [3,4,0,2]],
+[[5,6,7],[[8,9],11,[12,13],[14,15],[16,19]],[22,[24,25],'!!',26,28,29],'par. 12','12', [2,3,4,0]],
+[[8,9,10],[[11,12],13,[14,16],[17,18],[19,21]],[22,23,24,25,26],'par. 13','13',[0,2,3,4]],
+[[5,6,8],[[10,11],12,[13,14],[15,16],[17,18]],[20,21,22,23,24],'par. 14','14', [4,0,2,3]],
+[[3,4,6],[[7,8],9,[10,12],[13,14],[15,16]],[17,18,19,20,21],'par. 15','15', [3,4,0,2]],
+[[7,8,9],[[10,11],12,[13,14],[15,16],[17,18]],[20,21,22,23,24],'par. 16','16', [2,3,4,0]],
+[[5,6,7],[[8,9],10,[11,12],[13,14],[15,16]],[18,19,20,21,22],'par. 17','17', [0,2,3,4]],
+[[3,4,5],[[7,9],10,[11,12],[13,17],[18,19]],[21,22,23,24,25],'par. 18','18', [4,0,2,3]],
+[[4,5,6],[[7,8],9,[10,11],[12,13],[14,16]],[18,19,20,21,22],'par. 19','19', [3,4,0,2]],
+[[5,6,7],[[8,8],9,[11,12],[13,14],[16,18]],[20,21,22,23,24],'par. 20','20', [0,2,3,4]],
+[[3,4,5],[[6,7],8,[9,10],[11,12],[13,14]],[18,19,20,21,22],'par. 21','21', [4,0,2,3]],
+[[3,4,5],[[6,7],8,[9,11],[12,13],[14,15]],[17,19,20,21,22],'par. 22','22', [3,4,0,2]],
+[[2,3,6],[[8,9],10,[11,12],[13,14],[15,18]],[21,22,23,25,26],'par. 23','23', [2,3,4,0]],
+[[2,3,4],[[6,8],9,[11,12],[13,14],[15,16]],[18,19,21,22,23],'par. 24','24', [0,2,3,4]],
+[[3,4,5],[[6,7],8,[10,11],[12,13],[14,17]],[19,20,21,22,23],'par. 25','25', [4,0,2,3]],
+[[3,4,5],[[6,7],8,[9,10],[12,13],[16,17]],[19,20,21,22,24],'par. 26','26', [3,4,0,2]],
+[[3,4,5],[[6,7],8,[9,10],[11,13],[15,16]],[18,19,20,21,22],'par. 27','27', [2,3,4,0]],
+[[2,3,4],[[5,6],7,[8,9],[11,12],[13,14]],[16,17,18,20,21],'par. 28','28', [0,2,3,4]],
+[[4,5,6],[[2,3],4,[6,7],[8,9],[10,11]],[13,14,15,16,17],'par. 29','29', [4,0,2,3]]
+]
+
 tasks_num = [[2,3,4],[[6,7],8,[9,10],[11,12],[14,15]],[17,20,21,22,24],'par. 8','8']
 tasks_num = [[4,5,6],[[8,9],11,[13,14],[15,17],[18,19]],[21,22,24,25,26],'par. 4','4']
 tasks_num = [[4,5,7],[[8,8],9,[10,11],[12,12],[13,14]],[15,16,19,22,23],'par. 7','7']
@@ -264,7 +408,8 @@ tasks_num = [[4,5,6],[[8,9],11,[13,14],[15,17],[18,19]],[21,22,24,25,26],'par. 4
 tasks_num = [[3,4,5],[[6,7],8,[9,11],[12,13],[14,15]],[18,19,20,21,22],'par. 2','2']
 tasks_num = [[6,7,8],[[9,10],11,[12,13],[14,15],[16,17]],[18,19,20,21,22],'par. 1','1']
 
-drawParticipant(tasks_num)
+tasks_num = all_participants[5]
+drawParticipantChrono(tasks_num)
 
 #drawTrials('2022_11_21-07_07_26', 'bug_test')
 #plt.figure()
