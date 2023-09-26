@@ -39,8 +39,8 @@ DATA_DIR = './output/data/'
 
 OUTPUT_DIR = './output/'
 TEMP_DIR = './output/temp/'
-#EXPERT_DIR = "data_expert.csv"
-EXPERT_DIR = "data_expert.h5"
+
+EXPERT_DIR = "data_expert_demo_4.h5"
 OUTPUT_FILES_STRS = [TEMP_DIR + 'output.mid', TEMP_DIR + 'output-m.mid', TEMP_DIR + 'output-md.mid',
                      TEMP_DIR + 'output.xml']
 OUTPUT_LY_STR = TEMP_DIR + 'output.ly'
@@ -440,7 +440,7 @@ class SelectSongState(BaseState):
 
         self.statemachine.to_next_state(
             PlayCompleteSong(self.scheduler, self.statemachine, self.midi_file,
-                             practice_parameters= {"bpm": 75, "error_before_practice": None, "practice_mode": None})
+                             practice_parameters= {"bpm": 85, "error_before_practice": None, "practice_mode": None})
 
         )
 
@@ -539,6 +539,13 @@ class PlayCompleteSong(BaseState):
         task = self.scheduler.current_task_data()
         return self.statemachine.gaussian_process.get_best_practice_mode(error=error, bpm=task.parameters.bpm)
 
+    def start_timing(self,var):
+
+        return var
+    def start_pitch(self,var):
+
+        return var
+
     def get_next_practise_mode_expert(self) -> PracticeMode:
         """
         get the practice mode as input from user.
@@ -546,15 +553,28 @@ class PlayCompleteSong(BaseState):
         @return: PracticeMode: the chosen practice mode
         """
         task = self.scheduler.current_task_data()
+        input_exp = None
+
         input_exp = input("which practice mode? t\p:\n")
         while (input_exp != 't' and input_exp != 'p'):
             input_exp = input("which practice mode? t\p:\n")
         if input_exp == 'p':
             return PracticeMode.IMP_PITCH
         if input_exp == 't':
-            return PracticeMode.IMP_TIMING
+           return PracticeMode.IMP_TIMING
 
-
+        #var = tk.IntVar()
+        #button_timing = tk.Button(
+         #   root, text='timing', command=self.start_timing(var)
+        #).place(x=540, y=500, height=50, width=150)
+        #button_pitch = tk.Button(
+         #   root, text='pitch', command=self.start_pitch(var)
+        #).place(x=675, y=500, height=50, width=150)
+        #print("waiting...")
+        #button = button_pitch or button_timing
+        #button.wait_variable(var)
+        #print("done waiting.")
+        #return PracticeMode
 
 
 
@@ -898,11 +918,11 @@ class DataLogger:
         """
         Saves the current database to .expert h5 file.
         """
-        if os.path.isfile(DATA_DIR + "data_expert.h5"):
-            self.dataframe.to_hdf(path_or_buf=DATA_DIR + "data_expert.h5", key='data')
+        if os.path.isfile(DATA_DIR + EXPERT_DIR):
+            self.dataframe.to_hdf(path_or_buf=DATA_DIR + EXPERT_DIR, key='data')
 
         else:
-            self.dataframe.to_hdf(DATA_DIR + "data_expert.h5", key='data', mode ='w')
+            self.dataframe.to_hdf(DATA_DIR + EXPERT_DIR, key='data', mode ='w')
 
 
 

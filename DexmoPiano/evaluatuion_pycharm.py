@@ -10,7 +10,7 @@ from task_generation.gaussian_process import GaussianProcess, PracticeMode
 
 data_dir = './output/data/'
 #data = pd.concat([pd.read_hdf(data_dir + filename) for filename in os.listdir(data_dir)], axis=0, ignore_index=True)
-data = pd.read_hdf(data_dir + 'data_expert.h5')
+data = pd.read_hdf(data_dir + 'data_expert_demo_4.h5')
 print(data.tail(10))
 #2. Initialize Gaussian Process
 gp = GaussianProcess()
