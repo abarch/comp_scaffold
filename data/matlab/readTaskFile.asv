@@ -1,0 +1,16 @@
+% READTASKFILE
+
+function r = readTaskFile(fn)
+
+pickle = py.importlib.import_module('pickle');
+fh = py.open(fn, 'rb');
+P = pickle.load(fh);    % pickle file loaded to Python variable
+fh.close();
+
+s = struct(P{1});
+s2 = struct(P{2});
+r.practice_mode = string(s{1}.practice_mode);
+r.bpm = s.bpm + 0;
+% There are more than can be extracted
+r.noOfBars = s2.noOfBars + 0;
+

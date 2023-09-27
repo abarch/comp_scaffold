@@ -1,0 +1,28 @@
+% INITIAL_ANALYSIS
+
+data1 = readdata('data_expert_demo.h5');
+data2 = readdata('data_expert_demo2.h5');
+combined = combine(data1,data2);
+
+doLinearRegression(data1,'firstexperiment',0.5);
+doLinearRegression(data2,'secondexperiment',0.5);
+results = doLinearRegression(combined,'combined',0.5);
+
+% Find the optimal weight
+
+b_timingerror = results.mdl_timingerror.Coefficients.Estimate;
+b_pitcherror = results.mdl_pitcherror.Coefficients.Estimate;
+
+% 0 = timing, 1 = pitch for the second column (third column after
+% including a column of 1s for the intercept)
+X = [ones(size(results.factors,1),1) results.factors];
+X_timingpractice = X;
+X_timingpractice(:,3) = 0;
+X_pitchpractice = X;
+X_pitchpractice(:,3) = 1;
+
+timingerror_timingpractice = b_timingerror' * X_timingpractice';
+timingerror_pitchpractice  = b_timingerror' * X_pitchpractice';
+
+pitcherror_timingpractice = b_pitcherror' * X_timingpractice';
+pitcherror_pitchpractice  = b_pitcherror' * X_pitchpractice';
