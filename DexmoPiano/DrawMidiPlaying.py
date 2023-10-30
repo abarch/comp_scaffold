@@ -147,7 +147,7 @@ participants = [['par1','I','2023_06_06-10_52_36','2023_06_06-11_08_00' ], \
                 ]
 
 
-test_trials = [['number', 'group', 'batch', 'order', 'played_pitch', 'velocity', 'start_time', 'end_time']]
+test_trials = [['number', 'group', 'order', 'batch', 'played_pitch', 'velocity', 'start_time', 'end_time']]
 for participant in participants:
 
     order_list, batch_list, played_pitch_list, velocity_list, start_time_list, end_time_list = analyze_play_trials(participant[2])

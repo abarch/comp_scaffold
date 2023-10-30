@@ -381,7 +381,7 @@ with open('ear_test.csv', 'w') as f:
     write = csv.writer(f)
     write.writerows(tests)
 
-with open('ear_test_trials.csv', 'w') as f:
+with open('ear_test_trials21.csv', 'w') as f:
     # using csv.writer method from CSV package
     write = csv.writer(f)
     write.writerows(test_trials)

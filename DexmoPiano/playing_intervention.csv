@@ -1,4 +1,4 @@
-number,group,batch,order,played_pitch,velocity,start_time,end_time
+number,group,order,batch,played_pitch,velocity,start_time,end_time
 par1,I,0,0,74,55,7.323,8.128
 par1,I,1,0,76,30,7.913,8.296
 par1,I,2,0,76,60,8.477,8.857
