@@ -352,7 +352,24 @@ participants = [['par1','I','2023_06_06-10_52_36','2023_06_06-11_08_00' ], \
                 ['par20', 'S', '2023_06_21-10_33_08', '2023_06_21-10_49_05'], \
                 ['par21', 'I', '2023_06_21-13_00_58', '2023_06_21-13_15_16'], \
                 ['par22', 'S', '2023_06_26-14_06_55', '2023_06_26-14_24_38'], \
-                ]
+                ['par24', 'I', '2024_02_26-10_32_47', '2024_02_26-10_46_57'], \
+                ['par23', 'S', '2024_02_26-12_06_36', '2024_02_26-12_23_28'], \
+                ['par25', 'I', '2024_02_26-13_13_57', '2024_02_26-13_29_03'], \
+                ['par26', 'S', '2024_02_26-14_23_13', '2024_02_26-14_39_06'], \
+                ['par27', 'I', '2024_02_26-14_56_29', '2024_02_26-15_11_04'], \
+                ['par28', 'S', '2024_02_26-15_21_20', '2024_02_26-15_40_56'], \
+                ['par29', 'I', '2024_02_26-17_42_30', '2024_02_26-17_56_20'],  \
+                ['par30', 'S', '2024_03_04-12_05_16', '2024_03_04-12_19_36'], \
+                ['par31', 'I', '2024_03_04-13_02_18', '2024_03_04-13_17_56'], \
+                ['par32', 'S', '2024_03_04-14_02_18', '2024_03_04-14_19_40'], \
+                ['par33', 'I', '2024_03_04-16_44_57', '2024_03_04-17_02_19'], \
+                ['par34', 'S', '2024_03_04-17_14_19', '2024_03_04-17_29_14'], \
+                ['par35', 'I', '2024_03_04-17_38_41', '2024_03_04-17_54_30'], \
+                ['par36', 'S', '2024_03_11-11_15_09', '2024_03_11-11_29_47'], \
+                ['par37', 'I', '2024_03_11-11_37_14', '2024_03_11-11_52_42'], \
+                ['par38', 'S', '2024_03_11-12_32_37', '2024_03_11-12_47_48'], \
+                ['par39', 'I', '2024_03_11-13_07_05', '2024_03_11-13_22_36'], \
+                ['par40', 'S', '2024_03_18-14_13_01', '2024_03_18-14_30_06']]
 
 
 tests = [['number','group','correct_pre','correct_2nd_pre','perc_succ_pre','correct_post','correct_2nd_post', 'perc_succ_post', 'avg_RT_pre', 'avg_RT_post','avg_velocity_pre', 'avg_velocity_post']]
@@ -365,23 +382,21 @@ for participant in participants:
 
     order_list, target_pitch_list, played_pitch_list, played_pitch_2nd_list, succ_1st_list, RT_list, velocity_list, succ_2nd_list = analyze_test_trials(participant[2])
     for k in range(20):
-        test_trials.append([participant[0],participant[1],'pre',order_list[k], target_pitch_list[k], played_pitch_list[k], played_pitch_2nd_list[k], succ_1st_list[k], RT_list[k], velocity_list[k], succ_2nd_list[k]])
+        test_trials.append([participant[0],participant[1],'pre' ,order_list[k], target_pitch_list[k], played_pitch_list[k], played_pitch_2nd_list[k], succ_1st_list[k], RT_list[k], velocity_list[k], succ_2nd_list[k]])
 
-    order_list, target_pitch_list, played_pitch_list, played_pitch_2nd_list, succ_1st_list, RT_list, velocity_list, succ_2nd_list = analyze_test_trials(
-        participant[3])
+    order_list, target_pitch_list, played_pitch_list, played_pitch_2nd_list, succ_1st_list, RT_list, velocity_list, succ_2nd_list = analyze_test_trials(participant[3])
     for k in range(20):
-        test_trials.append([participant[0], participant[1], 'post', order_list[k], target_pitch_list[k], played_pitch_list[k],
-                       played_pitch_2nd_list[k], succ_1st_list[k], RT_list[k], velocity_list[k], succ_2nd_list[k]])
+        test_trials.append([participant[0],participant[1],'post',order_list[k], target_pitch_list[k], played_pitch_list[k], played_pitch_2nd_list[k], succ_1st_list[k], RT_list[k], velocity_list[k], succ_2nd_list[k]])
 
 print(tests)
 # field names
 
-with open('ear_test.csv', 'w') as f:
+#with open('ear_test_29.csv', 'w') as f:
     # using csv.writer method from CSV package
-    write = csv.writer(f)
-    write.writerows(tests)
+#    write = csv.writer(f)
+#    write.writerows(tests)
 
-with open('ear_test_trials21.csv', 'w') as f:
+with open('ear_test_trials40.csv', 'w') as f:
     # using csv.writer method from CSV package
     write = csv.writer(f)
     write.writerows(test_trials)
