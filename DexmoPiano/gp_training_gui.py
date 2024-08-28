@@ -638,11 +638,12 @@ class PlayCompleteSong(BaseState):
             #FIXME: hacky - add practice prameters and not task parameters to the gp saving
             self.scheduler.current_task_data().parameters.bpm = self.practice_parameters["bpm"]
             # In this experiment, we are not updating the GP
-            # utility = self.error_diff_to_utility(self.practice_parameters["error_before_practice"], error)
-            #statemachine.save_data_point_and_add_to_gaussian_process(self.midi_file, (
-            #    self.practice_parameters["error_before_practice"], error),
-            #                                                         self.scheduler.current_task_data().parameters,
-            #                                                         self.practice_parameters["practice_mode"], utility)
+            utility = self.error_diff_to_utility(self.practice_parameters["error_before_practice"], error)
+            statemachine.save_data_point_and_add_to_gaussian_process(self.midi_file, (
+                self.practice_parameters["error_before_practice"], error),
+                                                                     self.scheduler.current_task_data().parameters,
+                                                                     self.practice_parameters["practice_mode"], utility,
+                                                                     False)
 
         if experiment_stage!="Practice":
             print('No practice mode for this part of the experiment')
@@ -812,7 +813,7 @@ class Statemachine:
     """
 
     def save_data_point_and_add_to_gaussian_process(self, midi_name: str, error, task_parameters: TaskParameters,
-                                                    practice_mode, utility: float):
+                                                    practice_mode, utility: float, dontUpdateGP = True):
         """
         Saves a data point to the database and adds it to the gaussian process.
         @param midi_name: name of the midi file
@@ -859,9 +860,10 @@ class Statemachine:
         else:
             self.data_logger.save_database()
 
-        # Save data point to gaussian process
-        self.gaussian_process.add_data_point(error[0], task_parameters.bpm, practice_mode, utility)
-        self.gaussian_process.update_model()
+        if not dontUpdateGP:
+            # Save data point to gaussian process
+            self.gaussian_process.add_data_point(error[0], task_parameters.bpm, practice_mode, utility)
+            self.gaussian_process.update_model()
 
 
 class DataLogger:
