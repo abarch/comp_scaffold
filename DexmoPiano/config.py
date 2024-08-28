@@ -16,3 +16,6 @@ playMode = ""
 vnotes = []
 
 guidance_mode = ""
+
+hyperparameters = []
+mean_policy_diff = []

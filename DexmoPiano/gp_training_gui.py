@@ -14,6 +14,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import tkinter as tk
 from tkinter import filedialog
+import pyautogui
 from PIL import Image, ImageTk
 
 from collections import namedtuple
@@ -25,14 +26,14 @@ import dexmoOutput
 import midiProcessing
 import thread_handler
 
-
 from task_generation.scheduler import Scheduler
 from task_generation.task_parameters import TaskParameters
 from task_generation.gaussian_process import GaussianProcess
 from task_generation.gaussian_process import PracticeMode
+from task_generation.gaussian_process import trainGP_AAAI
 import data_acquisition
 
-#IF 0 THAN EXPERT MODE, IF 1 GP MODE
+#IF 0 THEN EXPERT MODE, IF 1 GP MODE
 GUI_STATE =0
 # directory constants
 DATA_DIR = './output/data/'
@@ -52,6 +53,9 @@ MIDI_TO_LY_WIN = "c:/Program Files (x86)/LilyPond/usr/bin/midi2ly"
 
 guidance_modes = ["None", "At every note", "Individual"]
 guidance_mode = "At every note"
+
+experiment_stages = ["Level selection","Pretest","Practice","Posttest"]
+experiment_stage = "Level selection"
 
 first_start = True
 
@@ -75,7 +79,7 @@ canvas = None
 
 # constants for practice loop
 ERROR_THRESHOLD = 0  # if measured error in PlayCompleteSong state is below threshold -> finish practice loop
-NUM_PRACTICE_ITERATIONS = 2  # number of practice iterations after PracticeModeState is automatically left
+NUM_PRACTICE_ITERATIONS = 3  # number of practice iterations after PracticeModeState is automatically left
 
 TaskNote = namedtuple("TaskNote", "start pitch duration")
 
@@ -173,6 +177,15 @@ class BaseState:
         guidance_option_menu = tk.OptionMenu(root, guidance, *guidance_modes, command=set_guidance)
         guidance_option_menu.place(x=10, y=270, width=150, height=30)
 
+        l2 = tk.Label(root, text="Experiment stage:")
+        l2.place(x=10, y=320, width=150, height=70)
+
+        experiment = tk.StringVar(root)
+        experiment.set(experiment_stage)
+
+        experiment_stage_menu = tk.OptionMenu(root, experiment, *experiment_stages, command=set_experiment_stage)
+        experiment_stage_menu.place(x=10, y=370, width=150, height=30)
+
         # button to return to main menu
         tk.Button(
             root, text='Back to Menu', command=lambda: statemachine.to_next_state(statemachine.main_menu_state)
@@ -267,9 +280,8 @@ class BaseState:
         self.save_midi_and_xml(targetNotes, self.scheduler.current_task_data(), task_parameters)
         timestamp = get_current_timestamp()
         # create entry containing actual notes in XML
-        fileIO.create_trial_entry(OUTPUT_DIR, timestamp, timestamp, guidance_mode, actualNotes,
+        fileIO.create_trial_entry(OUTPUT_DIR, statemachine.username + "_" + experiment_stage + "_" + timestamp, timestamp, guidance_mode, actualNotes,
                                   errorVal)
-
 
         return df_error
 
@@ -286,17 +298,17 @@ class BaseState:
         time_str = get_current_timestamp()
 
         # MIDI
-        shutil.copy(OUTPUT_FILES_STRS[0], OUTPUT_DIR + time_str + '.mid')
-        shutil.copy(OUTPUT_FILES_STRS[1], OUTPUT_DIR + time_str + '-m.mid')
-        shutil.copy(OUTPUT_FILES_STRS[2], OUTPUT_DIR + time_str + '-md.mid')
+        shutil.copy(OUTPUT_FILES_STRS[0], OUTPUT_DIR + statemachine.username + "_" + experiment_stage + "_" + time_str + '.mid')
+        shutil.copy(OUTPUT_FILES_STRS[1], OUTPUT_DIR + statemachine.username + "_" + experiment_stage + "_" + time_str + '-m.mid')
+        shutil.copy(OUTPUT_FILES_STRS[2], OUTPUT_DIR + statemachine.username + "_" + experiment_stage + "_" + time_str + '-md.mid')
 
         # save task_data and task Parameters to pickle file
         data_to_save = [task_data, task_parameters]
 
-        with open(OUTPUT_DIR + time_str + '-data.task', 'wb') as f:
+        with open(OUTPUT_DIR + "x" + experiment_stage + time_str + '-data.task', 'wb') as f:
             pickle.dump(data_to_save, f)
 
-        fileIO.create_xml(OUTPUT_DIR, time_str, task_parameters.astuple(), target_notes)
+        fileIO.create_xml(OUTPUT_DIR, statemachine.username + "_" + experiment_stage + "_" + time_str, task_parameters.astuple(), target_notes)
 
 
 class MenuState(BaseState):
@@ -313,11 +325,30 @@ class MenuState(BaseState):
             root, text='Quit', command=lambda: statemachine.to_next_state(statemachine.end_state)
         ).place(x=675, y=500, height=50, width=150)
 
+        programMode = tk.StringVar(root)
+        programMode.set("Expert")
+        options = ["Expert",
+                   "GP"]
+
+        tk.OptionMenu(root, programMode, *options, command=self.set_gui_state).place(x=675, y=400, height=50, width=150)
+
         self.create_port_drop_down_menus()
 
     @staticmethod
+    def set_gui_state(selection):
+        global GUI_STATE
+        if selection=="Expert":
+            print("Selection set to expert")
+            GUI_STATE = 0
+        elif selection=="GP":
+            print("Selection set to GP")
+            GUI_STATE = 1
+        
+    @staticmethod
     def start_if_ports_are_set():
         if dexmoOutput.midi_interface_sound != "None" and thread_handler.portname != "None":
+            if GUI_STATE==1:
+                statemachine.gaussian_process = trainGP_AAAI()
             statemachine.to_next_state(statemachine.select_name_state)
 
     def create_port_drop_down_menus(self):
@@ -354,7 +385,7 @@ class MenuState(BaseState):
 
             # match port
             midi_port = tk.StringVar(root)
-            if first_start:
+            if first_start:                
                 matching = [s for s in portList if findStr in s.lower()]
                 if matching:
                     midi_port.set(matching[0])
@@ -387,10 +418,9 @@ class MenuState(BaseState):
         dexmo_port_btn = create_port_btn("Dexmo output", "dexmo", 680, outports,
                                          dexmoOutput.set_dexmo)
 
-        create_port_btn("Sound output", "qsynth", 760, outports,
+        create_port_btn("Sound output", "nord piano 4 midi 1", 760, outports,
                         dexmoOutput.set_sound_outport)
-        create_port_btn("Piano input", "vmpk", 840, inports, thread_handler.set_inport)
-
+        create_port_btn("Piano input", "nord piano 4 midi 0", 840, inports, thread_handler.set_inport)
 
 class SelectNameState(BaseState):
     """
@@ -435,8 +465,6 @@ class SelectSongState(BaseState):
             )
         print (self.midi_file)
         self.check_dexmo_connected(main_window=True)
-
-
 
         self.statemachine.to_next_state(
             PlayCompleteSong(self.scheduler, self.statemachine, self.midi_file,
@@ -522,14 +550,7 @@ class PlayCompleteSong(BaseState):
         midiBPM.place(x=10, y=570)
         if (self.practice_parameters["bpm"]!=None):
             midiBPM.set(self.practice_parameters["bpm"])
-
-
-
-               
         
-
-    
-            
     def get_next_practise_mode(self, error) -> PracticeMode:
         """
         Find the practice mode the Gaussian process recommends.
@@ -537,6 +558,8 @@ class PlayCompleteSong(BaseState):
         @return: PracticeMode: the chosen practice mode
         """
         task = self.scheduler.current_task_data()
+        print("The error is " + str(error))
+        print("The BPM is " + str(task.parameters.bpm))
         return self.statemachine.gaussian_process.get_best_practice_mode(error=error, bpm=task.parameters.bpm)
 
     def start_timing(self,var):
@@ -555,12 +578,15 @@ class PlayCompleteSong(BaseState):
         task = self.scheduler.current_task_data()
         input_exp = None
 
-        input_exp = input("which practice mode? t\p:\n")
-        while (input_exp != 't' and input_exp != 'p'):
-            input_exp = input("which practice mode? t\p:\n")
-        if input_exp == 'p':
+        input_exp = pyautogui.confirm('Which practice mode?', buttons=['Pitch', 'Timing'])
+        #print(answer)
+
+        #input_exp = input("which practice mode? t\p:\n")
+        while (input_exp != 'Pitch' and input_exp != 'Timing'):
+            input_exp = pyautogui.confirm('Which practice mode?', buttons=['Pitch', 'Timing'])
+        if input_exp == 'Pitch':
             return PracticeMode.IMP_PITCH
-        if input_exp == 't':
+        if input_exp == 'Timing':
            return PracticeMode.IMP_TIMING
 
         #var = tk.IntVar()
@@ -576,8 +602,6 @@ class PlayCompleteSong(BaseState):
         #print("done waiting.")
         #return PracticeMode
 
-
-
     @staticmethod
     def error_diff_to_utility(error_pre, error_post):
         """
@@ -586,36 +610,51 @@ class PlayCompleteSong(BaseState):
         @param error_post: error after practice
         @return: utility value
         """
-        diff_timing = (error_pre["timing_left"] + error_pre["timing_right"]) - (
-                error_post["timing_left"] + error_post["timing_right"])
-        diff_pitch = (error_pre["pitch_left"] + error_pre["pitch_right"]) - (
-                error_post["pitch_left"] + error_post["pitch_right"])
 
-        return (diff_timing + diff_pitch) / 2
+        a, MEAN_UTILITY = config.hyperparameters
+        # changed to match definition in gaussian_process.py
+        diff_timing = error_post["timing_right"] - error_pre["timing_right"]
+        diff_pitch  = error_post["pitch_right"]  - error_pre["pitch_right"]
+        return -diff_timing*a  -diff_pitch*(1-a)  - MEAN_UTILITY
+
+        #diff_timing = (error_pre["timing_left"] + error_pre["timing_right"]) - (
+        #        error_post["timing_left"] + error_post["timing_right"])
+        #diff_pitch = (error_pre["pitch_left"] + error_pre["pitch_right"]) - (
+        #        error_post["pitch_left"] + error_post["pitch_right"])
+
+        #return (diff_timing + diff_pitch) / 2
 
     def start_playback(self):
+        global experiment_stage
         error = self.start_playback_and_calc_error(TaskParameters())
         errors.append(error)
-        add_error_plot()
+        # Don't show the error plot
+        # add_error_plot()
 
         # if there is an error measurement from before practicing
         # -> calculate the utility and add the measurement to Gaussian process
-
+        self.scheduler.current_task_data().parameters.bpm = self.practice_parameters["bpm"]
         if self.practice_parameters["error_before_practice"] is not None:
             #FIXME: hacky - add practice prameters and not task parameters to the gp saving
             self.scheduler.current_task_data().parameters.bpm = self.practice_parameters["bpm"]
-            utility = self.error_diff_to_utility(self.practice_parameters["error_before_practice"], error)
-            statemachine.save_data_point_and_add_to_gaussian_process(self.midi_file, (
-                self.practice_parameters["error_before_practice"], error),
-                                                                     self.scheduler.current_task_data().parameters,
-                                                                     self.practice_parameters["practice_mode"], utility)
-        if GUI_STATE==0:
+            # In this experiment, we are not updating the GP
+            # utility = self.error_diff_to_utility(self.practice_parameters["error_before_practice"], error)
+            #statemachine.save_data_point_and_add_to_gaussian_process(self.midi_file, (
+            #    self.practice_parameters["error_before_practice"], error),
+            #                                                         self.scheduler.current_task_data().parameters,
+            #                                                         self.practice_parameters["practice_mode"], utility)
+
+        if experiment_stage!="Practice":
+            print('No practice mode for this part of the experiment')
+            return
+
+        if GUI_STATE==0: # expert
             # in the expert mode-
             practice_mode = self.get_next_practise_mode_expert()
-        else:
-            #gp mode
+            print('Asking expert for practice mode')            
+        else: #gp mode
             practice_mode = self.get_next_practise_mode(error)
-
+            print('In gp mode')
 
         tk.Label(root, text=f"Recommended Practice-Mode:\n{practice_mode.name}").pack()
 
@@ -682,12 +721,13 @@ class PracticeModeState(BaseState):
             task.notes_left = []
             tk.Label(root, text=f"Practice Mode only Right Hand").place(x=1050, y=50, height=60, width=300)
 
+        print("Generating the practice mode\n")
         midiProcessing.generateMidi(task, outFiles=OUTPUT_FILES_STRS)
-
+        print("Generating the lilypond file\n")
         self.gen_ly_for_current_task()
         subprocess.run(['lilypond', '--png', '-o', TEMP_DIR, OUTPUT_LY_STR],
                        stderr=subprocess.DEVNULL)
-
+        print("Showing the updated score\n")
         self.show_note_sheet(OUTPUT_PNG_STR)
 
         root.update_idletasks()
@@ -747,7 +787,7 @@ class Statemachine:
 
     def __init__(self):
         self.scheduler = Scheduler()
-        self.gaussian_process = GaussianProcess()
+        self.gaussian_process = [] #trainGP_AAAI() #GaussianProcess(100)
         self.data_logger = DataLogger()
         self.username = ""
         self.complexity_level = 0
@@ -1032,10 +1072,12 @@ def set_guidance(guidance):
     global guidance_mode
     guidance_mode = guidance
 
+def set_experiment_stage(experiment):
+    global experiment_stage
+    experiment_stage = experiment
 
 def get_current_timestamp() -> str:
     return time.strftime("%Y_%m_%d-%H_%M_%S")
-
 
 if __name__ == '__main__':
     # create file output folder if it does not already exist

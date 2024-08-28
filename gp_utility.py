@@ -4,10 +4,6 @@ import numpy as np
 import pandas as pd
 import time
 
-import os,sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import config
-
 import matplotlib.pyplot as plt
 from statistics import mean 
 import json
@@ -127,7 +123,6 @@ class GaussianProcess:
         """
         if not hasattr(self, "bayes_opt"):
             # if there is no model yet, e.g. in the first iteration return random utility
-            print("There is no model yet, returning a random utility")
             return random.random()
 
         bayes_opt = self._get_bayes_opt()
@@ -157,11 +152,8 @@ class GaussianProcess:
             all_practice_modes = [PracticeMode.IMP_PITCH, PracticeMode.IMP_TIMING]
         # epsilon-greedy
         if random.random() > epsilon:
-            utilities = [self.get_estimate(error, bpm, pm)
-                               for pm in all_practice_modes]
-            #print("The utility of pitch and timing practice modes are: ")
-            #print(utilities)
-            max_i = np.argmax(utilities)
+            max_i = np.argmax([self.get_estimate(error, bpm, pm)
+                               for pm in all_practice_modes])
             return all_practice_modes[max_i]
         else:
             return np.random.choice(all_practice_modes)
@@ -382,14 +374,13 @@ def policy_add_test(gauss_model, test_points,a,  mean_utility):
         diff = abs (r-w)
         
         if best_estimated == expert_practice_mode:
-            right_utility += 1.0 # diff # maximize
+            right_utility += diff # maximize
             
         else:
-            wrong_utility += 1.0 # diff # penalize 
+            wrong_utility += diff # penalize 
             
     print ("accumulated correct=", right_utility,  "wrong =" ,wrong_utility)
-    return wrong_utility/right_utility
-    #return (1/right_utility) + 0.1 *wrong_utility
+    return (1/right_utility) + 0.1 *wrong_utility
     # the further the correct from the wrong the wrose. 
     #wrong_utility/right_utility
 
@@ -466,10 +457,8 @@ def optimal_gp_index(gauss_models, policy_diff, max_iter):
     return best_model
 
 
-def trainGP_AAAI() -> GaussianProcess:
-    print("Training model from AAAI data")
-    EXPERT_PATH = ['subject1.h5','subject2.h5','subject3.h5','subject4.h5','subject6.h5']
-#    EXPERT_PATH = ['Avigail_expert_session.h5', 'Itai_expert_session.h5', 'Lali_expert_session.h5', 'elad_demo_session.h5', "Arbelle_expert_session.h5", "Danielle_expert_session.h5"]
+def trainGP_AAAI():
+    EXPERT_PATH = ['Avigail_expert_session.h5', 'Itai_expert_session.h5', 'Lali_expert_session.h5', 'elad_demo_session.h5', "Arbelle_expert_session.h5", "Danielle_expert_session.h5"]
     combined_df = pd.DataFrame()  # Create an empty DataFrame to store the combined data
     global expert_data
 
@@ -527,7 +516,7 @@ def trainGP_AAAI() -> GaussianProcess:
           {'name': 'mean_utility', 'type': 'continuous', 'domain': (-10,10)}]
 
     # iterate over the bounds at least as many times. 
-    max_iter_index= 50
+    max_iter_index= 30
 
     kernel_type = 'Matern52'
 
@@ -541,15 +530,8 @@ def trainGP_AAAI() -> GaussianProcess:
                               acquisition_jitter=0.05,
                               num_cores=10)
 
-    print("running kernel Matern52")
     bo.run_optimization(max_iter=max_iter_index, verbosity=True)
     gp=optimal_gp_index(gp_list, policy_diff_list, max_iter_index)
-
-    best_hyperparameters = bo.x_opt
-    best_mean_policy_diff = bo.fx_opt
-
-    print ("best hyperparams", bo.x_opt)
-    print ("best policy diff", bo.fx_opt)
 
     #plot_best_policy(gp, 70)
 
@@ -566,49 +548,15 @@ def trainGP_AAAI() -> GaussianProcess:
                             acquisition_jitter=0.05,
                             num_cores=10)
     
-    print("running kernel RatQuad")
     bo.run_optimization(max_iter=max_iter_index, verbosity=True)
     gp=optimal_gp_index(gp_list, policy_diff_list, max_iter_index)
 
-    best_hyperparameters = bo.x_opt
-    best_mean_policy_diff = bo.fx_opt
-
-    print ("best hyperparams", bo.x_opt)
-    print ("best policy diff", bo.fx_opt)
-
-    #initialize the hyper parameters bound for different kernels
-    kernel_type = 'RBF'
-
-    # object function includes the definition of the kernel type, not the kernel object.     
-    obj_func = lambda x: objective_function(x, kernel_type)
-    
-    # set the bounds for the optimization process here! 
-    bo = BayesianOptimization(f=obj_func,     
-                            domain=bounds,
-                            acquisition_type='EI',
-                            acquisition_jitter=0.05,
-                            num_cores=10)
-    
-    print("running kernel RBF")
-    bo.run_optimization(max_iter=max_iter_index, verbosity=True)
-    gp=optimal_gp_index(gp_list, policy_diff_list, max_iter_index)
-
-    best_hyperparameters = bo.x_opt
-    best_mean_policy_diff = bo.fx_opt
-
-    print ("best hyperparams", bo.x_opt)
-    print ("best policy diff", bo.fx_opt)
-
-    gp.bayes_opt = bo
-
-    config.hyperparameters = bo.x_opt
-    config.mean_policy_diff = bo.fx_opt
+    hyperparameters = bo.x_opt
+    mean_policy_diff = bo.fx_opt
 
     #plot_best_policy(gp, 70)
-    print(config.hyperparameters)
-    print(config.mean_policy_diff)
-
-    return gp
+    print(hyperparameters)
+    print(mean_policy_diff)
 
 if __name__ == '__main__':
     trainGP_AAAI();

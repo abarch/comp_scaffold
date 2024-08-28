@@ -38,7 +38,8 @@ def midi2taskdata(midifile_path):
 
     # calculate the total number of bars from the sum of midi ticks and the time signature
     n_beats = max(time1, time2) / midi.ticks_per_beat
-    no_of_bars = math.ceil(n_beats / time_signature[0]) + 2
+    no_of_bars = math.ceil(n_beats / time_signature[0] * time_signature[1] / 4)  + 2
+    print("there are " + str(no_of_bars) + " bars")
 
     # set left and right hand
     right, left = len(midi.tracks) >= 2, len(midi.tracks) > 2

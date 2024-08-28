@@ -192,7 +192,12 @@ def generateMidi(task, outFiles):
     write_midi(outFiles[0], mf)
 
     ### METRONOME ###
-    add_metronome(task.number_of_bars - 1, numerator, outFiles[1], True, mf_without_trailing_notes)
+    if denominator==4: # tested for 2/4 and 4/4
+        add_metronome(task.number_of_bars - 1, numerator, outFiles[1], True, mf_without_trailing_notes)
+    elif numerator==6 and denominator==8 : # for 6/8 - have two beats per bar
+        add_metronome(task.number_of_bars - 1, 2 , outFiles[1], True, mf_without_trailing_notes, 1.5)
+    else:
+        raise Exception("Unknown time signature for adding metronome")
 
     ### FINGERNUMBERS ###
     print("generated notes right: " + str(count_notes_right) + " generated notes left: " + str(count_notes_left))
@@ -202,7 +207,7 @@ def generateMidi(task, outFiles):
         ## i didn't write this code but I assume it wants to make sure that 
         ## if a hand is playing it has at least 8 notes.
         
-        sf, measures, bpm = generate_fingers_and_write_xml(outFiles[0], outFiles[3], right, left)
+        sf, measures, bpm = generate_fingers_and_write_xml(outFiles[0], outFiles[3], right, left,False)
         write_midi(outFiles[0], mf_without_trailing_notes)
         add_fingernumbers(outFiles[2], sf, False, right, left, mf_without_trailing_notes, False)
     
@@ -239,10 +244,13 @@ def generateMidi(task, outFiles):
 
     ### parse the exact times back from the midi file
     ## extremly unintuitive, but the most straight forward way i fear.
+    print("writing temp file")
     temp_mido_file = mido.MidiFile(outFiles[0])
+    print("converting messages to note events left")
     mid_left = _midi_messages_to_note_events(temp_mido_file.tracks[2], temp_mido_file)
+    print("converting messages to note events right")
     mid_right = _midi_messages_to_note_events(temp_mido_file.tracks[1], temp_mido_file)
-
+    print("registering midi events")
     task.midi.register_midi_events(mid_left, mid_right)
 
  
@@ -275,7 +283,7 @@ def _midi_messages_to_note_events(messages, mido_file):
         
     return out
 
-def add_metronome(bars, numerator, outFile, writeFile, mf):
+def add_metronome(bars, numerator, outFile, writeFile, mf, duration=1):
     """
     Adds metronome notes to the respective staff in a MIDIUtil object.
 
@@ -284,6 +292,7 @@ def add_metronome(bars, numerator, outFile, writeFile, mf):
     @param outFile: Output MIDI files.
     @param writeFile: True for writing the MIDIUtil object to a MIDI file.
     @param mf: MIDIUtil object.
+    @param duration: duration of each beat (default=1 -> quarter note)
     @return: None
     """
 
@@ -301,17 +310,17 @@ def add_metronome(bars, numerator, outFile, writeFile, mf):
         mf.addNote(track=settings.M_TRACK,
                    channel=settings.CHANNEL_METRO,
                    pitch=pitch,
-                   time=t,
-                   duration=1,
+                   time=t * duration,
+                   duration=duration,
                    volume=settings.VOLUME)
-        print("met channel: ",settings.CHANNEL_METRO)
+        #print("met channel: ",settings.CHANNEL_METRO)
 
     if writeFile:
         # write 2nd MIDI file (with metronome)
         write_midi(outFile, mf)
 
 
-def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left):
+def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left, generateFingering=False):
     """
     Computes the optimal fingering numbers using PianoPlayer and stores them
     to a MusicXML file.
@@ -320,6 +329,7 @@ def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left):
     @param mxmlFile: Output MusicXML file.
     @param right: True for generating notes for the right hand.
     @param left: True for generating notes for the left hand.
+    @param generateFinger: True to generate fingering
     @return: From PianoPlayer: score file, measure number, bpm
     """
     pianoplayer = pianoplayer_interface.PianoplayerInterface(midiFile)
@@ -328,8 +338,11 @@ def generate_fingers_and_write_xml(midiFile, mxmlFile, right, left):
         lbeam = 0
     if len(pianoplayer.get_score().parts) <= 1 and right and left:
         raise Exception("both hands selected but only one beam in score!")
-    pianoplayer.generate_fingernumbers(left and not right, right and not left, 0, lbeam,
-                                       pianoplayer.get_measure_number())
+    if generateFingering:
+        pianoplayer.generate_fingernumbers(left and not right, right and not left, 0, lbeam,
+            pianoplayer.get_measure_number())
+    else:
+        print("skipping generating fingering")
     pianoplayer.write_output(mxmlFile)
     return pianoplayer.get_score(), pianoplayer.get_measure_number(), pianoplayer.get_bpm()
 

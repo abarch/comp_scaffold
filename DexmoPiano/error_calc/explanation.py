@@ -170,10 +170,26 @@ def get_explanation(task_data, actual, mapping,
         print("error_timing ", error_timing)
         print ("task data bpm ", task_data.bpm)
 
-        errors.append(Error(pitch=error_pitch / total_time_note_on,
+        # if nothing was played (useful in debugging)
+        if (number - notes_missing)==0:
+            errors.append(Error(pitch=error_pitch / total_time_note_on,
                             note_hold_time=error_note_hold_time / (
                                         task_data.number_of_bars * task_data.time_signature[0]),
-                            # how to get on number of bars and signature(?)
+                            # how to get on number of bars and signature(?)                            
+                            timing=0, #   number),
+                            n_missing_notes=notes_missing / number,
+                            t_missing_notes=notes_missing_t / number,
+                            n_extra_notes=len(extra_notes_dict[hand]) / number,
+                            t_extra_notes=sum(
+                                extra.note_hold_time for extra in extra_notes_dict[hand]),
+                            number_of_notes=num_notes
+                            ))
+                   
+        else:
+            errors.append(Error(pitch=error_pitch / total_time_note_on,
+                            note_hold_time=error_note_hold_time / (
+                                        task_data.number_of_bars * task_data.time_signature[0]),
+                            # how to get on number of bars and signature(?)                            
                             timing=error_timing / (number - notes_missing), #   number),
                             n_missing_notes=notes_missing / number,
                             t_missing_notes=notes_missing_t / number,
