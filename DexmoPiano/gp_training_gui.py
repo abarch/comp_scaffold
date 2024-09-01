@@ -643,7 +643,7 @@ class PlayCompleteSong(BaseState):
                 self.practice_parameters["error_before_practice"], error),
                                                                      self.scheduler.current_task_data().parameters,
                                                                      self.practice_parameters["practice_mode"], utility,
-                                                                     False)
+                                                                     True)
 
         if experiment_stage!="Practice":
             print('No practice mode for this part of the experiment')
@@ -813,7 +813,7 @@ class Statemachine:
     """
 
     def save_data_point_and_add_to_gaussian_process(self, midi_name: str, error, task_parameters: TaskParameters,
-                                                    practice_mode, utility: float, dontUpdateGP = True):
+                                                    practice_mode, utility: float, dontUpdateGP = False):
         """
         Saves a data point to the database and adds it to the gaussian process.
         @param midi_name: name of the midi file

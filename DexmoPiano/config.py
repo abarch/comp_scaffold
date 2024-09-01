@@ -17,5 +17,5 @@ vnotes = []
 
 guidance_mode = ""
 
-hyperparameters = []
+hyperparameters = [0.5,0] # default values for a, MEAN_UTILITY
 mean_policy_diff = []
